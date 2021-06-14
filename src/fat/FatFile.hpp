@@ -1,48 +1,18 @@
-/*
- * Copyright (C) 2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
- 
-package de.waldheinz.fs.fat;
+#include "../AbstractFsObject.hpp"
+#include "../FsFile.hpp"
 
-import de.waldheinz.fs.AbstractFsObject;
-import java.io.IOException;
-import de.waldheinz.fs.FsFile;
-import de.waldheinz.fs.ReadOnlyException;
-import java.io.EOFException;
-import java.nio.ByteBuffer;
-
-/**
- * The in-memory representation of a single file (chain of clusters) on a
- * FAT file system.
- * 
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- * @since 0.6
- */
-public const class FatFile extends AbstractFsObject implements FsFile {
-    private const FatDirectoryEntry entry;
-    private const ClusterChain chain;
+namespace akaifat::fat {
+class FatFile : public akaifat::AbstractFsObject, public akaifat::FsFile {
+private:
+    const FatDirectoryEntry entry;
+    const ClusterChain chain;
     
-    private FatFile(FatDirectoryEntry myEntry, ClusterChain chain) {
-        super(myEntry.isReadOnly());
-        
-        entry = myEntry;
-        chain = chain;
+    FatFile(FatDirectoryEntry myEntry, ClusterChain _chain)
+    : akaifat::AbstractFsObject(myEntry.isReadOnly()), entry (myEntry), chain (_chain)
+    {
     }
     
+public:
     static FatFile get(Fat fat, FatDirectoryEntry entry)
             throw (std::exception) {
         
@@ -60,31 +30,13 @@ public const class FatFile extends AbstractFsObject implements FsFile {
         return new FatFile(entry, cc);
     }
     
-    /**
-     * Returns the length of this file in bytes. This is the length that
-     * is stored in the directory entry that is associated with this file.
-     * 
-     * @return long the length that is recorded for this file
-     */
-    @Override
-    public long getLength() {
+     long getLength() override {
         checkValid();
         
         return entry.getLength();
     }
     
-    /**
-     * Sets the size (in bytes) of this file. Because
-     * {@link #write(long, java.nio.ByteBuffer) writing} to the file will grow
-     * it automatically if needed, this method is mainly usefull for truncating
-     * a file. 
-     *
-     * @param length the new length of the file in bytes
-     * @throws ReadOnlyException if this file is read-only
-     * @throw (std::exception) on error updating the file size
-     */
-    @Override
-    public void setLength(long length) throws ReadOnlyException, IOException {
+     void setLength(long length) throw (ReadOnlyException, IOException) override {
         checkWritable();
         
         if (getLength() == length) return;
@@ -95,21 +47,7 @@ public const class FatFile extends AbstractFsObject implements FsFile {
         entry.setLength(length);
     }
     
-    /**
-     * <p>
-     * {@inheritDoc}
-     * </p><p>
-     * Unless this file is {@link #isReadOnly() read-ony}, this method also
-     * updates the "last accessed" field in the directory entry that is
-     * associated with this file.
-     * </p>
-     * 
-     * @param offset {@inheritDoc}
-     * @param dest {@inheritDoc}
-     * @see FatDirectoryEntry#setLastAccessed(long)
-     */
-    @Override
-    public void read(long offset, ByteBuffer dest) throw (std::exception) {
+    void read(long offset, ByteBuffer dest) throw (std::exception) override {
         checkValid();
         
         const int len = dest.remaining();
@@ -123,23 +61,8 @@ public const class FatFile extends AbstractFsObject implements FsFile {
         chain.readData(offset, dest);
     }
 
-    /**
-     * <p>
-     * {@inheritDoc}
-     * </p><p>
-     * If the data to be written extends beyond the current
-     * {@link #getLength() length} of this file, an attempt is made to
-     * {@link #setLength(long) grow} the file so that the data will fit.
-     * Additionally, this method updates the "last accessed" and "last modified"
-     * fields on the directory entry that is associated with this file.
-     * </p>
-     *
-     * @param offset {@inheritDoc}
-     * @param srcBuf {@inheritDoc}
-     */
-    @Override
-    public void write(long offset, ByteBuffer srcBuf)
-            throws ReadOnlyException, IOException {
+    void write(long offset, ByteBuffer srcBuf)
+            throw (ReadOnlyException, std::exception) override {
 
         checkWritable();
         
@@ -159,35 +82,20 @@ public const class FatFile extends AbstractFsObject implements FsFile {
      *
      * @throws ReadOnlyException if this {@code FatFile} is read-only
      */
-    @Override
-    public void flush() throws ReadOnlyException {
+    void flush() throw (std::exception) override {
         checkWritable();
-        
-        /* nothing else to do */
     }
     
-    /**
-     * Returns the {@code ClusterChain} that holds the contents of
-     * this {@code FatFile}.
-     *
-     * @return the file's {@code ClusterChain}
-     */
     ClusterChain getChain() {
         checkValid();
         
         return chain;
     }
     
-    /**
-     * Returns a human-readable string representation of this {@code FatFile},
-     * mainly for debugging purposes.
-     *
-     * @return a string describing this {@code FatFile}
-     */
-    @Override
-    public std::string tostd::string() {
+    std::string tostd::string() override {
         return getClass().getSimpleName() + " [length=" + getLength() +
                 ", first cluster=" + chain.getStartCluster() + "]";
     }
     
+};
 }

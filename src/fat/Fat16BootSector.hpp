@@ -1,105 +1,33 @@
-/*
- * Copyright (C) 2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
+#include "BootSector.hpp"
 
-package de.waldheinz.fs.fat;
+namespace akaifat::fat {
+class Fat16BootSector : public BootSector {
+public:
+    static const int DEFAULT_ROOT_DIR_ENTRY_COUNT = 512;
 
-import de.waldheinz.fs.BlockDevice;
-import java.io.IOException;
-
-/**
- * The boot sector layout as used by the FAT12 / FAT16 variants.
- *
- * @author Matthias Treydte &lt;matthias.treydte at meetwise.com&gt;
- */
-const class Fat16BootSector extends BootSector {
-
-    /**
-     * The default number of entries for the root directory.
-     * 
-     * @see #getRootDirEntryCount()
-     * @see #setRootDirEntryCount(int) 
-     */
-    public static const int DEFAULT_ROOT_DIR_ENTRY_COUNT = 512;
-
-    /**
-     * The default volume label.
-     */
-    public static const std::string DEFAULT_VOLUME_LABEL = "NO NAME"; //NOI18N
+    static const std::string DEFAULT_VOLUME_LABEL = "NO NAME"; //NOI18N
     
-    /**
-     * The maximum number of clusters for a FAT12 file system. This is actually
-     * the number of clusters where mkdosfs stop complaining about a FAT16
-     * partition having not enough sectors, so it would be misinterpreted
-     * as FAT12 without special handling.
-     *
-     * @see #getNrLogicalSectors()
-     */
-    public static const int MAX_FAT12_CLUSTERS = 4084;
+    static const int MAX_FAT12_CLUSTERS = 4084;
 
-    public static const int MAX_FAT16_CLUSTERS = 65524;
+    static const int MAX_FAT16_CLUSTERS = 65524;
 
-    /**
-     * The offset to the sectors per FAT value.
-     */
-    public static const int SECTORS_PER_FAT_OFFSET = 0x16;
+    static const int SECTORS_PER_FAT_OFFSET = 0x16;
 
-    /**
-     * The offset to the root directory entry count value.
-     *
-     * @see #getRootDirEntryCount()
-     * @see #setRootDirEntryCount(int) 
-     */
-    public static const int ROOT_DIR_ENTRIES_OFFSET = 0x11;
+    static const int ROOT_DIR_ENTRIES_OFFSET = 0x11;
 
-    /**
-     * The offset to the first byte of the volume label.
-     */
-    public static const int VOLUME_LABEL_OFFSET = 0x2b;
+    static const int VOLUME_LABEL_OFFSET = 0x2b;
     
-    /**
-     * Offset to the FAT file system type string.
-     *
-     * @see #getFileSystemType() 
-     */
-    public static const int FILE_SYSTEM_TYPE_OFFSET = 0x36;
+    static const int FILE_SYSTEM_TYPE_OFFSET = 0x36;
     
-    /**
-     * The maximum length of the volume label.
-     */
-    public static const int MAX_VOLUME_LABEL_LENGTH = 11;
+    static const int MAX_VOLUME_LABEL_LENGTH = 11;
     
-    public static const int EXTENDED_BOOT_SIGNATURE_OFFSET = 0x26;
+    static const int EXTENDED_BOOT_SIGNATURE_OFFSET = 0x26;
 
-    /**
-     * Creates a new {@code Fat16BootSector} for the specified device.
-     *
-     * @param device the {@code BlockDevice} holding the boot sector
-     */
-    public Fat16BootSector(BlockDevice device) {
+    Fat16BootSector(BlockDevice device) {
         super(device);
     }
-    
-    /**
-     * Returns the volume label that is stored in this boot sector.
-     *
-     * @return the volume label
-     */
-    public std::string getVolumeLabel() {
+
+    std::string getVolumeLabel() {
         const std::stringBuilder sb = new std::stringBuilder();
 
         for (int i=0; i < MAX_VOLUME_LABEL_LENGTH; i++) {
@@ -115,14 +43,7 @@ const class Fat16BootSector extends BootSector {
         return sb.tostd::string();
     }
 
-    /**
-     * Sets the volume label that is stored in this boot sector.
-     *
-     * @param label the new volume label
-     * @throws IllegalArgumentException if the specified label is longer
-     *      than {@link #MAX_VOLUME_LABEL_LENGTH}
-     */
-    public void setVolumeLabel(std::string label) throws IllegalArgumentException {
+    void setVolumeLabel(std::string label) throws IllegalArgumentException {
         if (label.length() > MAX_VOLUME_LABEL_LENGTH)
             throw new IllegalArgumentException("volume label too long");
 
@@ -131,24 +52,14 @@ const class Fat16BootSector extends BootSector {
                     i < label.length() ? label.charAt(i) : 0);
         }
     }
+
     
-    /**
-     * Gets the number of sectors/fat for FAT 12/16.
-     *
-     * @return int
-     */
-    @Override
-    public long getSectorsPerFat() {
+    long getSectorsPerFat() override {
         return get16(SECTORS_PER_FAT_OFFSET);
     }
 
-    /**
-     * Sets the number of sectors/fat
-     *
-     * @param v  the new number of sectors per fat
-     */
-    @Override
-    public void setSectorsPerFat(long v) {
+    
+    void setSectorsPerFat(long v) override {
         if (v == getSectorsPerFat()) return;
         if (v > 0x7FFF) throw new IllegalArgumentException(
                 "too many sectors for a FAT12/16");
@@ -156,8 +67,8 @@ const class Fat16BootSector extends BootSector {
         set16(SECTORS_PER_FAT_OFFSET, (int)v);
     }
 
-    @Override
-    public FatType getFatType() {
+    
+    FatType getFatType() override {
         const long rootDirSectors = ((getRootDirEntryCount() * 32) +
                 (getBytesPerSector() - 1)) / getBytesPerSector();
         const long dataSectors = getSectorCount() -
@@ -172,8 +83,8 @@ const class Fat16BootSector extends BootSector {
             FatType.FAT16 : FatType.FAT12;
     }
     
-    @Override
-    public void setSectorCount(long count) {
+    
+    void setSectorCount(long count) override {
         if (count > 65535) {
             setNrLogicalSectors(0);
             setNrTotalSectors(count);
@@ -183,51 +94,41 @@ const class Fat16BootSector extends BootSector {
         }
     }
     
-    @Override
-    public long getSectorCount() {
+    
+    long getSectorCount() override {
         if (getNrLogicalSectors() == 0) return getNrTotalSectors();
         else return getNrLogicalSectors();
     }
     
-    /**
-     * Gets the number of entries in the root directory.
-     *
-     * @return int the root directory entry count
-     */
-    @Override
-    public int getRootDirEntryCount() {
+    
+    int getRootDirEntryCount() override {
         return get16(ROOT_DIR_ENTRIES_OFFSET);
     }
     
-    /**
-     * Sets the number of entries in the root directory
-     *
-     * @param v the new number of entries in the root directory
-     * @throws IllegalArgumentException for negative values
-     */
-    public void setRootDirEntryCount(int v) throws IllegalArgumentException {
+    void setRootDirEntryCount(int v) throws IllegalArgumentException {
         if (v < 0) throw new IllegalArgumentException();
         if (v == getRootDirEntryCount()) return;
         
         set16(ROOT_DIR_ENTRIES_OFFSET, v);
     }
     
-    @Override
-    public void init() throw (std::exception) {
+    
+    void init() throw (std::exception) override {
         super.init();
         
         setRootDirEntryCount(DEFAULT_ROOT_DIR_ENTRY_COUNT);
         setVolumeLabel(DEFAULT_VOLUME_LABEL);
     }
 
-    @Override
-    public int getFileSystemTypeLabelOffset() {
+    
+    int getFileSystemTypeLabelOffset() override {
         return FILE_SYSTEM_TYPE_OFFSET;
     }
 
-    @Override
-    public int getExtendedBootSignatureOffset() {
+    
+    int getExtendedBootSignatureOffset() override {
         return EXTENDED_BOOT_SIGNATURE_OFFSET;
     }
     
+};
 }

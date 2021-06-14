@@ -1,65 +1,26 @@
-/*
- * Copyright (C) 2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
+#include "BootSector.hpp"
 
-package de.waldheinz.fs.fat;
+namespace akaifat::fat {
+class Fat32BootSector : public BootSector {
+public:
+    const static int ROOT_DIR_FIRST_CLUSTER_OFFSET = 0x2c;
 
-import de.waldheinz.fs.BlockDevice;
-import java.io.IOException;
+    static const int SECTORS_PER_FAT_OFFSET = 0x24;
 
-/**
- * Contains the FAT32 specific parts of the boot sector.
- *
- * @author Matthias Treydte &lt;matthias.treydte at meetwise.com&gt;
- */
-const class Fat32BootSector extends BootSector {
-
-    /**
-     * The offset to the entry specifying the first cluster of the FAT32
-     * root directory.
-     */
-    public const static int ROOT_DIR_FIRST_CLUSTER_OFFSET = 0x2c;
-
-    /**
-     * The offset to the 4 bytes specifying the sectors per FAT value.
-     */
-    public static const int SECTORS_PER_FAT_OFFSET = 0x24;
-
-    /**
-     * Offset to the file system type label.
-     */
-    public static const int FILE_SYSTEM_TYPE_OFFSET = 0x52;
+    static const int FILE_SYSTEM_TYPE_OFFSET = 0x52;
     
-    public static const int VERSION_OFFSET = 0x2a;
-    public static const int VERSION = 0;
+    static const int VERSION_OFFSET = 0x2a;
+    static const int VERSION = 0;
 
-    public static const int FS_INFO_SECTOR_OFFSET = 0x30;
-    public static const int BOOT_SECTOR_COPY_OFFSET = 0x32;
-    public static const int EXTENDED_BOOT_SIGNATURE_OFFSET = 0x42;
+    static const int FS_INFO_SECTOR_OFFSET = 0x30;
+    static const int BOOT_SECTOR_COPY_OFFSET = 0x32;
+    static const int EXTENDED_BOOT_SIGNATURE_OFFSET = 0x42;
     
-    /*
-     * TODO: make this constructor private
-     */
-    public Fat32BootSector(BlockDevice device) throw (std::exception) {
+    Fat32BootSector(BlockDevice device) throw (std::exception) {
         super(device);
     }
     
-    @Override
-    public void init() throw (std::exception) {
+    void init() throw (std::exception) override {
         super.init();
 
         set16(VERSION_OFFSET, VERSION);
@@ -67,32 +28,17 @@ const class Fat32BootSector extends BootSector {
         setBootSectorCopySector(6); /* as suggested by M$ */
     }
 
-    /**
-     * Returns the first cluster in the FAT that contains the root directory.
-     *
-     * @return the root directory's first cluster
-     */
-    public long getRootDirFirstCluster() {
+    long getRootDirFirstCluster() {
         return get32(ROOT_DIR_FIRST_CLUSTER_OFFSET);
     }
 
-    /**
-     * Sets the first cluster of the root directory.
-     *
-     * @param value the root directory's first cluster
-     */
-    public void setRootDirFirstCluster(long value) {
+    void setRootDirFirstCluster(long value) {
         if (getRootDirFirstCluster() == value) return;
         
         set32(ROOT_DIR_FIRST_CLUSTER_OFFSET, value);
     }
 
-    /**
-     * Sets the sectur number that contains a copy of the boot sector.
-     *
-     * @param sectNr the sector that contains a boot sector copy
-     */
-    public void setBootSectorCopySector(int sectNr) {
+    void setBootSectorCopySector(int sectNr) {
         if (getBootSectorCopySector() == sectNr) return;
         if (sectNr < 0) throw new IllegalArgumentException(
                 "boot sector copy sector must be >= 0");
@@ -100,22 +46,11 @@ const class Fat32BootSector extends BootSector {
         set16(BOOT_SECTOR_COPY_OFFSET, sectNr);
     }
     
-    /**
-     * Returns the sector that contains a copy of the boot sector, or 0 if
-     * there is no copy.
-     *
-     * @return the sector number of the boot sector copy
-     */
-    public int getBootSectorCopySector() {
+    int getBootSectorCopySector() {
         return get16(BOOT_SECTOR_COPY_OFFSET);
     }
 
-    /**
-     * Sets the 11-byte volume label stored at offset 0x47.
-     *
-     * @param label the new volume label, may be {@code null}
-     */
-    public void setVolumeLabel(std::string label) {
+    void setVolumeLabel(std::string label) {
         for (int i=0; i < 11; i++) {
             const byte c =
                     (label == null) ? 0 :
@@ -125,70 +60,52 @@ const class Fat32BootSector extends BootSector {
         }
     }
 
-    public int getFsInfoSectorNr() {
+    int getFsInfoSectorNr() {
         return get16(FS_INFO_SECTOR_OFFSET);
     }
 
-    public void setFsInfoSectorNr(int offset) {
+    void setFsInfoSectorNr(int offset) {
         if (getFsInfoSectorNr() == offset) return;
 
         set16(FS_INFO_SECTOR_OFFSET, offset);
     }
     
-    @Override
-    public void setSectorsPerFat(long v) {
+    void setSectorsPerFat(long v) override {
         if (getSectorsPerFat() == v) return;
         
         set32(SECTORS_PER_FAT_OFFSET, v);
     }
     
-    @Override
-    public long getSectorsPerFat() {
+    long getSectorsPerFat() override {
         return get32(SECTORS_PER_FAT_OFFSET);
     }
 
-    @Override
-    public FatType getFatType() {
+    FatType getFatType() override {
         return FatType.FAT32;
     }
 
-    @Override
-    public void setSectorCount(long count) {
+    void setSectorCount(long count) override {
         super.setNrTotalSectors(count);
     }
 
-    @Override
-    public long getSectorCount() {
+    long getSectorCount() override {
         return super.getNrTotalSectors();
     }
 
-    /**
-     * This is always 0 for FAT32.
-     *
-     * @return always 0
-     */
-    @Override
-    public int getRootDirEntryCount() {
+    Override
+    int getRootDirEntryCount() {
         return 0;
     }
     
-    public void setFileSystemId(int id) {
+    void setFileSystemId(int id) {
         super.set32(0x43, id);
     }
 
-    public int getFileSystemId() {
+    int getFileSystemId() {
         return (int) super.get32(0x43);
     }
 
-    /**
-     * Writes a copy of this boot sector to the specified device, if a copy
-     * is requested.
-     *
-     * @param device the device to write the boot sector copy to
-     * @throw (std::exception) on write error
-     * @see #getBootSectorCopySector() 
-     */
-    public void writeCopy(BlockDevice device) throw (std::exception) {
+    void writeCopy(BlockDevice device) throw (std::exception) {
         if (getBootSectorCopySector() > 0) {
             const long offset = (long)getBootSectorCopySector() * SIZE;
             buffer.rewind();
@@ -197,13 +114,12 @@ const class Fat32BootSector extends BootSector {
         }
     }
 
-    @Override
-    public int getFileSystemTypeLabelOffset() {
+    int getFileSystemTypeLabelOffset() override {
         return FILE_SYSTEM_TYPE_OFFSET;
     }
 
-    @Override
-    public int getExtendedBootSignatureOffset() {
+    int getExtendedBootSignatureOffset() override {
         return EXTENDED_BOOT_SIGNATURE_OFFSET;
     }
+};
 }
