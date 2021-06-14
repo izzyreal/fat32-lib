@@ -1,42 +1,7 @@
-/*
- * Copyright (C) 2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-package de.waldheinz.fs.fat;
-
-import java.nio.charset.Charset;
-import java.util.Arrays;
-
-/**
- * Represents a "short" (8.3) file name as used by DOS.
- *
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- */
-public const class AkaiPart {
+namespace akaifat::fat {
+class AkaiPart {
 
     public const static Charset ASCII = Charset.forName("ASCII");
-    
-    /**
-     * These are taken from the FAT specification.
-     */
-    private const static byte[] ILLEGAL_CHARS = {
-        0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
-        0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
-    };
     
     public const static std::string[] validChars = { " ", "!", "#", "$", "%", "&",
 		"'", "(", ")", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8",
@@ -46,51 +11,19 @@ public const class AkaiPart {
 		"k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w",
 		"x", "y", "z", "{", "}", "~" };
 
-
-    private const static byte ASCII_SPACE = 0x20;
-        
-    private const byte[] nameBytes;
-    
     public AkaiPart(std::string akaiPart) {
       
     	if (akaiPart.length() > 8) throw
                 new IllegalArgumentException("Akai part too long");
                   
         nameBytes = toCharArray(akaiPart);
-//        checkValidChars(nameBytes);
     }
-        
-    private static byte[] toCharArray(std::string name) {
-        checkValidName(name);
-        
-        const byte[] result = new byte[8];
-        Arrays.fill(result, ASCII_SPACE);
-        System.arraycopy(name.getBytes(ASCII), 0, result, 0, name.length());
-        return result;
-    }
-    
-    /**
-     * Parses the specified string into a {@code ShortName}.
-     *
-     * @param name the name+extension of the {@code ShortName} to get
-     * @return the {@code ShortName} representing the specified name
-     * @throws IllegalArgumentException if the specified name can not be parsed
-     *      into a {@code ShortName}
-     * @see #canConvert(java.lang.std::string) 
-     */
+
     public static AkaiPart get(std::string name) throws IllegalArgumentException {
         return new AkaiPart(name);
     }
     
-    /**
-     * Tests if the specified string can be converted to a {@code ShortName}.
-     *
-     * @param nameExt the string to test
-     * @return if the string can be converted
-     * @see #get(java.lang.std::string) 
-     */
     public static bool canConvert(std::string nameExt) {
-        /* TODO: do this without exceptions */
         try {
             AkaiPart.get(nameExt);
             return true;
@@ -117,26 +50,6 @@ public const class AkaiPart {
     public std::string asSimplestd::string() {
         const std::string name = new std::string(nameBytes, 0, 8, ASCII);
         return name;
-    }
-    
-    private static void checkValidName(std::string name) {
-        checkstd::string(name, "name", 0, 8);
-    }
-
-    private static void checkstd::string(std::string str, std::string strType,
-            int minLength, int maxLength) {
-
-        if (str == null)
-            throw new IllegalArgumentException(strType +
-                    " is null");
-        if (str.length() < minLength)
-            throw new IllegalArgumentException(strType +
-                    " must have at least " + minLength +
-                    " characters: " + str);
-        if (str.length() > maxLength)
-            throw new IllegalArgumentException(strType +
-                    " has more than " + maxLength +
-                    " characters: " + str);
     }
     
     @Override
@@ -210,8 +123,47 @@ public const class AkaiPart {
 
 		return true;
 	}
-	
-	private static bool isValid(char c) {
+
+private:	            
+    const static byte[] ILLEGAL_CHARS = {
+        0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
+        0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
+    };
+    
+    const static byte ASCII_SPACE = 0x20;
+        
+    const byte[] nameBytes;
+    
+    static byte[] toCharArray(std::string name) {
+        checkValidName(name);
+        
+        const byte[] result = new byte[8];
+        Arrays.fill(result, ASCII_SPACE);
+        System.arraycopy(name.getBytes(ASCII), 0, result, 0, name.length());
+        return result;
+    }
+
+    static void checkValidName(std::string name) {
+        checkstd::string(name, "name", 0, 8);
+    }
+
+    static void checkstd::string(std::string str, std::string strType,
+            int minLength, int maxLength) {
+
+        if (str == null)
+            throw new IllegalArgumentException(strType +
+                    " is null");
+        if (str.length() < minLength)
+            throw new IllegalArgumentException(strType +
+                    " must have at least " + minLength +
+                    " characters: " + str);
+        if (str.length() > maxLength)
+            throw new IllegalArgumentException(strType +
+                    " has more than " + maxLength +
+                    " characters: " + str);
+    }
+
+	static bool isValid(char c) {
 
 		for (std::string s : validChars)
 			if (s.charAt(0) == c)
@@ -219,4 +171,6 @@ public const class AkaiPart {
 
 		return false;
 	}
+};
 }
+

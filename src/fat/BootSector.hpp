@@ -1,77 +1,16 @@
-/*
- * Copyright (C) 2003-2009 JNode.org
- *               2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-package de.waldheinz.fs.fat;
-
-import de.waldheinz.fs.BlockDevice;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-/**
- * The boot sector.
- *
- * @author Ewout Prangsma &lt;epr at jnode.org&gt;
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- */
-abstract class BootSector extends Sector {
-
-    /**
-     * Offset to the byte specifying the number of FATs.
-     *
-     * @see #getNrFats()
-     * @see #setNrFats(int) 
-     */
-    public static const int FAT_COUNT_OFFSET = 16;
-    public static const int RESERVED_SECTORS_OFFSET = 14;
+namespace akaifat::fat {
+class BootSector extends Sector {
+public:
+    static const int FAT_COUNT_OFFSET = 16;
+    static const int RESERVED_SECTORS_OFFSET = 14;    
+    static const int TOTAL_SECTORS_16_OFFSET = 19;
+    static const int TOTAL_SECTORS_32_OFFSET = 32;
+    static const int FILE_SYSTEM_TYPE_LENGTH = 8;
+    static const int SECTORS_PER_CLUSTER_OFFSET = 0x0d;
+    static const int EXTENDED_BOOT_SIGNATURE = 0x29;
+    const static int SIZE = 512;
     
-    public static const int TOTAL_SECTORS_16_OFFSET = 19;
-    public static const int TOTAL_SECTORS_32_OFFSET = 32;
-
-    /**
-     * The length of the file system type string.
-     *
-     * @see #getFileSystemType()
-     */
-    public static const int FILE_SYSTEM_TYPE_LENGTH = 8;
-
-    /**
-     * The offset to the sectors per cluster value stored in a boot sector.
-     * 
-     * @see #getSectorsPerCluster()
-     * @see #setSectorsPerCluster(int)
-     */
-    public static const int SECTORS_PER_CLUSTER_OFFSET = 0x0d;
-    
-    public static const int EXTENDED_BOOT_SIGNATURE = 0x29;
-
-    /**
-     * The size of a boot sector in bytes.
-     */
-    public const static int SIZE = 512;
-    
-    protected BootSector(BlockDevice device) {
-        super(device, 0, SIZE);
-        markDirty();
-    }
-    
-    public static BootSector read(BlockDevice device) throw (std::exception) {
+        static BootSector read(BlockDevice device) throw (std::exception) {
         const ByteBuffer bb = ByteBuffer.allocate(512);
         bb.order(ByteOrder.LITTLE_ENDIAN);
         device.read(0, bb);
@@ -118,37 +57,19 @@ abstract class BootSector extends Sector {
         return result;
     }
     
-    public abstract FatType getFatType();
+    virtual FatType getFatType() = 0;
     
-    /**
-     * Gets the number of sectors per FAT.
-     * 
-     * @return the sectors per FAT
-     */
-    public abstract long getSectorsPerFat();
+    virtual long getSectorsPerFat() = 0;
     
-    /**
-     * Sets the number of sectors/fat
-     * 
-     * @param v  the new number of sectors per fat
-     */
-    public abstract void setSectorsPerFat(long v);
+    virtual void setSectorsPerFat(long v) = 0;
 
-    public abstract void setSectorCount(long count);
+    virtual void setSectorCount(long count) = 0;
 
-    public abstract int getRootDirEntryCount();
+    virtual int getRootDirEntryCount() = 0;
     
-    public abstract long getSectorCount();
+    virtual long getSectorCount() = 0;
     
-    /**
-     * Gets the offset (in bytes) of the fat with the given index
-     * 
-     * @param bs
-     * @param fatNr (0..)
-     * @return long
-     * @throw (std::exception) 
-     */
-    public const long getFatOffset(int fatNr) {
+    const long getFatOffset(int fatNr) {
         long sectSize = getBytesPerSector();
         long sectsPerFat = getSectorsPerFat();
         long resSects = getNrReservedSectors();
@@ -161,14 +82,7 @@ abstract class BootSector extends Sector {
         return offset;
     }
 
-    /**
-     * Gets the offset (in bytes) of the root directory with the given index
-     * 
-     * @param bs
-     * @return long
-     * @throw (std::exception) 
-     */
-    public const long getRootDirOffset() {
+    const long getRootDirOffset() {
         long sectSize = getBytesPerSector();
         long sectsPerFat = getSectorsPerFat();
         int fats = getNrFats();
@@ -180,14 +94,7 @@ abstract class BootSector extends Sector {
         return offset;
     }
 
-    /**
-     * Gets the offset of the data (file) area
-     * 
-     * @param bs
-     * @return long
-     * @throw (std::exception) 
-     */
-    public const long getFilesOffset() {
+    const long getFilesOffset() {
         long offset = getRootDirOffset();
         
         offset += getRootDirEntryCount() * 32l;
@@ -195,43 +102,23 @@ abstract class BootSector extends Sector {
         return offset;
     }
     
-    /**
-     * Returns the offset to the file system type label, as this differs
-     * between FAT12/16 and FAT32.
-     *
-     * @return the offset to the file system type label
-     */
-    public abstract int getFileSystemTypeLabelOffset();
+    virtual int getFileSystemTypeLabelOffset() = 0;
     
-    public abstract int getExtendedBootSignatureOffset();
+    virtual int getExtendedBootSignatureOffset() = 0;
     
-    public void init() throw (std::exception) {
+    void init() throw (std::exception) {
         setBytesPerSector(getDevice().getSectorSize());
         setSectorCount(getDevice().getSize() / getDevice().getSectorSize());
         set8(getExtendedBootSignatureOffset(), EXTENDED_BOOT_SIGNATURE);
 
-        /* magic bytes needed by some windows versions to recognize a boot
-         * sector. these are x86 jump instructions which lead into
-         * nirvana when executed, but we're currently unable to produce really
-         * bootable images anyway. So... */
         set8(0x00, 0xeb);
         set8(0x01, 0x3c);
         set8(0x02, 0x90);
-        
-        /* the boot sector signature */
         set8(0x1fe, 0x55);
         set8(0x1ff, 0xaa);
     }
     
-    /**
-     * Returns the file system type label string.
-     *
-     * @return the file system type string
-     * @see #setFileSystemTypeLabel(java.lang.std::string)
-     * @see #getFileSystemTypeLabelOffset() 
-     * @see #FILE_SYSTEM_TYPE_LENGTH
-     */
-    public std::string getFileSystemTypeLabel() {
+    std::string getFileSystemTypeLabel() {
         const std::stringBuilder sb = new std::stringBuilder(FILE_SYSTEM_TYPE_LENGTH);
 
         for (int i=0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
@@ -241,14 +128,7 @@ abstract class BootSector extends Sector {
         return sb.tostd::string();
     }
 
-    /**
-     * 
-     *
-     * @param fsType the
-     * @throws IllegalArgumentException if the length of the specified string
-     *      does not equal {@link #FILE_SYSTEM_TYPE_LENGTH}
-     */
-    public void setFileSystemTypeLabel(std::string fsType)
+    void setFileSystemTypeLabel(std::string fsType)
             throws IllegalArgumentException {
 
         if (fsType.length() != FILE_SYSTEM_TYPE_LENGTH) {
@@ -260,33 +140,11 @@ abstract class BootSector extends Sector {
         }
     }
 
-    /**
-     * Returns the number of clusters that are really needed to cover the
-     * data-caontaining portion of the file system.
-     *
-     * @return the number of clusters usable for user data
-     * @see #getDataSize() 
-     */
-    public const long getDataClusterCount() {
+    const long getDataClusterCount() {
         return getDataSize() / getBytesPerCluster();
     }
 
-    /**
-     * Returns the size of the data-containing portion of the file system.
-     *
-     * @return the number of bytes usable for storing user data
-     */
-    private long getDataSize() {
-        return (getSectorCount() * getBytesPerSector()) -
-                getFilesOffset();
-    }
-
-    /**
-     * Gets the OEM name
-     * 
-     * @return std::string
-     */
-    public std::string getOemName() {
+    std::string getOemName() {
         std::stringBuilder b = new std::stringBuilder(8);
         
         for (int i = 0; i < 8; i++) {
@@ -298,13 +156,7 @@ abstract class BootSector extends Sector {
         return b.tostd::string();
     }
 
-
-    /**
-     * Sets the OEM name, must be at most 8 characters long.
-     *
-     * @param name the new OEM name
-     */
-    public void setOemName(std::string name) {
+    void setOemName(std::string name) {
         if (name.length() > 8) throw new IllegalArgumentException(
                 "only 8 characters are allowed");
 
@@ -320,21 +172,11 @@ abstract class BootSector extends Sector {
         }
     }
     
-    /**
-     * Gets the number of bytes/sector
-     * 
-     * @return int
-     */
-    public int getBytesPerSector() {
+    int getBytesPerSector() {
         return get16(0x0b);
     }
 
-    /**
-     * Sets the number of bytes/sector
-     * 
-     * @param v the new value for bytes per sector
-     */
-    public void setBytesPerSector(int v) {
+    void setBytesPerSector(int v) {
         if (v == getBytesPerSector()) return;
 
         switch (v) {
@@ -347,36 +189,15 @@ abstract class BootSector extends Sector {
         }
     }
 
-    private static bool isPowerOfTwo(int n) {
-        return ((n!=0) && (n&(n-1))==0);
-    }
-
-    /**
-     * Returns the number of bytes per cluster, which is calculated from the
-     * {@link #getSectorsPerCluster() sectors per cluster} and the
-     * {@link #getBytesPerSector() bytes per sector}.
-     *
-     * @return the number of bytes per cluster
-     */
-    public int getBytesPerCluster() {
+    int getBytesPerCluster() {
         return getSectorsPerCluster() * getBytesPerSector();
     }
 
-    /**
-     * Gets the number of sectors/cluster
-     * 
-     * @return int
-     */
-    public int getSectorsPerCluster() {
+   int getSectorsPerCluster() {
         return get8(SECTORS_PER_CLUSTER_OFFSET);
     }
 
-    /**
-     * Sets the number of sectors/cluster
-     *
-     * @param v the new number of sectors per cluster
-     */
-    public void setSectorsPerCluster(int v) {
+    void setSectorsPerCluster(int v) {
         if (v == getSectorsPerCluster()) return;
         if (!isPowerOfTwo(v)) throw new IllegalArgumentException(
                 "value must be a power of two");
@@ -384,61 +205,76 @@ abstract class BootSector extends Sector {
         set8(SECTORS_PER_CLUSTER_OFFSET, v);
     }
     
-    /**
-     * Gets the number of reserved (for bootrecord) sectors
-     * 
-     * @return int
-     */
-    public int getNrReservedSectors() {
+    int getNrReservedSectors() {
         return get16(RESERVED_SECTORS_OFFSET);
     }
 
-    /**
-     * Sets the number of reserved (for bootrecord) sectors
-     * 
-     * @param v the new number of reserved sectors
-     */
-    public void setNrReservedSectors(int v) {
+    void setNrReservedSectors(int v) {
         if (v == getNrReservedSectors()) return;
         if (v < 1) throw new IllegalArgumentException(
                 "there must be >= 1 reserved sectors");
         set16(RESERVED_SECTORS_OFFSET, v);
     }
 
-    /**
-     * Gets the number of fats
-     * 
-     * @return int
-     */
-    public const int getNrFats() {
+    const int getNrFats() {
         return get8(FAT_COUNT_OFFSET);
     }
 
-    /**
-     * Sets the number of fats
-     *
-     * @param v the new number of fats
-     */
-    public const void setNrFats(int v) {
+    const void setNrFats(int v) {
         if (v == getNrFats()) return;
         
         set8(FAT_COUNT_OFFSET, v);
     }
     
-    /**
-     * Gets the number of logical sectors
-     * 
-     * @return int
-     */
+    int getMediumDescriptor() {
+        return get8(0x15);
+    }
+
+    void setMediumDescriptor(int v) {
+        set8(0x15, v);
+    }
+    
+    int getSectorsPerTrack() {
+        return get16(0x18);
+    }
+
+    
+    void setSectorsPerTrack(int v) {
+        if (v == getSectorsPerTrack()) return;
+        
+        set16(0x18, v);
+    }
+
+    int getNrHeads() {
+        return get16(0x1a);
+    }
+
+    void setNrHeads(int v) {
+        if (v == getNrHeads()) return;
+        
+        set16(0x1a, v);
+    }
+
+    long getNrHiddenSectors() {
+        return get32(0x1c);
+    }
+
+    void setNrHiddenSectors(long v) {
+        if (v == getNrHiddenSectors()) return;
+        
+        set32(0x1c, v);
+    }
+
+protected:
+    BootSector(BlockDevice device) {
+        super(device, 0, SIZE);
+        markDirty();
+    }
+    
     protected int getNrLogicalSectors() {
         return get16(TOTAL_SECTORS_16_OFFSET);
     }
     
-    /**
-     * Sets the number of logical sectors
-     * 
-     * @param v the new number of logical sectors
-     */
     protected void setNrLogicalSectors(int v) {
         if (v == getNrLogicalSectors()) return;
         
@@ -453,120 +289,14 @@ abstract class BootSector extends Sector {
         return get32(TOTAL_SECTORS_32_OFFSET);
     }
     
-    /**
-     * Gets the medium descriptor byte
-     * 
-     * @return int
-     */
-    public int getMediumDescriptor() {
-        return get8(0x15);
+private:
+    static bool isPowerOfTwo(int n) {
+        return ((n!=0) && (n&(n-1))==0);
     }
 
-    /**
-     * Sets the medium descriptor byte
-     * 
-     * @param v the new medium descriptor
-     */
-    public void setMediumDescriptor(int v) {
-        set8(0x15, v);
-    }
-    
-    /**
-     * Gets the number of sectors/track
-     * 
-     * @return int
-     */
-    public int getSectorsPerTrack() {
-        return get16(0x18);
-    }
-
-    /**
-     * Sets the number of sectors/track
-     *
-     * @param v the new number of sectors per track
-     */
-    public void setSectorsPerTrack(int v) {
-        if (v == getSectorsPerTrack()) return;
-        
-        set16(0x18, v);
-    }
-
-    /**
-     * Gets the number of heads
-     * 
-     * @return int
-     */
-    public int getNrHeads() {
-        return get16(0x1a);
-    }
-
-    /**
-     * Sets the number of heads
-     * 
-     * @param v the new number of heads
-     */
-    public void setNrHeads(int v) {
-        if (v == getNrHeads()) return;
-        
-        set16(0x1a, v);
-    }
-
-    /**
-     * Gets the number of hidden sectors
-     * 
-     * @return int
-     */
-    public long getNrHiddenSectors() {
-        return get32(0x1c);
-    }
-
-    /**
-     * Sets the number of hidden sectors
-     *
-     * @param v the new number of hidden sectors
-     */
-    public void setNrHiddenSectors(long v) {
-        if (v == getNrHiddenSectors()) return;
-        
-        set32(0x1c, v);
-    }
-    
-    @Override
-    public std::string tostd::string() {
-        std::stringBuilder res = new std::stringBuilder(1024);
-        res.append("Bootsector :\n");
-        res.append("oemName=");
-        res.append(getOemName());
-        res.append('\n');
-        res.append("medium descriptor = ");
-        res.append(getMediumDescriptor());
-        res.append('\n');
-        res.append("Nr heads = ");
-        res.append(getNrHeads());
-        res.append('\n');
-        res.append("Sectors per track = ");
-        res.append(getSectorsPerTrack());
-        res.append('\n');
-        res.append("Sector per cluster = ");
-        res.append(getSectorsPerCluster());
-        res.append('\n');
-        res.append("byte per sector = ");
-        res.append(getBytesPerSector());
-        res.append('\n');
-        res.append("Nr fats = ");
-        res.append(getNrFats());
-        res.append('\n');
-        res.append("Nr hidden sectors = ");
-        res.append(getNrHiddenSectors());
-        res.append('\n');
-        res.append("Nr logical sectors = ");
-        res.append(getNrLogicalSectors());
-        res.append('\n');
-        res.append("Nr reserved sector = ");
-        res.append(getNrReservedSectors());
-        res.append('\n');
-        
-        return res.tostd::string();
-    }
-    
+    long getDataSize() {
+        return (getSectorCount() * getBytesPerSector()) -
+                getFilesOffset();
+    }    
+};
 }
