@@ -1,213 +1,111 @@
-/*
- * Copyright (C) 2003-2009 JNode.org
- *               2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-package de.waldheinz.fs.fat;
-
-import de.waldheinz.fs.AbstractFsObject;
-import de.waldheinz.fs.FsDirectory;
-import de.waldheinz.fs.FsDirectoryEntry;
-import de.waldheinz.fs.ReadOnlyException;
-import java.io.IOException;
-
-/**
- * Represents an entry in a {@link FatLfnDirectory}. Besides implementing the
- * {@link FsDirectoryEntry} interface for FAT file systems, it allows access to
- * the {@link #setArchiveFlag(boolean) archive}, {@link #setHiddenFlag(boolean)
- * hidden}, {@link #setReadOnlyFlag(boolean) read-only} and
- * {@link #setSystemFlag(boolean) system} flags specifed for the FAT file
- * system.
- *
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- * @since 0.6
- */
-public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements FsDirectoryEntry {
-
+namespace akaifat::fat {
+class AkaiFatLfnDirectoryEntry : public AbstractFsObject, public FsDirectoryEntry
+{
+private:
 	const FatDirectoryEntry realEntry;
 
-	private AkaiFatLfnDirectory parent;
-	private std::string fileName;
+	AkaiFatLfnDirectory parent;
+	std::string fileName;
 
-	AkaiFatLfnDirectoryEntry(std::string name, AkaiFatLfnDirectory akaiFatLfnDirectory, bool directory) {
-
-		super(false);
-
-		parent = akaiFatLfnDirectory;
-		fileName = name;
-
+public:
+	AkaiFatLfnDirectoryEntry(std::string name, AkaiFatLfnDirectory akaiFatLfnDirectory, bool directory)
+  : AbstractFsObject (false), fileName (name), parent (akaiFatLfnDirectory)
+  {
 		realEntry = FatDirectoryEntry.create(akaiFatLfnDirectory.getFat().getFatType(), directory);
 		realEntry.setAkaiName(name);
 	}
 
-	AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory akaiFatLfnDirectory, FatDirectoryEntry realEntry, std::string fileName) {
-
-		super(akaiFatLfnDirectory.isReadOnly());
-
-		parent = akaiFatLfnDirectory;
-		realEntry = realEntry;
-		fileName = fileName;
+	AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory akaiFatLfnDirectory, FatDirectoryEntry _realEntry, std::string _fileName)
+  : AbstractFsObject(akaiFatLfnDirectory.isReadOnly()), parent (akaiFatLfnDirectory), realEntry (_realEntry), fileName (_fileName)
+  {
 	}
 
-	static AkaiFatLfnDirectoryEntry extract(AkaiFatLfnDirectory dir, int offset, int len) {
-
+	static AkaiFatLfnDirectoryEntry extract(AkaiFatLfnDirectory& dir, int offset, int len)
+  {
 		const FatDirectoryEntry realEntry = dir.dir.getEntry(offset + len - 1);
 		const std::string shortName = realEntry.getShortName().asSimplestd::string();
 		const std::string akaiPart = AkaiPart.parse(realEntry.data).asSimplestd::string().trim();
 		std::string part1 = AkaiFatLfnDirectory.splitName(shortName)[0].trim();
 		std::string ext = AkaiFatLfnDirectory.splitName(shortName)[1].trim();
-		if (ext.length() > 0) ext = "." + ext;
-		std::string akaiFileName = part1 + akaiPart + ext;
-		return new AkaiFatLfnDirectoryEntry(dir, realEntry, akaiFileName);
+	
+  	if (ext.length() > 0) ext = "." + ext;
+	
+  	std::string akaiFileName = part1 + akaiPart + ext;
+	
+  	return AkaiFatLfnDirectoryEntry(dir, realEntry, akaiFileName);
 	}
 
-	/**
-	 * Returns if this directory entry has the FAT "hidden" flag set.
-	 *
-	 * @return if this is a hidden directory entry
-	 * @see #setHiddenFlag(boolean)
-	 */
-	public bool isHiddenFlag() {
+	bool isHiddenFlag()
+  {
 		return realEntry.isHiddenFlag();
 	}
 
-	/**
-	 * Sets the "hidden" flag on this {@code FatLfnDirectoryEntry} to the
-	 * specified value.
-	 *
-	 * @param hidden
-	 *            if this entry should have the hidden flag set
-	 * @throws ReadOnlyException
-	 *             if this entry is read-only
-	 * @see #isHiddenFlag()
-	 */
-	public void setHiddenFlag(bool hidden) throws ReadOnlyException {
+	void setHiddenFlag(bool hidden)
+  {
 		checkWritable();
-
 		realEntry.setHiddenFlag(hidden);
 	}
 
-	/**
-	 * Returns if this directory entry has the FAT "system" flag set.
-	 *
-	 * @return if this is a "system" directory entry
-	 * @see #setSystemFlag(boolean)
-	 */
-	public bool isSystemFlag() {
+	bool isSystemFlag()
+  {
 		return realEntry.isSystemFlag();
 	}
 
-	/**
-	 * Sets the "system" flag on this {@code FatLfnDirectoryEntry} to the
-	 * specified value.
-	 *
-	 * @param systemEntry
-	 *            if this entry should have the system flag set
-	 * @throws ReadOnlyException
-	 *             if this entry is read-only
-	 * @see #isSystemFlag()
-	 */
-	public void setSystemFlag(bool systemEntry) throws ReadOnlyException {
+	void setSystemFlag(bool systemEntry)
+  {
 		checkWritable();
-
 		realEntry.setSystemFlag(systemEntry);
 	}
 
-	/**
-	 * Returns if this directory entry has the FAT "read-only" flag set. This
-	 * entry may still modified if {@link #isReadOnly()} returns {@code true}.
-	 *
-	 * @return if this entry has the read-only flag set
-	 * @see #setReadOnlyFlag(boolean)
-	 */
-	public bool isReadOnlyFlag() {
+	bool isReadOnlyFlag()
+  {
 		return realEntry.isReadonlyFlag();
 	}
 
-	/**
-	 * Sets the "read only" flag on this {@code FatLfnDirectoryEntry} to the
-	 * specified value. This method only modifies the read-only flag as
-	 * specified by the FAT file system, which is essentially ignored by the
-	 * fat32-lib. The true indicator if it is possible to alter this
-	 *
-	 * @param readOnly
-	 *            if this entry should be flagged as read only
-	 * @throws ReadOnlyException
-	 *             if this entry is read-only as given by {@link #isReadOnly()}
-	 *             method
-	 * @see #isReadOnlyFlag()
-	 */
-	public void setReadOnlyFlag(bool readOnly) throws ReadOnlyException {
+	void setReadOnlyFlag(bool readOnly)
+  {
 		checkWritable();
-
 		realEntry.setReadonlyFlag(readOnly);
 	}
 
-	/**
-	 * Returns if this directory entry has the FAT "archive" flag set.
-	 * 
-	 * @return if this entry has the archive flag set
-	 */
-	public bool isArchiveFlag() {
+	bool isArchiveFlag()
+  {
 		return realEntry.isArchiveFlag();
 	}
 
-	/**
-	 * Sets the "archive" flag on this {@code FatLfnDirectoryEntry} to the
-	 * specified value.
-	 *
-	 * @param archive
-	 *            if this entry should have the archive flag set
-	 * @throws ReadOnlyException
-	 *             if this entry is {@link #isReadOnly() read-only}
-	 */
-	public void setArchiveFlag(bool archive) throws ReadOnlyException {
+  void setArchiveFlag(bool archive)
+  {
 		checkWritable();
-
 		realEntry.setArchiveFlag(archive);
 	}
 
-	@Override
-	public std::string getName() {
+	std::string getName() override
+  {
 		checkValid();
 
 		return fileName;
 	}
 
-	public std::string getAkaiPartstd::string() {
+	std::string getAkaiPart()
+  {
 		if (isDirectory()) return "";
-		return AkaiPart.parse(realEntry.data).asSimplestd::string();
+		return AkaiPart.parse(realEntry.data).asSimpleString();
 	}
 
-	public void setAkaiPartstd::string(std::string s) {
+	void setAkaiPart(std::string s)
+  {
 		if (isDirectory()) return;
 		AkaiPart ap = new AkaiPart(s);
 		ap.write(realEntry.data);
 	}
 
-	@Override
-	public FsDirectory getParent() {
+	FsDirectory getParent() override
+  {
 		checkValid();
-
 		return parent;
 	}
 
-	@Override
-	public void setName(std::string newName) throw (std::exception) {
+	void setName(std::string newName) throw (std::exception) override {
 		checkWritable();
 
 		if (!parent.isFreeName(newName)) {
@@ -219,20 +117,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 		parent.linkEntry(this);
 	}
 
-	/**
-	 * Moves this entry to a new directory under the specified name.
-	 *
-	 * @param target
-	 *            the direcrory where this entry should be moved to
-	 * @param newName
-	 *            the new name under which this entry will be accessible in the
-	 *            target directory
-	 * @throws IOException
-	 *             on error moving this entry
-	 * @throws ReadOnlyException
-	 *             if this directory is read-only
-	 */
-	public void moveTo(AkaiFatLfnDirectory target, std::string newName) throws IOException, ReadOnlyException {
+	void moveTo(AkaiFatLfnDirectory target, std::string newName) {
 
 		checkWritable();
 
@@ -246,34 +131,25 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 		parent.linkEntry(this);
 	}
 
-	@Override
-	public FatFile getFile() throw (std::exception) {
+	FatFile getFile() throw (std::exception) override {
 		return parent.getFile(realEntry);
 	}
 
-	@Override
-	public AkaiFatLfnDirectory getDirectory() throw (std::exception) {
+	AkaiFatLfnDirectory getDirectory() throw (std::exception) override {
 		return parent.getDirectory(realEntry);
 	}
 
-	@Override
-	public std::string tostd::string() {
-		return "LFN = " + fileName + " / Akai name = " + getName();
-	}
-
-	@Override
-	public bool isFile() {
+	bool isFile() override {
 		return realEntry.isFile();
 	}
 
-	@Override
-	public bool isDirectory() {
+	bool isDirectory() override {
 		return realEntry.isDirectory();
 	}
 
-	@Override
-	public bool isDirty() {
+	bool isDirty() override {
 		return realEntry.isDirty();
 	}
 
+};
 }
