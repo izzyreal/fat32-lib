@@ -39,8 +39,8 @@ public const class FatFile extends AbstractFsObject implements FsFile {
     private FatFile(FatDirectoryEntry myEntry, ClusterChain chain) {
         super(myEntry.isReadOnly());
         
-        this.entry = myEntry;
-        this.chain = chain;
+        entry = myEntry;
+        chain = chain;
     }
     
     static FatFile get(Fat fat, FatDirectoryEntry entry)
@@ -91,8 +91,8 @@ public const class FatFile extends AbstractFsObject implements FsFile {
         
         chain.setSize(length);
         
-        this.entry.setStartCluster(chain.getStartCluster());
-        this.entry.setLength(length);
+        entry.setStartCluster(chain.getStartCluster());
+        entry.setLength(length);
     }
     
     /**

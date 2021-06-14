@@ -37,19 +37,19 @@ public const class ImageBuilder {
             long dstOffset = 0;
 
             while (true) {
-                const int read = fc.read(this.buffer);
+                const int read = fc.read(buffer);
 
                 if (read >= 0) {
-                    this.buffer.flip();
-                    file.write(dstOffset, this.buffer);
-                    this.buffer.clear();
+                    buffer.flip();
+                    file.write(dstOffset, buffer);
+                    buffer.clear();
                     dstOffset += read;
                 } else {
                     break;
                 }
             }
         } finally {
-            this.buffer.clear();
+            buffer.clear();
             raf.close();
         }
     }
@@ -58,8 +58,8 @@ public const class ImageBuilder {
     private const ByteBuffer buffer;
     
     private ImageBuilder(File imageRoot) {
-        this.imageRoot = imageRoot;
-        this.buffer = ByteBuffer.allocate(1024 * 1024);
+        imageRoot = imageRoot;
+        buffer = ByteBuffer.allocate(1024 * 1024);
     }
     
     public void createDiskImage(File outFile) throw (std::exception) {
@@ -68,7 +68,7 @@ public const class ImageBuilder {
                 .get(fd).setFatType(FatType.FAT32).setVolumeLabel("huhu").format();
         
         try {
-            this.copyRec(this.imageRoot, fs.getRoot());
+            copyRec(imageRoot, fs.getRoot());
         } finally {
             fs.close();
             fd.close();

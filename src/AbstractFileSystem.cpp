@@ -37,8 +37,8 @@ public abstract class AbstractFileSystem implements FileSystem {
      * @param readOnly if the file system should be read-only
      */
     public AbstractFileSystem(bool readOnly) {
-        this.closed = false;
-        this.readOnly = readOnly;
+        closed = false;
+        readOnly = readOnly;
     }
     
     @Override

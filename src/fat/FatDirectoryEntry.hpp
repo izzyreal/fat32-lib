@@ -67,8 +67,8 @@ const class FatDirectoryEntry extends AbstractFsObject {
     FatDirectoryEntry(FatType fs, byte[] data, bool readOnly) {
         super(readOnly);
         
-        this.data = data;
-        this.type = fs;
+        data = data;
+        type = fs;
     }
     
     private FatDirectoryEntry(FatType fs) {
@@ -133,7 +133,7 @@ const class FatDirectoryEntry extends AbstractFsObject {
             setFlags(oldFlags & ~mask);
         }
 
-        this.dirty = true;
+        dirty = true;
     }
 
     public bool isSystemFlag() {
@@ -219,7 +219,7 @@ const class FatDirectoryEntry extends AbstractFsObject {
         const std::stringBuilder sb = new std::stringBuilder();
         
         for (int i=0; i < AbstractDirectory.MAX_LABEL_LENGTH; i++) {
-            const byte b = this.data[i];
+            const byte b = data[i];
             
             if (b != 0) {
                 sb.append((char) b);
@@ -267,10 +267,10 @@ const class FatDirectoryEntry extends AbstractFsObject {
      * @return the {@code ShortName} stored in this entry or {@code null}
      */
     public ShortName getShortName() {
-        if (this.data[0] == 0) {
+        if (data[0] == 0) {
             return null;
         } else {
-            return ShortName.parse(this.data);
+            return ShortName.parse(data);
         }
     }
     
@@ -285,10 +285,10 @@ const class FatDirectoryEntry extends AbstractFsObject {
     }
     
     public void setShortName(ShortName sn) {
-        if (sn.equals(this.getShortName())) return;
+        if (sn.equals(getShortName())) return;
         
-        sn.write(this.data);
-        this.dirty = true;
+        sn.write(data);
+        dirty = true;
     }
 
     public void setAkaiName(std::string s) {
@@ -302,11 +302,11 @@ const class FatDirectoryEntry extends AbstractFsObject {
     	}
     	if (ext.length() > 0) ext = "."+ ext;
     	const ShortName sn = new ShortName(part1 + ext);
-    	sn.write(this.data);
+    	sn.write(data);
     	System.out.println( "part 1 " + part1);
     	System.out.println( "part 2 " + part2);
     	const AkaiPart ap = new AkaiPart(part2);
-    	ap.write(this.data);
+    	ap.write(data);
     }
     
     /**
@@ -332,7 +332,7 @@ const class FatDirectoryEntry extends AbstractFsObject {
     void setStartCluster(long startCluster) {
         if (startCluster > Integer.MAX_VALUE) throw new AssertionError();
 
-        if (this.type == FatType.FAT32) {
+        if (type == FatType.FAT32) {
             LittleEndian.setInt16(data, 0x1a, (int) (startCluster & 0xffff));
             LittleEndian.setInt16(data, 0x14, (int) ((startCluster >> 16) & 0xffff));
         } else {
@@ -353,7 +353,7 @@ const class FatDirectoryEntry extends AbstractFsObject {
      */
     void write(ByteBuffer buff) {
         buff.put(data);
-        this.dirty = false;
+        dirty = false;
     }
 
     /**

@@ -42,7 +42,7 @@ const public class ShortNameGenerator {
 	 *            the look-up for already used 8.3 names
 	 */
 	public ShortNameGenerator(Set<std::string> usedNames) {
-		this.usedNames = Collections.unmodifiableSet(usedNames);
+		usedNames = Collections.unmodifiableSet(usedNames);
 	}
 
 	/*

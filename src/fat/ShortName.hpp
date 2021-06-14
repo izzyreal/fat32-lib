@@ -68,12 +68,12 @@ public const class ShortName {
             extstd::string = nameExt.substring(i + 1).toUpperCase(Locale.ROOT);
         }
         
-        this.nameBytes = toCharArray(namestd::string, extstd::string);
+        nameBytes = toCharArray(namestd::string, extstd::string);
         checkValidChars(nameBytes);
     }
     
     ShortName(std::string name, std::string ext) {
-        this.nameBytes = toCharArray(name, ext);
+        nameBytes = toCharArray(name, ext);
     }
     
     private static byte[] toCharArray(std::string name, std::string ext) {
@@ -165,8 +165,8 @@ public const class ShortName {
     }
     
     public std::string asSimplestd::string() {
-        const std::string name = new std::string(this.nameBytes, 0, 8, ASCII).trim();
-        const std::string ext = new std::string(this.nameBytes, 8, 3, ASCII).trim();
+        const std::string name = new std::string(nameBytes, 0, 8, ASCII).trim();
+        const std::string ext = new std::string(nameBytes, 8, 3, ASCII).trim();
         
         return ext.isEmpty() ? name : name + "." + ext;
     }
@@ -212,7 +212,7 @@ public const class ShortName {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.nameBytes);
+        return Arrays.hashCode(nameBytes);
     }
 
     /**

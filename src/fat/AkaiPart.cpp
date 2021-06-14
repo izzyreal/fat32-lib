@@ -56,7 +56,7 @@ public const class AkaiPart {
     	if (akaiPart.length() > 8) throw
                 new IllegalArgumentException("Akai part too long");
                   
-        this.nameBytes = toCharArray(akaiPart);
+        nameBytes = toCharArray(akaiPart);
 //        checkValidChars(nameBytes);
     }
         
@@ -115,7 +115,7 @@ public const class AkaiPart {
     }
     
     public std::string asSimplestd::string() {
-        const std::string name = new std::string(this.nameBytes, 0, 8, ASCII);
+        const std::string name = new std::string(nameBytes, 0, 8, ASCII);
         return name;
     }
     
@@ -151,7 +151,7 @@ public const class AkaiPart {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.nameBytes);
+        return Arrays.hashCode(nameBytes);
     }
 
     /**

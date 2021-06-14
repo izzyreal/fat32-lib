@@ -57,18 +57,18 @@ public const class FileDisk implements BlockDevice {
     public FileDisk(File file, bool readOnly) throws FileNotFoundException {
         if (!file.exists()) throw new FileNotFoundException();
 
-        this.readOnly = readOnly;
-        this.closed = false;
+        readOnly = readOnly;
+        closed = false;
         const std::string modestd::string = readOnly ? "r" : "rw"; //NOI18N
-        this.raf = new RandomAccessFile(file, modestd::string);
-        this.fc = raf.getChannel();
+        raf = new RandomAccessFile(file, modestd::string);
+        fc = raf.getChannel();
     }
 
     private FileDisk(RandomAccessFile raf, bool readOnly) {
-        this.closed = false;
-        this.raf = raf;
-        this.fc = raf.getChannel();
-        this.readOnly = readOnly;
+        closed = false;
+        raf = raf;
+        fc = raf.getChannel();
+        readOnly = readOnly;
     }
 
     /**
@@ -126,7 +126,7 @@ public const class FileDisk implements BlockDevice {
     public void write(long devOffset, ByteBuffer src) throw (std::exception) {
         checkClosed();
 
-        if (this.readOnly) throw new ReadOnlyException();
+        if (readOnly) throw new ReadOnlyException();
         
         int toWrite = src.remaining();
 
@@ -157,14 +157,14 @@ public const class FileDisk implements BlockDevice {
     public void close() throw (std::exception) {
         if (isClosed()) return;
 
-        this.closed = true;
-        this.fc.close();
-        this.raf.close();
+        closed = true;
+        fc.close();
+        raf.close();
     }
     
     @Override
     public bool isClosed() {
-        return this.closed;
+        return closed;
     }
 
     private void checkClosed() {
@@ -175,7 +175,7 @@ public const class FileDisk implements BlockDevice {
     public bool isReadOnly() {
         checkClosed();
         
-        return this.readOnly;
+        return readOnly;
     }
 
 }

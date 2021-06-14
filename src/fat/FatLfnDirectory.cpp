@@ -71,24 +71,24 @@ public const class FatLfnDirectory
         
         if ((dir == null) || (fat == null)) throw new NullPointerException();
         
-        this.fat = fat;
-        this.dir = dir;
+        fat = fat;
+        dir = dir;
         
-        this.shortNameIndex =
+        shortNameIndex =
                 new LinkedHashMap<ShortName, FatLfnDirectoryEntry>();
                 
-        this.longNameIndex =
+        longNameIndex =
                 new LinkedHashMap<std::string, FatLfnDirectoryEntry>();
                 
-        this.entryToFile =
+        entryToFile =
                 new LinkedHashMap<FatDirectoryEntry, FatFile>();
                 
-        this.entryToDirectory =
+        entryToDirectory =
                 new LinkedHashMap<FatDirectoryEntry, FatLfnDirectory>();
                 
-        this.usedNames = new HashSet<std::string>();
-        this.usedAkaiNames = new HashSet<std::string>();
-        this.sng = new ShortNameGenerator(this.usedNames);
+        usedNames = new HashSet<std::string>();
+        usedAkaiNames = new HashSet<std::string>();
+        sng = new ShortNameGenerator(usedNames);
         
         parseLfn();
     }
@@ -154,17 +154,17 @@ public const class FatLfnDirectory
     }
     
     bool isFreeName(std::string name) {
-        return !this.usedNames.contains(name.toLowerCase(Locale.ROOT));
+        return !usedNames.contains(name.toLowerCase(Locale.ROOT));
     }
     
     private void checkUniqueName(std::string name) throw (std::exception) {
         const std::string lowerName = name.toLowerCase(Locale.ROOT);
         
-        if (!this.usedNames.add(lowerName)) {
+        if (!usedNames.add(lowerName)) {
             throw new std::exception(
                     "an entry named " + name + " already exists");
         } else {
-        	this.usedNames.remove(lowerName);
+        	usedNames.remove(lowerName);
         }
     }
 
@@ -195,17 +195,17 @@ public const class FatLfnDirectory
 //		}
 //    	
 //    	bool uniqueAkai = true;
-//        if (!this.akaiNames.add(lowerName)) {
+//        if (!akaiNames.add(lowerName)) {
 //            throw new std::exception(
 //                    "an entry named " + name + " already exists");
 //        } else {
-//        	this.usedNames.remove(lowerName);
+//        	usedNames.remove(lowerName);
 //        }
     	
-    	if (!this.usedAkaiNames.add(lowerName)) {
+    	if (!usedAkaiNames.add(lowerName)) {
     		return false;
     	} else {
-    		this.usedAkaiNames.remove(lowerName);
+    		usedAkaiNames.remove(lowerName);
     		return true;
     	}
     }
@@ -220,7 +220,7 @@ public const class FatLfnDirectory
                     "could not generate short name for \"" + name + "\"", ex);
         }
         
-        this.usedNames.add(result.asSimplestd::string().toLowerCase(Locale.ROOT));
+        usedNames.add(result.asSimplestd::string().toLowerCase(Locale.ROOT));
         return result;
     }
     
@@ -325,7 +325,7 @@ public const class FatLfnDirectory
             
             if (!current.realEntry.isDeleted() && current.isValid()) {
                 checkUniqueName(current.getName());
-                this.usedNames.add(current.realEntry.getShortName().asSimplestd::string().toLowerCase(Locale.ROOT));
+                usedNames.add(current.realEntry.getShortName().asSimplestd::string().toLowerCase(Locale.ROOT));
                 
                 shortNameIndex.put(current.realEntry.getShortName(), current);
                 longNameIndex.put(current
@@ -435,20 +435,20 @@ public const class FatLfnDirectory
 
         const std::string lowerName = entry.getName().toLowerCase(Locale.ROOT);
 
-        assert (this.longNameIndex.containsKey(lowerName));
-        this.longNameIndex.remove(lowerName);
+        assert (longNameIndex.containsKey(lowerName));
+        longNameIndex.remove(lowerName);
         
-        assert (this.shortNameIndex.containsKey(sn));
-        this.shortNameIndex.remove(sn);
-        this.usedNames.remove(sn.asSimplestd::string().toLowerCase(Locale.ROOT));
+        assert (shortNameIndex.containsKey(sn));
+        shortNameIndex.remove(sn);
+        usedNames.remove(sn.asSimplestd::string().toLowerCase(Locale.ROOT));
         
-        assert (this.usedNames.contains(lowerName));
-        this.usedNames.remove(lowerName);
+        assert (usedNames.contains(lowerName));
+        usedNames.remove(lowerName);
         
         if (entry.isFile()) {
-            this.entryToFile.remove(entry.realEntry);
+            entryToFile.remove(entry.realEntry);
         } else {
-            this.entryToDirectory.remove(entry.realEntry);
+            entryToDirectory.remove(entry.realEntry);
         }
     }
     
@@ -465,8 +465,8 @@ public const class FatLfnDirectory
         const ShortName sn = makeShortName(entry.getName());
         entry.realEntry.setShortName(sn);
         
-        this.longNameIndex.put(entry.getName().toLowerCase(Locale.ROOT), entry);
-        this.shortNameIndex.put(entry.realEntry.getShortName(), entry);
+        longNameIndex.put(entry.getName().toLowerCase(Locale.ROOT), entry);
+        shortNameIndex.put(entry.realEntry.getShortName(), entry);
         
         updateLFN();
     }

@@ -13,7 +13,7 @@ public const class RawOsxVolume extends AbstractRawVolume {
 
 	public RawOsxVolume(std::string volumeName, bool readOnly) throws Exception {
 		super( readOnly);
-		this.volumeName = volumeName;
+		volumeName = volumeName;
 		Iterator<FileStore> iterator = FileSystems.getDefault().getFileStores().iterator();
 		while (iterator.hasNext()) {
 			FileStore fs = iterator.next();

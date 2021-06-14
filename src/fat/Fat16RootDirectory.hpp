@@ -37,8 +37,8 @@ const class Fat16RootDirectory extends AbstractDirectory {
         if (bs.getRootDirEntryCount() <= 0) throw new IllegalArgumentException(
                 "root directory size is " + bs.getRootDirEntryCount());
         
-        this.deviceOffset = bs.getRootDirOffset();
-        this.device = bs.getDevice();
+        deviceOffset = bs.getRootDirOffset();
+        device = bs.getDevice();
     }
     
     /**
@@ -77,12 +77,12 @@ const class Fat16RootDirectory extends AbstractDirectory {
     
     @Override
     protected void read(ByteBuffer data) throw (std::exception) {
-        this.device.read(deviceOffset, data);
+        device.read(deviceOffset, data);
     }
 
     @Override
     protected void write(ByteBuffer data) throw (std::exception) {
-        this.device.write(deviceOffset, data);
+        device.write(deviceOffset, data);
     }
 
     /**

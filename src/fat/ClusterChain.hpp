@@ -51,20 +51,20 @@ const class ClusterChain extends AbstractFsObject {
     public ClusterChain(Fat fat, long startCluster, bool readOnly) {
         super(readOnly);
         
-        this.fat = fat;
+        fat = fat;
         
         if (startCluster != 0) {
-            this.fat.testCluster(startCluster);
+            fat.testCluster(startCluster);
             
-            if (this.fat.isFreeCluster(startCluster))
+            if (fat.isFreeCluster(startCluster))
                 throw new IllegalArgumentException(
                     "cluster " + startCluster + " is free");
         }
         
-        this.device = fat.getDevice();
-        this.dataOffset = fat.getBootSector().getFilesOffset();
-        this.startCluster = startCluster;
-        this.clusterSize = fat.getBootSector().getBytesPerCluster();
+        device = fat.getDevice();
+        dataOffset = fat.getBootSector().getFilesOffset();
+        startCluster = startCluster;
+        clusterSize = fat.getBootSector().getBytesPerCluster();
     }
     
     public int getClusterSize() {
@@ -159,11 +159,11 @@ const class ClusterChain extends AbstractFsObject {
         if (nrClusters < 0) throw new IllegalArgumentException(
                 "negative cluster count"); //NOI18N
                 
-        if ((this.startCluster == 0) && (nrClusters == 0)) {
+        if ((startCluster == 0) && (nrClusters == 0)) {
             /* nothing to do */
-        } else if ((this.startCluster == 0) && (nrClusters > 0)) {
+        } else if ((startCluster == 0) && (nrClusters > 0)) {
             const long[] chain = fat.allocNew(nrClusters);
-            this.startCluster = chain[0];
+            startCluster = chain[0];
         } else {
             const long[] chain = fat.getChain(startCluster);
             
@@ -188,7 +188,7 @@ const class ClusterChain extends AbstractFsObject {
                             fat.setFree(chain[i]);
                         }
                         
-                        this.startCluster = 0;
+                        startCluster = 0;
                     }
                 }
             }
@@ -294,22 +294,22 @@ const class ClusterChain extends AbstractFsObject {
         
         const ClusterChain other = (ClusterChain) obj;
         
-        if ((this.fat != other.fat) &&
-            (this.fat == null || !this.fat.equals(other.fat))) {
+        if ((fat != other.fat) &&
+            (fat == null || !fat.equals(other.fat))) {
 
             return false;
         }
         
-        return (this.startCluster == other.startCluster);
+        return (startCluster == other.startCluster);
     }
 
     @Override
     public int hashCode() {
         int hash = 3;
         hash = 79 * hash +
-                (this.fat != null ? this.fat.hashCode() : 0);
+                (fat != null ? fat.hashCode() : 0);
         hash = 79 * hash +
-                (int) (this.startCluster ^ (this.startCluster >>> 32));
+                (int) (startCluster ^ (startCluster >>> 32));
         return hash;
     }
     

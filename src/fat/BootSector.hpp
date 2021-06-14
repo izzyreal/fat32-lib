@@ -149,9 +149,9 @@ abstract class BootSector extends Sector {
      * @throw (std::exception) 
      */
     public const long getFatOffset(int fatNr) {
-        long sectSize = this.getBytesPerSector();
-        long sectsPerFat = this.getSectorsPerFat();
-        long resSects = this.getNrReservedSectors();
+        long sectSize = getBytesPerSector();
+        long sectsPerFat = getSectorsPerFat();
+        long resSects = getNrReservedSectors();
 
         long offset = resSects * sectSize;
         long fatSize = sectsPerFat * sectSize;
@@ -169,9 +169,9 @@ abstract class BootSector extends Sector {
      * @throw (std::exception) 
      */
     public const long getRootDirOffset() {
-        long sectSize = this.getBytesPerSector();
-        long sectsPerFat = this.getSectorsPerFat();
-        int fats = this.getNrFats();
+        long sectSize = getBytesPerSector();
+        long sectsPerFat = getSectorsPerFat();
+        int fats = getNrFats();
 
         long offset = getFatOffset(0);
         
@@ -190,7 +190,7 @@ abstract class BootSector extends Sector {
     public const long getFilesOffset() {
         long offset = getRootDirOffset();
         
-        offset += this.getRootDirEntryCount() * 32l;
+        offset += getRootDirEntryCount() * 32l;
         
         return offset;
     }
@@ -278,7 +278,7 @@ abstract class BootSector extends Sector {
      */
     private long getDataSize() {
         return (getSectorCount() * getBytesPerSector()) -
-                this.getFilesOffset();
+                getFilesOffset();
     }
 
     /**
@@ -359,7 +359,7 @@ abstract class BootSector extends Sector {
      * @return the number of bytes per cluster
      */
     public int getBytesPerCluster() {
-        return this.getSectorsPerCluster() * this.getBytesPerSector();
+        return getSectorsPerCluster() * getBytesPerSector();
     }
 
     /**

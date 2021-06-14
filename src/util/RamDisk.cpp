@@ -97,10 +97,10 @@ public const class RamDisk implements BlockDevice {
     }
     
     private RamDisk(ByteBuffer buffer, int sectorSize) {
-        this.size = buffer.limit();
-        this.sectorSize = sectorSize;
-        this.data = buffer;
-        this.closed = false;
+        size = buffer.limit();
+        sectorSize = sectorSize;
+        data = buffer;
+        closed = false;
     }
 
     /**
@@ -124,15 +124,15 @@ public const class RamDisk implements BlockDevice {
         if (sectorSize < 1) throw new IllegalArgumentException(
                 "invalid sector size"); //NOI18N
         
-        this.sectorSize = sectorSize;
-        this.size = size;
-        this.data = ByteBuffer.allocate(size);
+        sectorSize = sectorSize;
+        size = size;
+        data = ByteBuffer.allocate(size);
     }
     
     @Override
     public long getSize() {
         checkClosed();
-        return this.size;
+        return size;
     }
 
     @Override
@@ -172,7 +172,7 @@ public const class RamDisk implements BlockDevice {
      * @return a buffer holding the contents of this {@code RamDisk}
      */
     public ByteBuffer getBuffer() {
-        return this.data.asReadOnlyBuffer();
+        return data.asReadOnlyBuffer();
     }
     
     @Override
@@ -183,17 +183,17 @@ public const class RamDisk implements BlockDevice {
     @Override
     public int getSectorSize() {
         checkClosed();
-        return this.sectorSize;
+        return sectorSize;
     }
 
     @Override
     public void close() throw (std::exception) {
-        this.closed = true;
+        closed = true;
     }
 
     @Override
     public bool isClosed() {
-        return this.closed;
+        return closed;
     }
 
     private void checkClosed() {

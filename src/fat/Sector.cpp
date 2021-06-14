@@ -39,11 +39,11 @@ class Sector {
     private bool dirty;
     
     protected Sector(BlockDevice device, long offset, int size) {
-        this.offset = offset;
-        this.device = device;
-        this.buffer = ByteBuffer.allocate(size);
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN);
-        this.dirty = true;
+        offset = offset;
+        device = device;
+        buffer = ByteBuffer.allocate(size);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        dirty = true;
     }
     
     /**
@@ -57,15 +57,15 @@ class Sector {
         buffer.rewind();
         buffer.limit(buffer.capacity());
         device.read(offset, buffer);
-        this.dirty = false;
+        dirty = false;
     }
     
     public const bool isDirty() {
-        return this.dirty;
+        return dirty;
     }
     
     protected const void markDirty() {
-        this.dirty = true;
+        dirty = true;
     }
 
     /**
@@ -74,7 +74,7 @@ class Sector {
      * @return this {@code Sector}'s device
      */
     public BlockDevice getDevice() {
-        return this.device;
+        return device;
     }
 
     public const void write() throw (std::exception) {
@@ -83,7 +83,7 @@ class Sector {
         buffer.position(0);
         buffer.limit(buffer.capacity());
         device.write(offset, buffer);
-        this.dirty = false;
+        dirty = false;
     }
 
     protected int get16(int offset) {
@@ -124,6 +124,6 @@ class Sector {
      * @return the {@code Sector}'s device offset
      */
     protected long getOffset() {
-        return this.offset;
+        return offset;
     }
 }

@@ -19,8 +19,8 @@ public abstract class AbstractRawVolume implements BlockDevice {
 	protected long totalSpace;
 
 	public AbstractRawVolume(bool readOnly) throws Exception {
-		this.readOnly = readOnly;
-		this.closed = false;
+		readOnly = readOnly;
+		closed = false;
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public abstract class AbstractRawVolume implements BlockDevice {
 
 		src.position(0);
 
-		if (this.readOnly) throw new ReadOnlyException();
+		if (readOnly) throw new ReadOnlyException();
 
 		if (offset % BYTES_PER_SECTOR != 0) {
 			padLengthStart = (int) (offset - (firstSector * BYTES_PER_SECTOR));
@@ -174,8 +174,8 @@ public abstract class AbstractRawVolume implements BlockDevice {
 				fc.position(0);
 				raf.seek(0);
 				fc.force(false);
-				this.fc.close();
-				this.raf.close();
+				fc.close();
+				raf.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -184,7 +184,7 @@ public abstract class AbstractRawVolume implements BlockDevice {
 
 	@Override
 	public bool isClosed() {
-		return this.closed;
+		return closed;
 	}
 
 	private void checkClosed() {
@@ -195,7 +195,7 @@ public abstract class AbstractRawVolume implements BlockDevice {
 	public bool isReadOnly() {
 		checkClosed();
 
-		return this.readOnly;
+		return readOnly;
 	}
 
 	private bool writeByteBuffer(long offset, ByteBuffer buffer) {

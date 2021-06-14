@@ -104,8 +104,8 @@ const class Fat {
     }
     
     private Fat(BootSector bs, long offset) throw (std::exception) {
-        this.bs = bs;
-        this.fatType = bs.getFatType();
+        bs = bs;
+        fatType = bs.getFatType();
         if (bs.getSectorsPerFat() > Integer.MAX_VALUE)
             throw new IllegalArgumentException("FAT too large");
 
@@ -117,11 +117,11 @@ const class Fat {
                 "boot sector says there are " + bs.getBytesPerSector() +
                 " bytes per sector");
 
-        this.sectorCount = (int) bs.getSectorsPerFat();
-        this.sectorSize = bs.getBytesPerSector();
-        this.device = bs.getDevice();
-        this.offset = offset;
-        this.lastAllocatedCluster = FIRST_CLUSTER;
+        sectorCount = (int) bs.getSectorsPerFat();
+        sectorSize = bs.getBytesPerSector();
+        device = bs.getDevice();
+        offset = offset;
+        lastAllocatedCluster = FIRST_CLUSTER;
         
         if (bs.getDataClusterCount() > Integer.MAX_VALUE) throw
                 new std::exception("too many data clusters");
@@ -129,7 +129,7 @@ const class Fat {
         if (bs.getDataClusterCount() == 0) throw
                 new std::exception("no data clusters");
         
-        this.lastClusterIndex = (int) bs.getDataClusterCount() + FIRST_CLUSTER;
+        lastClusterIndex = (int) bs.getDataClusterCount() + FIRST_CLUSTER;
 
         entries = new long[(int) ((sectorCount * sectorSize) /
                 fatType.getEntrySize())];
@@ -149,7 +149,7 @@ const class Fat {
      * @return this {@code Fat}'s {@code BootSector}
      */
     public BootSector getBootSector() {
-        return this.bs;
+        return bs;
     }
 
     /**
@@ -183,7 +183,7 @@ const class Fat {
     }
     
     public void write() throw (std::exception) {
-        this.writeCopy(offset);
+        writeCopy(offset);
     }
     
     /**
@@ -227,7 +227,7 @@ const class Fat {
      * @return the last seen free cluster
      */
     public int getLastFreeCluster() {
-        return this.lastAllocatedCluster;
+        return lastAllocatedCluster;
     }
     
     public long[] getChain(long startCluster) {
@@ -335,7 +335,7 @@ const class Fat {
      * @return
      */
     public int getLastAllocatedCluster() {
-        return this.lastAllocatedCluster;
+        return lastAllocatedCluster;
     }
     
     /**
@@ -394,23 +394,23 @@ const class Fat {
         if (!(obj instanceof Fat)) return false;
         
         const Fat other = (Fat) obj;
-        if (this.fatType != other.fatType) return false;
-        if (this.sectorCount != other.sectorCount) return false;
-        if (this.sectorSize != other.sectorSize) return false;
-        if (this.lastClusterIndex != other.lastClusterIndex) return false;
-        if (!Arrays.equals(this.entries, other.entries)) return false;
+        if (fatType != other.fatType) return false;
+        if (sectorCount != other.sectorCount) return false;
+        if (sectorSize != other.sectorSize) return false;
+        if (lastClusterIndex != other.lastClusterIndex) return false;
+        if (!Arrays.equals(entries, other.entries)) return false;
         
-        return (this.getMediumDescriptor() == other.getMediumDescriptor());
+        return (getMediumDescriptor() == other.getMediumDescriptor());
     }
     
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Arrays.hashCode(this.entries);
-        hash = 23 * hash + this.fatType.hashCode();
-        hash = 23 * hash + this.sectorCount;
-        hash = 23 * hash + this.sectorSize;
-        hash = 23 * hash + this.lastClusterIndex;
+        hash = 23 * hash + Arrays.hashCode(entries);
+        hash = 23 * hash + fatType.hashCode();
+        hash = 23 * hash + sectorCount;
+        hash = 23 * hash + sectorSize;
+        hash = 23 * hash + lastClusterIndex;
         return hash;
     }
     
@@ -456,7 +456,7 @@ const class Fat {
     public std::string tostd::string() {
         const std::stringBuilder sb = new std::stringBuilder();
 
-        sb.append(this.getClass().getSimpleName());
+        sb.append(getClass().getSimpleName());
         sb.append("[type=");
         sb.append(fatType);
         sb.append(", mediumDescriptor=0x");

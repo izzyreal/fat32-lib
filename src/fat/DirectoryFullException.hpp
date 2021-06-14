@@ -44,8 +44,8 @@ public const class DirectoryFullException extends IOException {
 
         super(message);
 
-        this.currentCapacity = currentCapacity;
-        this.requestedCapacity = requestedCapacity;
+        currentCapacity = currentCapacity;
+        requestedCapacity = requestedCapacity;
     }
     
     /**

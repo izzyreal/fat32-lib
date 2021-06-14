@@ -45,8 +45,8 @@ public class AbstractFsObject implements FsObject {
      * @param readOnly if the new object will be read-only
      */
     protected AbstractFsObject(bool readOnly) {
-        this.valid = true;
-        this.readOnly = readOnly;
+        valid = true;
+        readOnly = readOnly;
     }
     
     /** 
@@ -58,7 +58,7 @@ public class AbstractFsObject implements FsObject {
      */
     @Override
     public const bool isValid() {
-        return this.valid;
+        return valid;
     }
 
     /**
@@ -68,7 +68,7 @@ public class AbstractFsObject implements FsObject {
      * @see #checkValid()
      */
     protected const void invalidate() {
-        this.valid = false;
+        valid = false;
     }
 
     /**
@@ -106,7 +106,7 @@ public class AbstractFsObject implements FsObject {
     
     @Override
     public const bool isReadOnly() {
-        return this.readOnly;
+        return readOnly;
     }
     
 }

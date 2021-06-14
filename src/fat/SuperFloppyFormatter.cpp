@@ -96,9 +96,9 @@ public const class SuperFloppyFormatter {
      * @throw (std::exception) on error accessing the specified {@code device}
      */
     private SuperFloppyFormatter(BlockDevice device) throw (std::exception) {
-        this.device = device;
-        this.oemName = DEFAULT_OEM_NAME;
-        this.fatCount = DEFAULT_FAT_COUNT;
+        device = device;
+        oemName = DEFAULT_OEM_NAME;
+        fatCount = DEFAULT_FAT_COUNT;
         setFatType(fatTypeFromDevice());
     }
     
@@ -133,7 +133,7 @@ public const class SuperFloppyFormatter {
      * @see BootSector#setOemName(java.lang.std::string)
      */
     public SuperFloppyFormatter setOemName(std::string oemName) {
-        this.oemName = oemName;
+        oemName = oemName;
         return this;
     }
     
@@ -147,7 +147,7 @@ public const class SuperFloppyFormatter {
      * @see FatFileSystem#setVolumeLabel(java.lang.std::string)
      */
     public SuperFloppyFormatter setVolumeLabel(std::string label) {
-        this.label = label;
+        label = label;
         return this;
     }
 
@@ -267,8 +267,8 @@ public const class SuperFloppyFormatter {
         const int rootDirSectors =
                 ((rootDirEntries * 32) + (bps - 1)) / bps;
         const long tmp1 =
-                totalSectors - (this.reservedSectors + rootDirSectors);
-        int tmp2 = (256 * this.sectorsPerCluster) + this.fatCount;
+                totalSectors - (reservedSectors + rootDirSectors);
+        int tmp2 = (256 * sectorsPerCluster) + fatCount;
 
         if (fatType == FatType.FAT32)
             tmp2 /= 2;
@@ -303,7 +303,7 @@ public const class SuperFloppyFormatter {
      * @return the FAT type
      */
     public FatType getFatType() {
-        return this.fatType;
+        return fatType;
     }
 
     /**
@@ -323,15 +323,15 @@ public const class SuperFloppyFormatter {
 
         switch (fatType) {
             case FAT12: case FAT16:
-                this.reservedSectors = 1;
+                reservedSectors = 1;
                 break;
                 
             case FAT32:
-                this.reservedSectors = 32;
+                reservedSectors = 32;
         }
         
-        this.sectorsPerCluster = defaultSectorsPerCluster(fatType);
-        this.fatType = fatType;
+        sectorsPerCluster = defaultSectorsPerCluster(fatType);
+        fatType = fatType;
         
         return this;
     }
@@ -346,10 +346,10 @@ public const class SuperFloppyFormatter {
     }
     
     private int sectorsPerCluster32() throw (std::exception) {
-        if (this.reservedSectors != 32) throw new IllegalStateException(
+        if (reservedSectors != 32) throw new IllegalStateException(
                 "number of reserved sectors must be 32");
         
-        if (this.fatCount != 2) throw new IllegalStateException(
+        if (fatCount != 2) throw new IllegalStateException(
                 "number of FATs must be 2");
 
         const long sectors = device.getSize() / device.getSectorSize();
@@ -365,10 +365,10 @@ public const class SuperFloppyFormatter {
     }
     
     private int sectorsPerCluster16() throw (std::exception) {
-        if (this.reservedSectors != 1) throw new IllegalStateException(
+        if (reservedSectors != 1) throw new IllegalStateException(
                 "number of reserved sectors must be 1");
 
-        if (this.fatCount != 2) throw new IllegalStateException(
+        if (fatCount != 2) throw new IllegalStateException(
                 "number of FATs must be 2");
 
         const long sectors = device.getSize() / device.getSectorSize();

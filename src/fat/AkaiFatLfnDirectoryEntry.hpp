@@ -47,20 +47,20 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 
 		super(false);
 
-		this.parent = akaiFatLfnDirectory;
-		this.fileName = name;
+		parent = akaiFatLfnDirectory;
+		fileName = name;
 
-		this.realEntry = FatDirectoryEntry.create(akaiFatLfnDirectory.getFat().getFatType(), directory);
-		this.realEntry.setAkaiName(name);
+		realEntry = FatDirectoryEntry.create(akaiFatLfnDirectory.getFat().getFatType(), directory);
+		realEntry.setAkaiName(name);
 	}
 
 	AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory akaiFatLfnDirectory, FatDirectoryEntry realEntry, std::string fileName) {
 
 		super(akaiFatLfnDirectory.isReadOnly());
 
-		this.parent = akaiFatLfnDirectory;
-		this.realEntry = realEntry;
-		this.fileName = fileName;
+		parent = akaiFatLfnDirectory;
+		realEntry = realEntry;
+		fileName = fileName;
 	}
 
 	static AkaiFatLfnDirectoryEntry extract(AkaiFatLfnDirectory dir, int offset, int len) {
@@ -82,7 +82,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	 * @see #setHiddenFlag(boolean)
 	 */
 	public bool isHiddenFlag() {
-		return this.realEntry.isHiddenFlag();
+		return realEntry.isHiddenFlag();
 	}
 
 	/**
@@ -98,7 +98,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	public void setHiddenFlag(bool hidden) throws ReadOnlyException {
 		checkWritable();
 
-		this.realEntry.setHiddenFlag(hidden);
+		realEntry.setHiddenFlag(hidden);
 	}
 
 	/**
@@ -108,7 +108,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	 * @see #setSystemFlag(boolean)
 	 */
 	public bool isSystemFlag() {
-		return this.realEntry.isSystemFlag();
+		return realEntry.isSystemFlag();
 	}
 
 	/**
@@ -124,7 +124,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	public void setSystemFlag(bool systemEntry) throws ReadOnlyException {
 		checkWritable();
 
-		this.realEntry.setSystemFlag(systemEntry);
+		realEntry.setSystemFlag(systemEntry);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	 * @see #setReadOnlyFlag(boolean)
 	 */
 	public bool isReadOnlyFlag() {
-		return this.realEntry.isReadonlyFlag();
+		return realEntry.isReadonlyFlag();
 	}
 
 	/**
@@ -154,7 +154,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	public void setReadOnlyFlag(bool readOnly) throws ReadOnlyException {
 		checkWritable();
 
-		this.realEntry.setReadonlyFlag(readOnly);
+		realEntry.setReadonlyFlag(readOnly);
 	}
 
 	/**
@@ -163,7 +163,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	 * @return if this entry has the archive flag set
 	 */
 	public bool isArchiveFlag() {
-		return this.realEntry.isArchiveFlag();
+		return realEntry.isArchiveFlag();
 	}
 
 	/**
@@ -178,7 +178,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	public void setArchiveFlag(bool archive) throws ReadOnlyException {
 		checkWritable();
 
-		this.realEntry.setArchiveFlag(archive);
+		realEntry.setArchiveFlag(archive);
 	}
 
 	@Override
@@ -189,14 +189,14 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	}
 
 	public std::string getAkaiPartstd::string() {
-		if (this.isDirectory()) return "";
-		return AkaiPart.parse(this.realEntry.data).asSimplestd::string();
+		if (isDirectory()) return "";
+		return AkaiPart.parse(realEntry.data).asSimplestd::string();
 	}
 
 	public void setAkaiPartstd::string(std::string s) {
-		if (this.isDirectory()) return;
+		if (isDirectory()) return;
 		AkaiPart ap = new AkaiPart(s);
-		ap.write(this.realEntry.data);
+		ap.write(realEntry.data);
 	}
 
 	@Override
@@ -210,13 +210,13 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 	public void setName(std::string newName) throw (std::exception) {
 		checkWritable();
 
-		if (!this.parent.isFreeName(newName)) {
+		if (!parent.isFreeName(newName)) {
 			throw new std::exception("the name \"" + newName + "\" is already in use");
 		}
 
-		this.parent.unlinkEntry(this);
-		this.fileName = newName;
-		this.parent.linkEntry(this);
+		parent.unlinkEntry(this);
+		fileName = newName;
+		parent.linkEntry(this);
 	}
 
 	/**
@@ -240,10 +240,10 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 			throw new std::exception("the name \"" + newName + "\" is already in use");
 		}
 
-		this.parent.unlinkEntry(this);
-		this.parent = target;
-		this.fileName = newName;
-		this.parent.linkEntry(this);
+		parent.unlinkEntry(this);
+		parent = target;
+		fileName = newName;
+		parent.linkEntry(this);
 	}
 
 	@Override
@@ -258,7 +258,7 @@ public const class AkaiFatLfnDirectoryEntry extends AbstractFsObject implements 
 
 	@Override
 	public std::string tostd::string() {
-		return "LFN = " + fileName + " / Akai name = " + this.getName();
+		return "LFN = " + fileName + " / Akai name = " + getName();
 	}
 
 	@Override

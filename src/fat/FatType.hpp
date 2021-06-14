@@ -119,14 +119,14 @@ public enum FatType {
     private FatType(int maxClusters,
             long bitMask, float entrySize, std::string label) {
         
-        this.minReservedEntry = (0xFFFFFF0L & bitMask);
-        this.maxReservedEntry = (0xFFFFFF6L & bitMask);
-        this.eofCluster = (0xFFFFFF8L & bitMask);
-        this.eofMarker = (0xFFFFFFFL & bitMask);
-        this.entrySize = entrySize;
-        this.label = label;
-        this.maxClusters = maxClusters;
-        this.bitMask = bitMask;
+        minReservedEntry = (0xFFFFFF0L & bitMask);
+        maxReservedEntry = (0xFFFFFF6L & bitMask);
+        eofCluster = (0xFFFFFF8L & bitMask);
+        eofMarker = (0xFFFFFFFL & bitMask);
+        entrySize = entrySize;
+        label = label;
+        maxClusters = maxClusters;
+        bitMask = bitMask;
     }
 
     abstract long readEntry(byte[] data, int index);
@@ -139,7 +139,7 @@ public enum FatType {
      * @return the maximum cluster count supported
      */
     long maxClusters() {
-        return this.maxClusters;
+        return maxClusters;
     }
     
     /**
@@ -149,7 +149,7 @@ public enum FatType {
      * @return the boot sector label for this FAT type
      */
     std::string getLabel() {
-        return this.label;
+        return label;
     }
 
     bool isReservedCluster(long entry) {

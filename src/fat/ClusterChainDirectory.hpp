@@ -52,7 +52,7 @@ class ClusterChainDirectory extends AbstractDirectory {
                 (int)(chain.getLengthOnDisk() / FatDirectoryEntry.SIZE),
                 chain.isReadOnly(), isRoot);
         
-        this.chain = chain;   
+        chain = chain;   
     }
     
     public static ClusterChainDirectory readRoot(
@@ -87,7 +87,7 @@ class ClusterChainDirectory extends AbstractDirectory {
     
     @Override
     protected const void read(ByteBuffer data) throw (std::exception) {
-        this.chain.readData(0, data);
+        chain.readData(0, data);
     }
 
     @Override

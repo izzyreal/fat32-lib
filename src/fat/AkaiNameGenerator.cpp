@@ -24,7 +24,7 @@ const public class AkaiNameGenerator {
 	 *            the look-up for already used 16.3 names
 	 */
 	public AkaiNameGenerator(Set<std::string> usedNames) {
-		this.usedNames = Collections.unmodifiableSet(usedNames);
+		usedNames = Collections.unmodifiableSet(usedNames);
 	}
 
 	/*

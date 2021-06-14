@@ -87,25 +87,25 @@ std::string AkaiFatFileSystem::getVolumeLabel()
 }
 
 void AkaiFatFileSystem::setVolumeLabel(std::string label)
-        throws ReadOnlyException, IOException {
+{
     
     checkClosed();
     checkReadOnly();
 
     rootDirStore.setLabel(label);
     
-    if (fatType != FatType.FAT32) {
-        ((Fat16BootSector)bs).setVolumeLabel(label);
-    }
+    if (fatType != FatType.FAT32)
+        dynamic_cast<Fat16BootSector*>(bs)->setVolumeLabel(label);
 }
 
-AbstractDirectory AkaiFatFileSystem::getRootDirStore() {
+AbstractDirectory& AkaiFatFileSystem::getRootDirStore()
+{
     checkClosed();
     
     return rootDirStore;
 }
 
-void flush()
+void AkaiFatFileSystem::flush()
 {
     checkClosed();
     
@@ -126,32 +126,34 @@ void flush()
     }
 }
 
-@Override
-AkaiFatLfnDirectory getRoot() {
+AkaiFatLfnDirectory& AkaiFatFileSystem::getRoot()
+{
     checkClosed();
     
     return rootDir;
 }
 
-Fat getFat() {
+Fat AkaiFatFileSystem::getFat()
+{
     return fat;
 }
 
-BootSector getBootSector() {
+BootSector& AkaiFatFileSystem::getBootSector()
+{
     checkClosed();
     
     return bs;
 }
 
-@Override
-long getFreeSpace() {
+long AkaiFatFileSystem::getFreeSpace()
+{
     checkClosed();
 
     return fat.getFreeClusterCount() * bs.getBytesPerCluster();
 }
 
-@Override
-long getTotalSpace() {
+long AkaiFatFileSystem::getTotalSpace()
+{
     checkClosed();
 
     if (fatType == FatType.FAT32) {
@@ -161,10 +163,9 @@ long getTotalSpace() {
     return -1;
 }
 
-Override
-long getUsableSpace() {
+long AkaiFatFileSystem::getUsableSpace()
+{
     checkClosed();
 
     return bs.getDataClusterCount() * bs.getBytesPerCluster();
 }
-

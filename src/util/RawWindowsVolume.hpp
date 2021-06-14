@@ -19,7 +19,7 @@ public const class RawWindowsVolume extends AbstractRawVolume {
 		hDevice = Kernel32.INSTANCE.CreateFile("\\\\.\\" + driveLetter , readOnly ? WinNT.FILE_READ_ONLY : WinNT.GENERIC_ALL,
 				WinNT.FILE_SHARE_READ, null, WinNT.OPEN_EXISTING,
 				WinNT.FILE_FLAG_RANDOM_ACCESS, null);
-		this.totalSpace = totalSpace;
+		totalSpace = totalSpace;
 	}
 
 	@Override
@@ -29,7 +29,7 @@ public const class RawWindowsVolume extends AbstractRawVolume {
 				.getPointer());
 		bool success1 = Kernel32.INSTANCE.CloseHandle(hDevice);
 		System.out.println("Success flush: " + (success && success1));
-		this.closed = true;
+		closed = true;
 	}
 
 	private bool seek(long offset) {

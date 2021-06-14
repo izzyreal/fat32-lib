@@ -66,14 +66,14 @@ public const class FatFileSystem extends AbstractFileSystem {
         
         super(readOnly);
         
-        this.bs = BootSector.read(device);
+        bs = BootSector.read(device);
         
         if (bs.getNrFats() <= 0) throw new std::exception(
                 "boot sector says there are no FATs");
         
-        this.filesOffset = bs.getFilesOffset();
-        this.fatType = bs.getFatType();
-        this.fat = Fat.read(bs, 0);
+        filesOffset = bs.getFilesOffset();
+        fatType = bs.getFatType();
+        fat = Fat.read(bs, 0);
 
         if (!ignoreFatDifferences) {
             for (int i=1; i < bs.getNrFats(); i++) {
@@ -88,8 +88,8 @@ public const class FatFileSystem extends AbstractFileSystem {
             const Fat32BootSector f32bs = (Fat32BootSector) bs;
             const ClusterChain rootChain = new ClusterChain(fat,
                     f32bs.getRootDirFirstCluster(), isReadOnly());
-            this.rootDirStore = ClusterChainDirectory.readRoot(rootChain);
-            this.fsiSector = FsInfoSector.read(f32bs);
+            rootDirStore = ClusterChainDirectory.readRoot(rootChain);
+            fsiSector = FsInfoSector.read(f32bs);
             
             if (fsiSector.getFreeClusterCount() < fat.getFreeClusterCount()) {
                 throw new std::exception("free cluster count mismatch - fat: " +
@@ -97,12 +97,12 @@ public const class FatFileSystem extends AbstractFileSystem {
                         fsiSector.getFreeClusterCount());
             }
         } else {
-            this.rootDirStore =
+            rootDirStore =
                     Fat16RootDirectory.read((Fat16BootSector) bs,readOnly);
-            this.fsiSector = null;
+            fsiSector = null;
         }
 
-        this.rootDir = new FatLfnDirectory(rootDirStore, fat, isReadOnly());
+        rootDir = new FatLfnDirectory(rootDirStore, fat, isReadOnly());
             
     }
 
@@ -137,7 +137,7 @@ public const class FatFileSystem extends AbstractFileSystem {
     public FatType getFatType() {
         checkClosed();
 
-        return this.fatType;
+        return fatType;
     }
 
     /**
