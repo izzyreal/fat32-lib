@@ -1,122 +1,19 @@
-/*
- * Copyright (C) 2003-2009 JNode.org
- *               2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
- 
-package de.waldheinz.fs.fat;
+namespace akaifat::fat {
 
-/**
- * Enumerates the different entry sizes of 12, 16 and 32 bits for the different
- * FAT flavours.
- *
- * @author Ewout Prangsma &lt;epr at jnode.org&gt;
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- */
-public enum FatType {
+class FatType {
 
-    /**
-     * Represents a 12-bit file allocation table.
-     */
-    FAT12((1 << 12) - 16, 0xFFFL, 1.5f, "FAT12   ") { //NOI18N
+private:
+    const long minReservedEntry;
+    const long maxReservedEntry;
+    const long eofCluster;
+    const long eofMarker;
+    const long bitMask;
+    const int maxClusters;
+    const std::string label;
+    const float entrySize;
 
-        @Override
-        long readEntry(byte[] data, int index) {
-            const int idx = (int) (index * 1.5);
-            const int b1 = data[idx] & 0xFF;
-            const int b2 = data[idx + 1] & 0xFF;
-            const int v = (b2 << 8) | b1;
-            
-            if ((index % 2) == 0) {
-                return v & 0xFFF;
-            } else {
-                return v >> 4;
-            }
-        }
-
-        @Override
-        void writeEntry(byte[] data, int index, long entry) {
-            const int idx = (int) (index * 1.5);
-            
-            if ((index % 2) == 0) {
-                data[idx] = (byte) (entry & 0xFF);
-                data[idx + 1] = (byte) ((entry >> 8) & 0x0F);
-            } else {
-                data[idx] |= (byte) ((entry & 0x0F) << 4);
-                data[idx + 1] = (byte) ((entry >> 4) & 0xFF);
-            }
-        }
-    },
-
-    /**
-     * Represents a 16-bit file allocation table.
-     */
-    FAT16((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   ") { //NOI18N
-        
-        @Override
-        long readEntry(byte[] data, int index) {
-            const int idx = index << 1;
-            const int b1 = data[idx] & 0xFF;
-            const int b2 = data[idx + 1] & 0xFF;
-            return (b2 << 8) | b1;
-        }
-
-        @Override
-        void writeEntry(byte[] data, int index, long entry) {
-            const int idx = index << 1;
-            data[idx] = (byte) (entry & 0xFF);
-            data[idx + 1] = (byte) ((entry >> 8) & 0xFF);
-        }
-    },
-    
-    /**
-     * Represents a 32-bit file allocation table.
-     */
-    FAT32((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") { //NOI18N
-
-        @Override
-        long readEntry(byte[] data, int index) {
-            const int idx = index * 4;
-            const long l1 = data[idx] & 0xFF;
-            const long l2 = data[idx + 1] & 0xFF;
-            const long l3 = data[idx + 2] & 0xFF;
-            const long l4 = data[idx + 3] & 0xFF;
-            return (l4 << 24) | (l3 << 16) | (l2 << 8) | l1;
-        }
-
-        @Override
-        void writeEntry(byte[] data, int index, long entry) {
-            const int idx = index << 2;
-            data[idx] = (byte) (entry & 0xFF);
-            data[idx + 1] = (byte) ((entry >> 8) & 0xFF);
-            data[idx + 2] = (byte) ((entry >> 16) & 0xFF);
-            data[idx + 3] = (byte) ((entry >> 24) & 0xFF);
-        }
-    };
-
-    private const long minReservedEntry;
-    private const long maxReservedEntry;
-    private const long eofCluster;
-    private const long eofMarker;
-    private const long bitMask;
-    private const int maxClusters;
-    private const std::string label;
-    private const float entrySize;
-
-    private FatType(int maxClusters,
+public:
+    FatType(int maxClusters,
             long bitMask, float entrySize, std::string label) {
         
         minReservedEntry = (0xFFFFFF0L & bitMask);
@@ -129,25 +26,14 @@ public enum FatType {
         bitMask = bitMask;
     }
 
-    abstract long readEntry(byte[] data, int index);
+    virtual long readEntry(byte[] data, int index) = 0;
 
-    abstract void writeEntry(byte[] data, int index, long entry);
+    virtual void writeEntry(byte[] data, int index, long entry) = 0;
 
-    /**
-     * Returns the maximum number of clusters this file system can address.
-     *
-     * @return the maximum cluster count supported
-     */
     long maxClusters() {
         return maxClusters;
     }
     
-    /**
-     * Returns the human-readable FAT name string as written to the
-     * {@link BootSector}.
-     *
-     * @return the boot sector label for this FAT type
-     */
     std::string getLabel() {
         return label;
     }
@@ -171,4 +57,84 @@ public enum FatType {
     long getBitMask() {
         return bitMask;
     }
+};
+
+class Fat12Type : FatType {
+
+public:
+        Fat12Type() : FatType((1 << 12) - 16, 0xFFFL, 1.5f, "FAT12   ") {
+        
+        long readEntry(byte[] data, int index) override {
+            const int idx = (int) (index * 1.5);
+            const int b1 = data[idx] & 0xFF;
+            const int b2 = data[idx + 1] & 0xFF;
+            const int v = (b2 << 8) | b1;
+            
+            if ((index % 2) == 0) {
+                return v & 0xFFF;
+            } else {
+                return v >> 4;
+            }
+        }
+
+        
+        void writeEntry(byte[] data, int index, long entry) override {
+            const int idx = (int) (index * 1.5);
+            
+            if ((index % 2) == 0) {
+                data[idx] = (byte) (entry & 0xFF);
+                data[idx + 1] = (byte) ((entry >> 8) & 0x0F);
+            } else {
+                data[idx] |= (byte) ((entry & 0x0F) << 4);
+                data[idx + 1] = (byte) ((entry >> 4) & 0xFF);
+            }
+        }
+    }
+};
+
+class Fat16Type {
+
+public:
+    Fat16Type() : FatType((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   ") {
+        
+        long readEntry(byte[] data, int index) override {
+            const int idx = index << 1;
+            const int b1 = data[idx] & 0xFF;
+            const int b2 = data[idx + 1] & 0xFF;
+            return (b2 << 8) | b1;
+        }
+
+        
+        void writeEntry(byte[] data, int index, long entry) override {
+            const int idx = index << 1;
+            data[idx] = (byte) (entry & 0xFF);
+            data[idx + 1] = (byte) ((entry >> 8) & 0xFF);
+        }
+    }
+};
+    
+class Fat32Type {
+
+public:
+    Fat32Type() : ((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") {
+        
+        long readEntry(byte[] data, int index) override {
+            const int idx = index * 4;
+            const long l1 = data[idx] & 0xFF;
+            const long l2 = data[idx + 1] & 0xFF;
+            const long l3 = data[idx + 2] & 0xFF;
+            const long l4 = data[idx + 3] & 0xFF;
+            return (l4 << 24) | (l3 << 16) | (l2 << 8) | l1;
+        }
+
+        
+        void writeEntry(byte[] data, int index, long entry) override {
+            const int idx = index << 2;
+            data[idx] = (byte) (entry & 0xFF);
+            data[idx + 1] = (byte) ((entry >> 8) & 0xFF);
+            data[idx + 2] = (byte) ((entry >> 16) & 0xFF);
+            data[idx + 3] = (byte) ((entry >> 24) & 0xFF);
+        }
+    }
+};
 }

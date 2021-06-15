@@ -1,64 +1,15 @@
-/*
- * Copyright (C) 2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
+#include "Sector.hpp"
 
-package de.waldheinz.fs.fat;
+namespace akaifat::fat {
+class FsInfoSector : public Sector {
+public:
+    static const int FREE_CLUSTERS_OFFSET = 0x1e8;
 
-import de.waldheinz.fs.BlockDevice;
-import java.io.IOException;
+    static const int LAST_ALLOCATED_OFFSET = 0x1ec;
 
-/**
- * The FAT32 File System Information Sector.
- *
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- * @see http://en.wikipedia.org/wiki/File_Allocation_Table#FS_Information_Sector
- */
-const class FsInfoSector extends Sector {
+    static const int SIGNATURE_OFFSET = 0x1fe;
 
-    /**
-     * The offset to the free cluster count value in the FS info sector.
-     */
-    public static const int FREE_CLUSTERS_OFFSET = 0x1e8;
-
-    /**
-     * The offset to the "last allocated cluster" value in this sector.
-     */
-    public static const int LAST_ALLOCATED_OFFSET = 0x1ec;
-
-    /**
-     * The offset to the signature of this sector.
-     */
-    public static const int SIGNATURE_OFFSET = 0x1fe;
-
-    private FsInfoSector(BlockDevice device, long offset) {
-        super(device, offset, BootSector.SIZE);
-    }
-
-    /**
-     * Reads a {@code FsInfoSector} as specified by the given
-     * {@code Fat32BootSector}.
-     *
-     * @param bs the boot sector that specifies where the FS info sector is
-     *      stored
-     * @return the FS info sector that was read
-     * @throw (std::exception) on read error
-     * @see Fat32BootSector#getFsInfoSectorNr() 
-     */
-    public static FsInfoSector read(Fat32BootSector bs) throw (std::exception) {
+    static FsInfoSector read(Fat32BootSector bs) throw (std::exception) {
         const FsInfoSector result =
                 new FsInfoSector(bs.getDevice(), offset(bs));
         
@@ -67,16 +18,7 @@ const class FsInfoSector extends Sector {
         return result;
     }
 
-    /**
-     * Creates an new {@code FsInfoSector} where the specified
-     * {@code Fat32BootSector} indicates it should be.
-     *
-     * @param bs the boot sector specifying the FS info sector storage
-     * @return the FS info sector instance that was created
-     * @throw (std::exception) on write error
-     * @see Fat32BootSector#getFsInfoSectorNr() 
-     */
-    public static FsInfoSector create(Fat32BootSector bs) throw (std::exception) {
+    static FsInfoSector create(Fat32BootSector bs) throw (std::exception) {
         const int offset = offset(bs);
 
         if (offset == 0) throw new std::exception(
@@ -90,58 +32,28 @@ const class FsInfoSector extends Sector {
         return result;
     }
 
-    private static int offset(Fat32BootSector bs) {
-        return bs.getFsInfoSectorNr() * bs.getBytesPerSector();
-    }
-
-    /**
-     * Sets the number of free clusters on the file system stored at
-     * {@link #FREE_CLUSTERS_OFFSET}.
-     *
-     * @param value the new free cluster count
-     * @see Fat#getFreeClusterCount()
-     */
-    public void setFreeClusterCount(long value) {
+    void setFreeClusterCount(long value) {
         if (getFreeClusterCount() == value) return;
         
         set32(FREE_CLUSTERS_OFFSET, value);
     }
     
-    /**
-     * Returns the number of free clusters on the file system as sepcified by
-     * the 32-bit value at {@link #FREE_CLUSTERS_OFFSET}.
-     *
-     * @return the number of free clusters
-     * @see Fat#getFreeClusterCount() 
-     */
-    public long getFreeClusterCount() {
+    long getFreeClusterCount() {
         return get32(FREE_CLUSTERS_OFFSET);
     }
 
-    /**
-     * Sets the last allocated cluster that was used in the {@link Fat}.
-     *
-     * @param value the FAT's last allocated cluster number
-     * @see Fat#getLastAllocatedCluster() 
-     */
-    public void setLastAllocatedCluster(long value) {
+    void setLastAllocatedCluster(long value) {
         if (getLastAllocatedCluster() == value) return;
         
         super.set32(LAST_ALLOCATED_OFFSET, value);
     }
 
-    /**
-     * Returns the last allocated cluster number of the {@link Fat} of the
-     * file system this FS info sector is part of.
-     *
-     * @return the last allocated cluster number
-     * @see Fat#getLastAllocatedCluster() 
-     */
-    public long getLastAllocatedCluster() {
+    long getLastAllocatedCluster() {
         return super.get32(LAST_ALLOCATED_OFFSET);
     }
 
-    private void init() {
+private:
+    void init() {
         buffer.position(0x00);
         buffer.put((byte) 0x52);
         buffer.put((byte) 0x52);
@@ -166,22 +78,20 @@ const class FsInfoSector extends Sector {
         markDirty();
     }
 
-    private void verify() throw (std::exception) {
+    FsInfoSector(BlockDevice device, long offset) {
+        super(device, offset, BootSector.SIZE);
+    }
+
+    static int offset(Fat32BootSector bs) {
+        return bs.getFsInfoSectorNr() * bs.getBytesPerSector();
+    }
+
+    void verify() throw (std::exception) {
         if (!(get8(SIGNATURE_OFFSET) == 0x55) ||
                 !(get8(SIGNATURE_OFFSET + 1) == 0xaa)) {
 
             throw new std::exception("invalid FS info sector signature");
         }
-    }
-
-    @Override
-    public std::string tostd::string() {
-        return FsInfoSector.class.getSimpleName() +
-                " [freeClusterCount=" + getFreeClusterCount() + //NOI18N
-                ", lastAllocatedCluster=" + getLastAllocatedCluster() + //NOI18N
-                ", offset=" + getOffset() + //NOI18N
-                ", dirty=" + isDirty() + //NOI18N
-                "]"; //NOI18N
-    }
-    
+    }    
+};
 }
