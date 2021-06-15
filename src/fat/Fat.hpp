@@ -1,15 +1,17 @@
+#pragma once
+
+#include "BootSector.hpp"
+
 namespace akaifat::fat {
 class Fat {
 public:
     const static int FIRST_CLUSTER = 2;
     
-    static Fat read(BootSector bs, int fatNr)
-            throws IOException, IllegalArgumentException {
+    static Fat read(BootSector bs, int fatNr) {
         
         if (fatNr > bs.getNrFats()) {
-            throw new IllegalArgumentException(
-                    "boot sector says there are only " + bs.getNrFats() +
-                    " FATs when reading FAT #" + fatNr);
+            throw "boot sector says there are only " + bs.getNrFats() +
+                    " FATs when reading FAT #" + fatNr;
         }
         
         const long fatOffset = bs.getFatOffset(fatNr);
@@ -22,9 +24,8 @@ public:
             throws IOException, IllegalArgumentException {
         
         if (fatNr > bs.getNrFats()) {
-            throw new IllegalArgumentException(
-                    "boot sector says there are only " + bs.getNrFats() +
-                    " FATs when creating FAT #" + fatNr);
+            throw "boot sector says there are only " + bs.getNrFats() +
+                    " FATs when creating FAT #" + fatNr;
         }
         
         const long fatOffset = bs.getFatOffset(fatNr);
@@ -234,18 +235,19 @@ protected:
 
 private:
     const long[] entries;
-    const FatType fatType;
+    const FatType& fatType;
     const int sectorCount;
     const int sectorSize;
-    const BlockDevice device;
-    const BootSector bs;
+    const BlockDevice& device;
+    const BootSector& bs;
     const long offset;
     const int lastClusterIndex;
     
     int lastAllocatedCluster;
 
-    Fat(BootSector& _bs, long offset) throw (std::exception) {
-        bs = _bs;
+    Fat(BootSector& _bs, long offset)
+    : bs (_bs)
+    {
         fatType = bs.getFatType();
         if (bs.getSectorsPerFat() > Integer.MAX_VALUE)
             throw "FAT too large";

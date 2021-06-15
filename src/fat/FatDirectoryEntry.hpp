@@ -1,6 +1,9 @@
 #include "../AbstractFsObject.hpp"
 
-#include "../LittleEndian.hpp"
+#include "AkaiFatLfnDirectory.hpp"
+#include "AbstractDirectory.hpp"
+#include "LittleEndian.hpp"
+#include "ShortName.hpp"
 
 #include <vector>
 
@@ -54,7 +57,7 @@ public:
         LittleEndian::setInt8(data, OFFSET_ATTRIBUTES, flags);
     }
 
-    const std::vector<char> data;
+    std::vector<char> data;
     
     const static int SIZE = 32;
 
@@ -65,11 +68,9 @@ public:
         
         assert (buff.remaining() >= SIZE);
 
-        if (buff.get(buff.position()) == 0) return null;
-
-        const std::vector<char> data(SIZE);
+        std::vector<char> data(SIZE);
         buff.get(data);
-        return new FatDirectoryEntry(type, data, readOnly);
+        return FatDirectoryEntry(type, data, readOnly);
     }
 
     static void writeNullEntry(ByteBuffer buff) {
@@ -111,6 +112,10 @@ public:
         return ((getFlags() & F_VOLUME_ID) != 0);
     }
     
+    bool isReadonlyFlag() {
+        return ((getFlags() & F_READONLY) != 0);
+    }
+    
     bool isLfnEntry() {
         return isReadonlyFlag() && isSystemFlag() &&
                 isHiddenFlag() && isVolumeIdFlag();
@@ -125,7 +130,7 @@ public:
     }
     
     static FatDirectoryEntry create(FatType type, bool directory) {
-        const FatDirectoryEntry result = new FatDirectoryEntry(type);
+        FatDirectoryEntry result(type);
 
         if (directory) {
             result.setFlags(F_DIRECTORY);
@@ -136,18 +141,17 @@ public:
     static FatDirectoryEntry createVolumeLabel(
             FatType type, std::string volumeLabel) {
         
-        assert(volumeLabel != null);
+        assert(volumeLabel.length() != 0);
         
-        const std::vector<char> data = new byte[SIZE];
+        std::vector<char> data (SIZE);
         
-        System.arraycopy(
-                    volumeLabel.getBytes(ShortName.ASCII), 0,
-                    data, 0,
-                    volumeLabel.length());
+//        System.arraycopy(
+//                    volumeLabel.getBytes(ShortName.ASCII), 0,
+//                    data, 0,
+//                    volumeLabel.length());
         
-        const FatDirectoryEntry result =
-                new FatDirectoryEntry(type, data, false);
-        result.setFlags(FatDirectoryEntry.F_VOLUME_ID);
+        FatDirectoryEntry result(type, data, false);
+        result.setFlags(FatDirectoryEntry::F_VOLUME_ID);
         return result;
     }
     
@@ -155,39 +159,39 @@ public:
         if (!isVolumeLabel())
             throw "not a volume label";
             
-        const std::stringBuilder sb = new std::stringBuilder();
+        std::string result;
         
-        for (int i=0; i < AbstractDirectory.MAX_LABEL_LENGTH; i++) {
-            const byte b = data[i];
+        for (int i=0; i < AbstractDirectory::MAX_LABEL_LENGTH; i++) {
+            auto b = data[i];
             
             if (b != 0) {
-                sb.append((char) b);
+                result.push_back((char) b);
             } else {
                 break;
             }
         }
         
-        return sb.tostd::string();
+        return result;
     }
 
     bool isDeleted() {
-        return  (LittleEndian.getUInt8(data, 0) == ENTRY_DELETED_MAGIC);
+        return  (LittleEndian::getUInt8(data, 0) == ENTRY_DELETED_MAGIC);
     }
     
     long getLength() {
-        return LittleEndian.getUInt32(data, OFFSET_FILE_SIZE);
+        return LittleEndian::getUInt32(data, OFFSET_FILE_SIZE);
     }
 
-    void setLength(long length) throws IllegalArgumentException {
-        LittleEndian.setInt32(data, OFFSET_FILE_SIZE, length);
+    void setLength(long length) {
+        LittleEndian::setInt32(data, OFFSET_FILE_SIZE, length);
     }
     
     ShortName getShortName() {
-        if (data[0] == 0) {
-            return null;
-        } else {
-            return ShortName.parse(data);
-        }
+//        if (data[0] == 0) {
+//            return null;
+//        } else {
+            return ShortName::parse(data);
+//        }
     }
 
     bool isFile() {
@@ -195,17 +199,16 @@ public:
     }
     
     void setShortName(ShortName sn) {
-        if (sn.equals(getShortName())) return;
+        //if (sn.equals(getShortName())) return;
         
         sn.write(data);
         dirty = true;
     }
 
     void setAkaiName(std::string s) {
-    	System.out.println("string s " + s);
-    	std::string part1 = AkaiFatLfnDirectory.splitName(s)[0];
+    	std::string part1 = AkaiFatLfnDirectory::splitName(s)[0];
     	std::string part2 = "        ";
-    	std::string ext = AkaiFatLfnDirectory.splitName(s)[1];
+    	std::string ext = AkaiFatLfnDirectory::splitName(s)[1];
     	if (part1.length() > 8) {
     		part2 = part1.substring(8);
     		part1 = part1.substring(0, 8);
@@ -245,10 +248,6 @@ public:
         dirty = false;
     }
 
-    bool isReadonlyFlag() {
-        return ((getFlags() & F_READONLY) != 0);
-    }
-    
     void setReadonlyFlag(bool isReadonly) {
         setFlag(F_READONLY, isReadonly);
     }

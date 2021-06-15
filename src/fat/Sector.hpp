@@ -1,7 +1,11 @@
+#pragma once
+
+#include "../ByteBuffer.hpp"
+
 namespace akaifat::fat {
 class Sector {
 private:
-    const BlockDevice device;
+    const BlockDevice& device;
     const long offset;
     
     bool dirty;
@@ -9,20 +13,17 @@ private:
 protected:
     const ByteBuffer buffer;
 
-    Sector(BlockDevice device, long offset, int size)
-    : buffer (ByteBuffer.allocate(size))
+    Sector(BlockDevice& _device, long _offset, int size)
+    : device (_device), offset (_offset), buffer (ByteBuffer(size)), dirty (true)
     {
-        offset = offset;
-        device = device;
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        dirty = true;
+//        buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
     
-    void read() throw (std::exception) {
-        buffer.rewind();
-        buffer.limit(buffer.capacity());
-        device.read(offset, buffer);
-        dirty = false;
+    void read() {
+//        buffer.rewind();
+//        buffer.limit(buffer.capacity());
+//        device.read(offset, buffer);
+//        dirty = false;
     }
     
     const void markDirty() {
@@ -30,33 +31,36 @@ protected:
     }
 
     int get16(int offset) {
-        return buffer.getShort(offset) & 0xffff;
+//        return buffer.getShort(offset) & 0xffff;
+        return 0;
     }
 
     long get32(int offset) {
-        return buffer.getInt(offset);
+//        return buffer.getInt(offset);
+        return 0;
     }
     
     int get8(int offset) {
-        return buffer.get(offset) & 0xff;
+//        return buffer.get(offset) & 0xff;
+        return 0;
     }
     
     void set16(int offset, int value) {
-        buffer.putShort(offset, (short) (value & 0xffff));
+//        buffer.putShort(offset, (short) (value & 0xffff));
         dirty = true;
     }
 
     void set32(int offset, long value) {
-        buffer.putInt(offset, (int) (value & 0xffffffff));
+//        buffer.putInt(offset, (int) (value & 0xffffffff));
         dirty = true;
     }
 
     void set8(int offset, int value) {
         if ((value & 0xff) != value) {
-            throw value + " too big to be stored in a single octet";
+            throw std::to_string(value) + " too big to be stored in a single octet";
         }
         
-        buffer.put(offset, (char) (value & 0xff));
+//        buffer.put(offset, (char) (value & 0xff));
         dirty = true;
     }
     
@@ -69,16 +73,16 @@ public:
         return dirty;
     }
     
-    BlockDevice getDevice() {
+    const BlockDevice& getDevice() {
         return device;
     }
 
-    const void write() throw (std::exception) {
+    const void write() {
         if (!isDirty()) return;
         
-        buffer.position(0);
-        buffer.limit(buffer.capacity());
-        device.write(offset, buffer);
+//        buffer.position(0);
+//        buffer.limit(buffer.capacity());
+//        device.write(offset, buffer);
         dirty = false;
     }
 };

@@ -1,6 +1,8 @@
-#include "AbstractDirectory.hpp"
 #include "../AbstractFsObject.hpp"
 #include "../FsDirectory.hpp"
+
+#include "Fat.hpp"
+#include "AbstractDirectory.hpp"
 
 namespace akaifat::fat {
 class AkaiFatLfnDirectory : public akaifat::AbstractFsObject, public akaifat::FsDirectory

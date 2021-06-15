@@ -8,7 +8,7 @@
 #include <string>
 
 namespace akaifat::fat {
-
+class AbstractDirectory {
 public:
     static const int MAX_LABEL_LENGTH = 11;
     

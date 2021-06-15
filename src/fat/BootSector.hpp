@@ -1,5 +1,11 @@
+#pragma once
+
+#include "Sector.hpp"
+
+#include <memory>
+
 namespace akaifat::fat {
-class BootSector extends Sector {
+class BootSector : public Sector {
 public:
     static const int FAT_COUNT_OFFSET = 16;
     static const int RESERVED_SECTORS_OFFSET = 14;    
@@ -10,51 +16,51 @@ public:
     static const int EXTENDED_BOOT_SIGNATURE = 0x29;
     const static int SIZE = 512;
     
-        static BootSector read(BlockDevice device) throw (std::exception) {
-        const ByteBuffer bb = ByteBuffer.allocate(512);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        device.read(0, bb);
+        static std::shared_ptr<BootSector> read(BlockDevice device) {
+        ByteBuffer bb(512);
+//        bb.order(ByteOrder.LITTLE_ENDIAN);
+//        device.read(0, bb);
         
-        if ((bb.get(510) & 0xff) != 0x55 ||
-                (bb.get(511) & 0xff) != 0xaa) 
-                throw "missing boot sector signature";
+//        if ((bb.get(510) & 0xff) != 0x55 ||
+//                (bb.get(511) & 0xff) != 0xaa)
+//                throw "missing boot sector signature";
                 
-        const byte sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
+//        const byte sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
 
-        if (sectorsPerCluster <= 0) 
-                throw "suspicious sectors per cluster count " + sectorsPerCluster;
-                
-        const int rootDirEntries = bb.getShort(
-                Fat16BootSector.ROOT_DIR_ENTRIES_OFFSET);
-        const int rootDirSectors = ((rootDirEntries * 32) +
-                (device.getSectorSize() - 1)) / device.getSectorSize();
-
-        const int total16 =
-                bb.getShort(TOTAL_SECTORS_16_OFFSET) & 0xffff;
-        const long total32 =
-                bb.getInt(TOTAL_SECTORS_32_OFFSET) & 0xffffffffl;
-        
-        const long totalSectors = total16 == 0 ? total32 : total16;
-        
-        const int fatSz16 =
-                bb.getShort(Fat16BootSector.SECTORS_PER_FAT_OFFSET)  & 0xffff;
-        const long fatSz32 =
-                bb.getInt(Fat32BootSector.SECTORS_PER_FAT_OFFSET) & 0xffffffffl;
-                
-        const long fatSz = fatSz16 == 0 ? fatSz32 : fatSz16;
-        const int reservedSectors = bb.getShort(RESERVED_SECTORS_OFFSET);
-        const int fatCount = bb.get(FAT_COUNT_OFFSET);
-        const long dataSectors = totalSectors - (reservedSectors +
-                (fatCount * fatSz) + rootDirSectors);
-                
-        const long clusterCount = dataSectors / sectorsPerCluster;
-        
-        const BootSector result =
-                (clusterCount > Fat16BootSector.MAX_FAT16_CLUSTERS) ?
-            new Fat32BootSector(device) : new Fat16BootSector(device);
+//        if (sectorsPerCluster <= 0)
+//                throw "suspicious sectors per cluster count " + std::to_string(sectorsPerCluster);
+//
+//        const int rootDirEntries = bb.getShort(
+//                Fat16BootSector.ROOT_DIR_ENTRIES_OFFSET);
+//        const int rootDirSectors = ((rootDirEntries * 32) +
+//                (device.getSectorSize() - 1)) / device.getSectorSize();
+//
+//        const int total16 =
+//                bb.getShort(TOTAL_SECTORS_16_OFFSET) & 0xffff;
+//        const long total32 =
+//                bb.getInt(TOTAL_SECTORS_32_OFFSET) & 0xffffffffl;
+//
+//        const long totalSectors = total16 == 0 ? total32 : total16;
+//
+//        const int fatSz16 =
+//                bb.getShort(Fat16BootSector.SECTORS_PER_FAT_OFFSET)  & 0xffff;
+//        const long fatSz32 =
+//                bb.getInt(Fat32BootSector.SECTORS_PER_FAT_OFFSET) & 0xffffffffl;
+//
+//        const long fatSz = fatSz16 == 0 ? fatSz32 : fatSz16;
+//        const int reservedSectors = bb.getShort(RESERVED_SECTORS_OFFSET);
+//        const int fatCount = bb.get(FAT_COUNT_OFFSET);
+//        const long dataSectors = totalSectors - (reservedSectors +
+//                (fatCount * fatSz) + rootDirSectors);
+//
+//        const long clusterCount = dataSectors / sectorsPerCluster;
+//
+//        const BootSector result =
+//                (clusterCount > Fat16BootSector.MAX_FAT16_CLUSTERS) ?
+//            new Fat32BootSector(device) : new Fat16BootSector(device);
             
-        result.read();
-        return result;
+//        result.read();
+        return {};
     }
     
     virtual FatType getFatType() = 0;
@@ -69,6 +75,14 @@ public:
     
     virtual long getSectorCount() = 0;
     
+    int getBytesPerSector() {
+        return get16(0x0b);
+    }
+    
+    int getNrReservedSectors() {
+        return get16(RESERVED_SECTORS_OFFSET);
+    }
+
     const long getFatOffset(int fatNr) {
         long sectSize = getBytesPerSector();
         long sectsPerFat = getSectorsPerFat();
@@ -80,6 +94,10 @@ public:
         offset += fatNr * fatSize;
 
         return offset;
+    }
+
+    const int getNrFats() {
+        return get8(FAT_COUNT_OFFSET);
     }
 
     const long getRootDirOffset() {
@@ -106,9 +124,9 @@ public:
     
     virtual int getExtendedBootSignatureOffset() = 0;
     
-    void init() throw (std::exception) {
-        setBytesPerSector(getDevice().getSectorSize());
-        setSectorCount(getDevice().getSize() / getDevice().getSectorSize());
+    void init() {
+//        setBytesPerSector(getDevice().getSectorSize());
+//        setSectorCount(getDevice().getSize() / getDevice().getSectorSize());
         set8(getExtendedBootSignatureOffset(), EXTENDED_BOOT_SIGNATURE);
 
         set8(0x00, 0xeb);
@@ -119,24 +137,24 @@ public:
     }
     
     std::string getFileSystemTypeLabel() {
-        const std::stringBuilder sb = new std::stringBuilder(FILE_SYSTEM_TYPE_LENGTH);
+//        const std::stringBuilder sb = new std::stringBuilder(FILE_SYSTEM_TYPE_LENGTH);
 
-        for (int i=0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
-            sb.append ((char) get8(getFileSystemTypeLabelOffset() + i));
-        }
+//        for (int i=0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
+//            sb.append ((char) get8(getFileSystemTypeLabelOffset() + i));
+//        }
 
-        return sb.tostd::string();
+//        return sb.tostd::string();
+        return {};
     }
 
-    void setFileSystemTypeLabel(std::string fsType)
-            throws IllegalArgumentException {
+    void setFileSystemTypeLabel(std::string fsType) {
 
         if (fsType.length() != FILE_SYSTEM_TYPE_LENGTH) {
-            throw new IllegalArgumentException();
+            throw "invalid file system type length";
         }
 
         for (int i=0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
-            set8(getFileSystemTypeLabelOffset() + i, fsType.charAt(i));
+//            set8(getFileSystemTypeLabelOffset() + i, fsType.charAt(i));
         }
     }
 
@@ -145,15 +163,16 @@ public:
     }
 
     std::string getOemName() {
-        std::stringBuilder b = new std::stringBuilder(8);
+//        std::stringBuilder b = new std::stringBuilder(8);
         
-        for (int i = 0; i < 8; i++) {
-            int v = get8(0x3 + i);
-            if (v == 0) break;
-            b.append((char) v);
-        }
+//        for (int i = 0; i < 8; i++) {
+//            int v = get8(0x3 + i);
+//            if (v == 0) break;
+//            b.append((char) v);
+//        }
         
-        return b.tostd::string();
+//        return b.tostd::string();
+        return {};
     }
 
     void setOemName(std::string name) {
@@ -162,7 +181,7 @@ public:
         for (int i = 0; i < 8; i++) {
             char ch;
             if (i < name.length()) {
-                ch = name.charAt(i);
+//                ch = name.charAt(i);
             } else {
                 ch = (char) 0;
             }
@@ -171,10 +190,6 @@ public:
         }
     }
     
-    int getBytesPerSector() {
-        return get16(0x0b);
-    }
-
     void setBytesPerSector(int v) {
         if (v == getBytesPerSector()) return;
 
@@ -184,7 +199,7 @@ public:
                 break;
                 
             default:
-                throw new IllegalArgumentException();
+                throw "invalid bytes per sector";
         }
     }
 
@@ -203,18 +218,10 @@ public:
         set8(SECTORS_PER_CLUSTER_OFFSET, v);
     }
     
-    int getNrReservedSectors() {
-        return get16(RESERVED_SECTORS_OFFSET);
-    }
-
     void setNrReservedSectors(int v) {
         if (v == getNrReservedSectors()) return;
         if (v < 1) throw "there must be >= 1 reserved sectors";
         set16(RESERVED_SECTORS_OFFSET, v);
-    }
-
-    const int getNrFats() {
-        return get8(FAT_COUNT_OFFSET);
     }
 
     const void setNrFats(int v) {
@@ -263,26 +270,27 @@ public:
     }
 
 protected:
-    BootSector(BlockDevice device) {
-        super(device, 0, SIZE);
+    BootSector(BlockDevice& device)
+    : Sector(device, 0, SIZE)
+    {
         markDirty();
     }
     
-    protected int getNrLogicalSectors() {
+    int getNrLogicalSectors() {
         return get16(TOTAL_SECTORS_16_OFFSET);
     }
     
-    protected void setNrLogicalSectors(int v) {
+    void setNrLogicalSectors(int v) {
         if (v == getNrLogicalSectors()) return;
         
         set16(TOTAL_SECTORS_16_OFFSET, v);
     }
     
-    protected void setNrTotalSectors(long v) {
+    void setNrTotalSectors(long v) {
         set32(TOTAL_SECTORS_32_OFFSET, v);
     }
     
-    protected long getNrTotalSectors() {
+    long getNrTotalSectors() {
         return get32(TOTAL_SECTORS_32_OFFSET);
     }
     

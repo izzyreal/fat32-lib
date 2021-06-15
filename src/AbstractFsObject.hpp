@@ -1,3 +1,5 @@
+#pragma once
+
 #include "FsObject.hpp"
 
 namespace akaifat {
