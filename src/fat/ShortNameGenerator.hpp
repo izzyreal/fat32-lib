@@ -97,7 +97,7 @@ public:
 				}
 			}
 
-			throw new IllegalStateException("could not generate short name for \"" + longFullName + "\"");
+			throw "could not generate short name for \"" + longFullName + "\"";
 		}
 
 		return new ShortName(longName, shortExt);

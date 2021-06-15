@@ -45,7 +45,7 @@ public:
 
     void setVolumeLabel(std::string label) throws IllegalArgumentException {
         if (label.length() > MAX_VOLUME_LABEL_LENGTH)
-            throw new IllegalArgumentException("volume label too long");
+            throw "volume label too long";
 
         for (int i = 0; i < MAX_VOLUME_LABEL_LENGTH; i++) {
             set8(VOLUME_LABEL_OFFSET + i,
@@ -61,8 +61,7 @@ public:
     
     void setSectorsPerFat(long v) override {
         if (v == getSectorsPerFat()) return;
-        if (v > 0x7FFF) throw new IllegalArgumentException(
-                "too many sectors for a FAT12/16");
+        if (v > 0x7FFF) throw "too many sectors for a FAT12/16";
         
         set16(SECTORS_PER_FAT_OFFSET, (int)v);
     }

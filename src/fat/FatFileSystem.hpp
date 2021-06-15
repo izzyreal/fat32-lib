@@ -1,15 +1,17 @@
 #include "../AbstractFileSystem.hpp"
 
+#include "AkaiFatFileSystem.hpp"
+
 namespace akaifat::fat {
 class FatFileSystem : public akaifat::AbstractFileSystem {
 public:
-    FatFileSystem(BlockDevice api, bool readOnly) throw (std::exception)
+    FatFileSystem(BlockDevice api, bool readOnly)
     : AkaiFatFileSystem(api, readOnly, false)
     {
     }
 
     static FatFileSystem read(BlockDevice device, bool readOnly)
-            throw (std::exception) {
+            {
         
         return new FatFileSystem(device, readOnly);
     }
@@ -57,7 +59,7 @@ public:
         return rootDirStore;
     }
     
-    void flush() throw (std::exception) override {
+    void flush() override {
         checkClosed();
         
         if (bs.isDirty()) {
@@ -125,13 +127,13 @@ private:
     
     FatFileSystem(BlockDevice device, bool readOnly,
             bool ignoreFatDifferences)
-            throw (std::exception)
+           
     : akaifat::AbstractFileSystem(readOnly)
     {        
         bs = BootSector.read(device);
         
-        if (bs.getNrFats() <= 0) throw new std::exception(
-                "boot sector says there are no FATs");
+        if (bs.getNrFats() <= 0) 
+               throw "boot sector says there are no FATs";
         
         filesOffset = bs.getFilesOffset();
         fatType = bs.getFatType();
@@ -141,7 +143,7 @@ private:
             for (int i=1; i < bs.getNrFats(); i++) {
                 const Fat tmpFat = Fat.read(bs, i);
                 if (!fat.equals(tmpFat)) {
-                    throw new std::exception("FAT " + i + " differs from FAT 0");
+                    throw "FAT " + i + " differs from FAT 0";
                 }
             }
         }
@@ -154,9 +156,9 @@ private:
             fsiSector = FsInfoSector.read(f32bs);
             
             if (fsiSector.getFreeClusterCount() < fat.getFreeClusterCount()) {
-                throw new std::exception("free cluster count mismatch - fat: " +
+                throw "free cluster count mismatch - fat: " +
                         fat.getFreeClusterCount() + " - fsinfo: " +
-                        fsiSector.getFreeClusterCount());
+                        fsiSector.getFreeClusterCount();
             }
         } else {
             rootDirStore =

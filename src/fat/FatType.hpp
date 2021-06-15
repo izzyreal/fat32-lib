@@ -1,5 +1,8 @@
-namespace akaifat::fat {
+#pragma once
 
+#include <vector>
+
+namespace akaifat::fat {
 class FatType {
 
 private:
@@ -8,30 +11,26 @@ private:
     const long eofCluster;
     const long eofMarker;
     const long bitMask;
-    const int maxClusters;
+    const int _maxClusters;
     const std::string label;
     const float entrySize;
 
 public:
-    FatType(int maxClusters,
-            long bitMask, float entrySize, std::string label) {
-        
-        minReservedEntry = (0xFFFFFF0L & bitMask);
-        maxReservedEntry = (0xFFFFFF6L & bitMask);
-        eofCluster = (0xFFFFFF8L & bitMask);
-        eofMarker = (0xFFFFFFFL & bitMask);
-        entrySize = entrySize;
-        label = label;
-        maxClusters = maxClusters;
-        bitMask = bitMask;
+    FatType(int __maxClusters,
+            long _bitMask, float _entrySize, const std::string& _label)
+    : _maxClusters (__maxClusters), bitMask (_bitMask), entrySize (_entrySize), label (_label),
+    minReservedEntry (0xFFFFFF0L & _bitMask), maxReservedEntry (0xFFFFFF6L & _bitMask),
+    eofCluster (0xFFFFFF8L & _bitMask),
+    eofMarker (0xFFFFFFFL & _bitMask)
+    {
     }
 
-    virtual long readEntry(byte[] data, int index) = 0;
+    virtual long readEntry(std::vector<char>& data, int index) = 0;
 
-    virtual void writeEntry(byte[] data, int index, long entry) = 0;
+    virtual void writeEntry(std::vector<char>& data, int index, long entry) = 0;
 
     long maxClusters() {
-        return maxClusters;
+        return _maxClusters;
     }
     
     std::string getLabel() {
@@ -62,9 +61,9 @@ public:
 class Fat12Type : FatType {
 
 public:
-        Fat12Type() : FatType((1 << 12) - 16, 0xFFFL, 1.5f, "FAT12   ") {
+    Fat12Type() : FatType((1 << 12) - 16, 0xFFFL, 1.5f, "FAT12   "){}
         
-        long readEntry(byte[] data, int index) override {
+        long readEntry(std::vector<char>& data, int index) override {
             const int idx = (int) (index * 1.5);
             const int b1 = data[idx] & 0xFF;
             const int b2 = data[idx + 1] & 0xFF;
@@ -78,26 +77,25 @@ public:
         }
 
         
-        void writeEntry(byte[] data, int index, long entry) override {
+        void writeEntry(std::vector<char>& data, int index, long entry) override {
             const int idx = (int) (index * 1.5);
             
             if ((index % 2) == 0) {
-                data[idx] = (byte) (entry & 0xFF);
-                data[idx + 1] = (byte) ((entry >> 8) & 0x0F);
+                data[idx] = (char) (entry & 0xFF);
+                data[idx + 1] = (char) ((entry >> 8) & 0x0F);
             } else {
-                data[idx] |= (byte) ((entry & 0x0F) << 4);
-                data[idx + 1] = (byte) ((entry >> 4) & 0xFF);
+                data[idx] |= (char) ((entry & 0x0F) << 4);
+                data[idx + 1] = (char) ((entry >> 4) & 0xFF);
             }
         }
-    }
 };
 
-class Fat16Type {
+class Fat16Type : FatType {
 
 public:
-    Fat16Type() : FatType((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   ") {
+    Fat16Type() : FatType((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   "){}
         
-        long readEntry(byte[] data, int index) override {
+        long readEntry(std::vector<char>& data, int index) override {
             const int idx = index << 1;
             const int b1 = data[idx] & 0xFF;
             const int b2 = data[idx + 1] & 0xFF;
@@ -105,20 +103,19 @@ public:
         }
 
         
-        void writeEntry(byte[] data, int index, long entry) override {
+        void writeEntry(std::vector<char>& data, int index, long entry) override {
             const int idx = index << 1;
-            data[idx] = (byte) (entry & 0xFF);
-            data[idx + 1] = (byte) ((entry >> 8) & 0xFF);
+            data[idx] = (char) (entry & 0xFF);
+            data[idx + 1] = (char) ((entry >> 8) & 0xFF);
         }
-    }
 };
     
-class Fat32Type {
+class Fat32Type : FatType {
 
 public:
-    Fat32Type() : ((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") {
+    Fat32Type() : FatType((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") {}
         
-        long readEntry(byte[] data, int index) override {
+        long readEntry(std::vector<char>& data, int index) override {
             const int idx = index * 4;
             const long l1 = data[idx] & 0xFF;
             const long l2 = data[idx + 1] & 0xFF;
@@ -128,13 +125,11 @@ public:
         }
 
         
-        void writeEntry(byte[] data, int index, long entry) override {
+        void writeEntry(std::vector<char>& data, int index, long entry) override {
             const int idx = index << 2;
-            data[idx] = (byte) (entry & 0xFF);
-            data[idx + 1] = (byte) ((entry >> 8) & 0xFF);
-            data[idx + 2] = (byte) ((entry >> 16) & 0xFF);
-            data[idx + 3] = (byte) ((entry >> 24) & 0xFF);
+            data[idx] = (char) (entry & 0xFF);
+            data[idx + 1] = (char) ((entry >> 8) & 0xFF);
+            data[idx + 2] = (char) ((entry >> 16) & 0xFF);
+            data[idx + 3] = (char) ((entry >> 24) & 0xFF);
         }
-    }
 };
-}

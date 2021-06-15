@@ -21,8 +21,8 @@ public:
     static FsInfoSector create(Fat32BootSector bs) throw (std::exception) {
         const int offset = offset(bs);
 
-        if (offset == 0) throw new std::exception(
-                "creating a FS info sector at offset 0 is strange");
+        if (offset == 0) 
+            throw "creating a FS info sector at offset 0 is strange";
         
         const FsInfoSector result =
                 new FsInfoSector(bs.getDevice(), offset(bs));
@@ -55,25 +55,25 @@ public:
 private:
     void init() {
         buffer.position(0x00);
-        buffer.put((byte) 0x52);
-        buffer.put((byte) 0x52);
-        buffer.put((byte) 0x61);
-        buffer.put((byte) 0x41);
+        buffer.put((char) 0x52);
+        buffer.put((char) 0x52);
+        buffer.put((char) 0x61);
+        buffer.put((char) 0x41);
         
         /* 480 reserved bytes */
 
         buffer.position(0x1e4);
-        buffer.put((byte) 0x72);
-        buffer.put((byte) 0x72);
-        buffer.put((byte) 0x41);
-        buffer.put((byte) 0x61);
+        buffer.put((char) 0x72);
+        buffer.put((char) 0x72);
+        buffer.put((char) 0x41);
+        buffer.put((char) 0x61);
         
         setFreeClusterCount(-1);
         setLastAllocatedCluster(Fat.FIRST_CLUSTER);
 
         buffer.position(SIGNATURE_OFFSET);
-        buffer.put((byte) 0x55);
-        buffer.put((byte) 0xaa);
+        buffer.put((char) 0x55);
+        buffer.put((char) 0xaa);
         
         markDirty();
     }
@@ -89,8 +89,7 @@ private:
     void verify() throw (std::exception) {
         if (!(get8(SIGNATURE_OFFSET) == 0x55) ||
                 !(get8(SIGNATURE_OFFSET + 1) == 0xaa)) {
-
-            throw new std::exception("invalid FS info sector signature");
+            throw "invalid FS info sector signature");
         }
     }    
 };

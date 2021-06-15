@@ -27,8 +27,7 @@ public:
             fat.testCluster(startCluster);
             
             if (fat.isFreeCluster(startCluster))
-                throw new IllegalArgumentException(
-                    "cluster " + startCluster + " is free");
+                throw "cluster " + startCluster + " is free";
         }
         
         device = fat.getDevice();
@@ -62,7 +61,7 @@ public:
     long setSize(long size) throw (std::exception) {
         const long nrClusters = ((size + clusterSize - 1) / clusterSize);
         if (nrClusters > Integer.MAX_VALUE)
-            throw new std::exception("too many clusters");
+            throw "too many clusters";
 
         setChainLength((int) nrClusters);
         
@@ -77,8 +76,7 @@ public:
     }
 
     void setChainLength(int nrClusters) throw (std::exception) {
-        if (nrClusters < 0) throw new IllegalArgumentException(
-                "negative cluster count"); //NOI18N
+        if (nrClusters < 0) throw "negative cluster count";
                 
         if ((startCluster == 0) && (nrClusters == 0)) {
             /* nothing to do */
@@ -122,7 +120,7 @@ public:
         int len = dest.remaining();
 
         if ((startCluster == 0 && len > 0)) {
-            throw new EOFException("cannot read from empty cluster chain");
+            throw "cannot read from empty cluster chain";
         }
         
         const long[] chain = getFat().getChain(startCluster);

@@ -31,7 +31,7 @@ public:
         const Fat result = new Fat(bs, fatOffset);
 
         if (bs.getDataClusterCount() > result.entries.length)
-            throw new std::exception("FAT too small for device");
+            throw "FAT too small for device";
             
         result.init(bs.getMediumDescriptor());
         result.write();
@@ -55,7 +55,7 @@ public:
     }
     
     void writeCopy(long offset) throw (std::exception) {
-        const byte[] data = new byte[sectorCount * sectorSize];
+        const std::vector<char> data = new byte[sectorCount * sectorSize];
         
         for (int index = 0; index < entries.length; index++) {
             fatType.writeEntry(data, index, entries[index]);
@@ -129,9 +129,8 @@ public:
         }
         
         if (entryIndex < 0) {
-            throw new std::exception(
-                    "FAT Full (" + (lastClusterIndex - FIRST_CLUSTER)
-                    + ", " + i + ")"); //NOI18N
+            throw "FAT Full (" + (lastClusterIndex - FIRST_CLUSTER)
+                    + ", " + i + ")";
         }
         
         entries[entryIndex] = fatType.getEofMarker();
@@ -249,15 +248,15 @@ private:
         bs = _bs;
         fatType = bs.getFatType();
         if (bs.getSectorsPerFat() > Integer.MAX_VALUE)
-            throw new IllegalArgumentException("FAT too large");
+            throw "FAT too large";
 
-        if (bs.getSectorsPerFat() <= 0) throw new std::exception(
-                "boot sector says there are " + bs.getSectorsPerFat() +
-                " sectors per FAT");
+        if (bs.getSectorsPerFat() <= 0) 
+                throw "boot sector says there are " + bs.getSectorsPerFat() +
+                " sectors per FAT";
 
-        if (bs.getBytesPerSector() <= 0) throw new std::exception(
-                "boot sector says there are " + bs.getBytesPerSector() +
-                " bytes per sector");
+        if (bs.getBytesPerSector() <= 0) 
+                throw "boot sector says there are " + bs.getBytesPerSector() +
+                " bytes per sector";
 
         sectorCount = (int) bs.getSectorsPerFat();
         sectorSize = bs.getBytesPerSector();
@@ -266,19 +265,19 @@ private:
         lastAllocatedCluster = FIRST_CLUSTER;
         
         if (bs.getDataClusterCount() > Integer.MAX_VALUE) throw
-                new std::exception("too many data clusters");
+                "too many data clusters";
         
         if (bs.getDataClusterCount() == 0) throw
-                new std::exception("no data clusters");
+                "no data clusters";
         
         lastClusterIndex = (int) bs.getDataClusterCount() + FIRST_CLUSTER;
 
         entries = new long[(int) ((sectorCount * sectorSize) /
                 fatType.getEntrySize())];
                 
-        if (lastClusterIndex > entries.length) throw new std::exception(
-            "file system has " + lastClusterIndex +
-            "clusters but only " + entries.length + " FAT entries");
+        if (lastClusterIndex > entries.length) 
+            throw "file system has " + lastClusterIndex +
+            "clusters but only " + entries.length + " FAT entries";
     }
     
 
@@ -290,7 +289,7 @@ private:
     }
     
     void read() throw (std::exception) {
-        const byte[] data = new byte[sectorCount * sectorSize];
+        const std::vector<char> data = new byte[sectorCount * sectorSize];
         device.read(offset, ByteBuffer.wrap(data));
 
         for (int i = 0; i < entries.length; i++)

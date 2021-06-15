@@ -40,8 +40,7 @@ public:
 
     void setBootSectorCopySector(int sectNr) {
         if (getBootSectorCopySector() == sectNr) return;
-        if (sectNr < 0) throw new IllegalArgumentException(
-                "boot sector copy sector must be >= 0");
+        if (sectNr < 0) throw "boot sector copy sector must be >= 0";
         
         set16(BOOT_SECTOR_COPY_OFFSET, sectNr);
     }
@@ -54,7 +53,7 @@ public:
         for (int i=0; i < 11; i++) {
             const byte c =
                     (label == null) ? 0 :
-                    (label.length() > i) ? (byte) label.charAt(i) : 0x20;
+                    (label.length() > i) ? (char) label.charAt(i) : 0x20;
 
             set8(0x47 + i, c);
         }

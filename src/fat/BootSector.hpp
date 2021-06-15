@@ -16,13 +16,13 @@ public:
         device.read(0, bb);
         
         if ((bb.get(510) & 0xff) != 0x55 ||
-                (bb.get(511) & 0xff) != 0xaa) throw new std::exception(
-                "missing boot sector signature");
+                (bb.get(511) & 0xff) != 0xaa) 
+                throw "missing boot sector signature";
                 
         const byte sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
 
-        if (sectorsPerCluster <= 0) throw new std::exception(
-                "suspicious sectors per cluster count " + sectorsPerCluster);
+        if (sectorsPerCluster <= 0) 
+                throw "suspicious sectors per cluster count " + sectorsPerCluster;
                 
         const int rootDirEntries = bb.getShort(
                 Fat16BootSector.ROOT_DIR_ENTRIES_OFFSET);
@@ -157,8 +157,7 @@ public:
     }
 
     void setOemName(std::string name) {
-        if (name.length() > 8) throw new IllegalArgumentException(
-                "only 8 characters are allowed");
+        if (name.length() > 8) throw "only 8 characters are allowed";
 
         for (int i = 0; i < 8; i++) {
             char ch;
@@ -199,8 +198,7 @@ public:
 
     void setSectorsPerCluster(int v) {
         if (v == getSectorsPerCluster()) return;
-        if (!isPowerOfTwo(v)) throw new IllegalArgumentException(
-                "value must be a power of two");
+        if (!isPowerOfTwo(v)) throw "value must be a power of two";
         
         set8(SECTORS_PER_CLUSTER_OFFSET, v);
     }
@@ -211,8 +209,7 @@ public:
 
     void setNrReservedSectors(int v) {
         if (v == getNrReservedSectors()) return;
-        if (v < 1) throw new IllegalArgumentException(
-                "there must be >= 1 reserved sectors");
+        if (v < 1) throw "there must be >= 1 reserved sectors";
         set16(RESERVED_SECTORS_OFFSET, v);
     }
 

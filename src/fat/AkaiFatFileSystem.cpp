@@ -9,8 +9,8 @@ AkaiFatFileSystem::AkaiFatFileSystem(
 ) : akaifat::AbstractFileSystem (readOnly),
     bs (BootSector::read(device))
 {                
-    if (bs.getNrFats() <= 0) throw new std::exception(
-            "boot sector says there are no FATs");
+    if (bs.getNrFats() <= 0) 
+            throw "boot sector says there are no FATs";
     
     filesOffset = bs.getFilesOffset();
     fatType = bs.getFatType();
@@ -23,7 +23,7 @@ AkaiFatFileSystem::AkaiFatFileSystem(
             const Fat tmpFat = Fat.read(bs, i);
         
             if (!fat.equals(tmpFat))
-                throw new std::exception("FAT " + i + " differs from FAT 0");
+                throw "FAT " + i + " differs from FAT 0";
         }
     }
     
@@ -38,7 +38,7 @@ AkaiFatFileSystem::AkaiFatFileSystem(
         
         if (fsiSector.getFreeClusterCount() < fat.getFreeClusterCount())
         {
-            throw new std::exception("free cluster count mismatch - fat: " +
+            "free cluster count mismatch - fat: " +
                     fat.getFreeClusterCount() + " - fsinfo: " +
                     fsiSector.getFreeClusterCount());
         }

@@ -106,7 +106,7 @@ public:
 				}
 			}
 
-			throw new IllegalStateException("could not generate short name for \"" + longFullName + "\"");
+			throw "could not generate short name for \"" + longFullName + "\"";
 		}
 		
 		if (longName.length() > 16) longName = longName.substring(0, 16);	

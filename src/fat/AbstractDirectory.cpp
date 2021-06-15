@@ -18,7 +18,7 @@ AbstractDirectory::AbstractDirectory(
 void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry>& newEntries)
 {
     if (newEntries.size() > capacity)
-        throw new std::illegal_argument("too many entries");
+        throw "too many entries";
     
     entries = newEntries;
 }
@@ -28,7 +28,7 @@ void AbstractDirectory::sizeChanged(const long newSize)
     const long newCount = newSize / FatDirectoryEntry.SIZE;
     
     if (newCount > MAX_INT)
-        throw new std::exception("directory too large");
+        "directory too large";
     
     capacity = (int) newCount;
 }
@@ -47,7 +47,7 @@ void AbstractDirectory::read()
         if (e->isVolumeLabel())
         {
             if (!isRoot)
-                throw new std::exception("volume label in non-root directory");
+                throw "volume label in non-root directory";
             
             volumeLabel = e->getVolumeLabel();
         }
@@ -176,8 +176,7 @@ void AbstractDirectory::setLabel(std::string& label)
 {
     checkRoot();
 
-    if (label != null && label.length() > MAX_LABEL_LENGTH) throw new
-            IllegalArgumentException("label too long");
+    if (label != null && label.length() > MAX_LABEL_LENGTH) throw "label too long";
 
     if (volumeLabel != null)
     {
@@ -206,7 +205,6 @@ void AbstractDirectory::setLabel(std::string& label)
 void AbstractDirectory::checkRoot() {
     if (!isRoot())
     {
-        throw new std::exception(
-                "only supported on root directories");
+        throw "only supported on root directories";
     }
 }

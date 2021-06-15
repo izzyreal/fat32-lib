@@ -53,11 +53,10 @@ protected:
 
     void set8(int offset, int value) {
         if ((value & 0xff) != value) {
-            throw new IllegalArgumentException(
-                    value + " too big to be stored in a single octet");
+            throw value + " too big to be stored in a single octet";
         }
         
-        buffer.put(offset, (byte) (value & 0xff));
+        buffer.put(offset, (char) (value & 0xff));
         dirty = true;
     }
     

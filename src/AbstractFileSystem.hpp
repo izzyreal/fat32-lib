@@ -1,19 +1,20 @@
-public abstract class AbstractFileSystem implements FileSystem {
-    private const bool readOnly;
-    private bool closed;
+#pragma once
+
+#include "FileSystem.hpp"
+
+namespace akaifat {
+class AbstractFileSystem : public FileSystem {
+private:
+    const bool readOnly;
+    bool closed;
     
-    /**
-     * Creates a new {@code AbstractFileSystem}.
-     * 
-     * @param readOnly if the file system should be read-only
-     */
-    public AbstractFileSystem(bool readOnly) {
+public:
+    AbstractFileSystem(bool _readOnly)
+    : readOnly (_readOnly){
         closed = false;
-        readOnly = readOnly;
     }
     
-    @Override
-    public void close() throw (std::exception) {
+    void close() override {
         if (!isClosed()) {
             if (!isReadOnly()) {
                 flush();
@@ -23,41 +24,25 @@ public abstract class AbstractFileSystem implements FileSystem {
         }
     }
     
-    @Override
-    public const bool isClosed() {
+    const bool isClosed() override {
         return closed;
     }
     
-    @Override
-    public const bool isReadOnly() {
+    const bool isReadOnly() override {
         return readOnly;
     }
 
-    /**
-     * Checks if this {@code FileSystem} was already closed, and throws an
-     * exception if it was.
-     *
-     * @throws IllegalStateException if this {@code FileSystem} was
-     *      already closed
-     * @see #isClosed()
-     * @see #close() 
-     */
-    protected const void checkClosed() throws IllegalStateException {
+protected:
+    const void checkClosed() {
         if (isClosed()) {
-            throw new IllegalStateException("file system was already closed");
+            throw "file system was already closed";
         }
     }
     
-    /**
-     * Checks if this {@code FileSystem} is read-only, and throws an
-     * exception if it is.
-     *
-     * @throws ReadOnlyException if this {@code FileSystem} is read-only
-     * @see #isReadOnly() 
-     */
-    protected const void checkReadOnly() throws ReadOnlyException {
+    const void checkReadOnly() {
         if (isReadOnly()) {
-            throw new ReadOnlyException();
+            throw "file system is read only";
         }
     }
+};
 }

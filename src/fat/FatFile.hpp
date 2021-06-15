@@ -17,15 +17,15 @@ public:
             throw (std::exception) {
         
         if (entry.isDirectory())
-            throw new IllegalArgumentException(entry + " is a directory");
+            throw entry + " is a directory";
             
         const ClusterChain cc = new ClusterChain(
                 fat, entry.getStartCluster(), entry.isReadonlyFlag());
                 
-        if (entry.getLength() > cc.getLengthOnDisk()) throw new std::exception(
-                "entry (" + entry.getLength() +
+        if (entry.getLength() > cc.getLengthOnDisk()) 
+                throw "entry (" + entry.getLength() +
                 ") is larger than associated cluster chain ("
-                + cc.getLengthOnDisk() + ")");
+                + cc.getLengthOnDisk() + ")";
                 
         return new FatFile(entry, cc);
     }

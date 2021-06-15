@@ -186,7 +186,7 @@ void AkaiFatLfnDirectory::checkUniqueName(std::string name)
 
   if (!usedAkaiNames.add(lowerName))
   {
-    throw new std::exception("an entry named " + name + " already exists");
+    throw "an entry named " + name + " already exists";
   } else {
     usedAkaiNames.remove(lowerName);
   }
@@ -245,7 +245,7 @@ void AkaiFatLfnDirectory::updateLFN()
 
 std::shared_ptr<ClusterChainDirectory> AkaiFatLfnDirectory::read(FatDirectoryEntry entry, Fat fat)
 {
-  if (!entry.isDirectory()) throw new IllegalArgumentException(entry + " is no directory");
+  if (!entry.isDirectory()) throw entry.getName() + " is no directory";
 
   const ClusterChain chain(fat, entry.getStartCluster(), entry.isReadonlyFlag());
 

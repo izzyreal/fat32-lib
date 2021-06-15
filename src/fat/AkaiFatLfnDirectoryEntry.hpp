@@ -109,7 +109,7 @@ public:
 		checkWritable();
 
 		if (!parent.isFreeName(newName)) {
-			throw new std::exception("the name \"" + newName + "\" is already in use");
+			throw "the name \"" + newName + "\" is already in use";
 		}
 
 		parent.unlinkEntry(this);
@@ -122,7 +122,7 @@ public:
 		checkWritable();
 
 		if (!target.isFreeName(newName)) {
-			throw new std::exception("the name \"" + newName + "\" is already in use");
+			throw "the name \"" + newName + "\" is already in use";
 		}
 
 		parent.unlinkEntry(this);

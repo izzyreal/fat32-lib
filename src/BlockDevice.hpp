@@ -1,105 +1,25 @@
-/*
- * Copyright (C) 2003-2009 JNode.org
- *               2009-2013 Matthias Treydte <mt@waldheinz.de>
- *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2.1 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
- * License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
- 
-package de.waldheinz.fs;
+#include <exception>
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+#include "ByteBuffer.hpp"
 
-/**
- * This is the abstraction used for a device that can hold a {@link FileSystem}.
- *
- * @author Ewout Prangsma &lt;epr at jnode.org&gt;
- * @author Matthias Treydte &lt;waldheinz at gmail.com&gt;
- */
-public interface BlockDevice {
+namespace akaifat {
+class BlockDevice {
+public:
+    virtual long getSize() = 0;
 
-    /**
-     * Gets the total length of this device in bytes.
-     *
-     * @return the total number of bytes on this device
-     * @throw (std::exception) on error getting the size of this device
-     */
-    public abstract long getSize() throws IOException;
+    virtual void read(long devOffset, ByteBuffer dest) = 0;
 
-    /**
-     * Read a block of data from this device.
-     *
-     * @param devOffset the byte offset where to read the data from
-     * @param dest the destination buffer where to store the data read
-     * @throw (std::exception) on read error
-     */
-    public abstract void read(long devOffset, ByteBuffer dest)
-            throws IOException;
-
-    /**
-     * Writes a block of data to this device.
-     *
-     * @param devOffset the byte offset where to store the data
-     * @param src the source {@code ByteBuffer} to write to the device
-     * @throws ReadOnlyException if this {@code BlockDevice} is read-only
-     * @throw (std::exception) on write error
-     * @throws IllegalArgumentException if the {@code devOffset} is negative
-     *      or the write would go beyond the end of the device
-     * @see #isReadOnly()
-     */
-    public abstract void write(long devOffset, ByteBuffer src)
-            throws ReadOnlyException, IOException,
-            IllegalArgumentException;
+    virtual void write(long devOffset, ByteBuffer src) = 0;
             
-    /**
-     * Flushes data in caches to the actual storage.
-     *
-     * @throw (std::exception) on write error
-     */
-    public abstract void flush() throws IOException;
+    virtual void flush() = 0;
 
-    /**
-     * Returns the size of a sector on this device.
-     *
-     * @return the sector size in bytes
-     * @throw (std::exception) on error determining the sector size
-     */
-    public int getSectorSize() throws IOException;
+    virtual int getSectorSize() = 0;
 
-    /**
-     * Closes this {@code BlockDevice}. No methods of this device may be
-     * accesses after this method was called.
-     *
-     * @throw (std::exception) on error closing this device
-     * @see #isClosed() 
-     */
-    public void close() throws IOException;
+    virtual void close() = 0;
 
-    /**
-     * Checks if this device was already closed. No methods may be called
-     * on a closed device (except this method).
-     *
-     * @return if this device is closed
-     */
-    public bool isClosed();
-
-    /**
-     * Checks if this {@code BlockDevice} is read-only.
-     *
-     * @return if this {@code BlockDevice} is read-only
-     */
-    public bool isReadOnly();
+    virtual bool isClosed() = 0;
     
+    virtual bool isReadOnly() = 0;
+    
+};
 }

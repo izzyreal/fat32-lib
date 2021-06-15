@@ -1,12 +1,14 @@
 #include "../AbstractFsObject.hpp"
 
+#include "../LittleEndian.hpp"
+
 #include <vector>
 
 namespace akaifat::fat {
 class FatDirectoryEntry : public AbstractFsObject {
 
 private:
-    const FatType type;
+    const FatType& type;
     bool dirty;
     static const int OFFSET_ATTRIBUTES = 0x0b;
     
@@ -20,12 +22,12 @@ private:
     static const int F_ARCHIVE = 0x20;
 
 public:
-    FatDirectoryEntry(FatType fs)
+    FatDirectoryEntry(FatType& fs)
     : FatDirectoryEntry(fs, std::vector<char>(SIZE), false)
     {
     }
 
-    FatDirectoryEntry(FatType fs, std::vector<char>& _data, bool readOnly)
+    FatDirectoryEntry(FatType& fs, std::vector<char> _data, bool readOnly)
     : AbstractFsObject(readOnly), type (fs), data (_data)
     {
     }
@@ -45,11 +47,11 @@ public:
     }
     
     int getFlags() {
-        return LittleEndian.getUInt8(data, OFFSET_ATTRIBUTES);
+        return LittleEndian::getUInt8(data, OFFSET_ATTRIBUTES);
     }
     
     void setFlags(int flags) {
-        LittleEndian.setInt8(data, OFFSET_ATTRIBUTES, flags);
+        LittleEndian::setInt8(data, OFFSET_ATTRIBUTES, flags);
     }
 
     const std::vector<char> data;
@@ -65,14 +67,14 @@ public:
 
         if (buff.get(buff.position()) == 0) return null;
 
-        const byte[] data = new byte[SIZE];
+        const std::vector<char> data(SIZE);
         buff.get(data);
         return new FatDirectoryEntry(type, data, readOnly);
     }
 
     static void writeNullEntry(ByteBuffer buff) {
         for (int i=0; i < SIZE; i++) {
-            buff.put((byte) 0);
+            buff.put((char) 0);
         }
     }
     
@@ -136,7 +138,7 @@ public:
         
         assert(volumeLabel != null);
         
-        const byte[] data = new byte[SIZE];
+        const std::vector<char> data = new byte[SIZE];
         
         System.arraycopy(
                     volumeLabel.getBytes(ShortName.ASCII), 0,
@@ -151,7 +153,7 @@ public:
     
     std::string getVolumeLabel() {
         if (!isVolumeLabel())
-            throw new UnsupportedOperationException("not a volume label");
+            throw "not a volume label";
             
         const std::stringBuilder sb = new std::stringBuilder();
         

@@ -209,9 +209,7 @@ public:
     void unlinkEntry(FatLfnDirectoryEntry entry) {
         const ShortName sn = entry.realEntry.getShortName();
         
-        if (sn.equals(ShortName.DOT) || sn.equals(ShortName.DOT_DOT)) throw
-                new IllegalArgumentException(
-                    "the dot entries can not be removed");
+        if (sn.equals(ShortName.DOT) || sn.equals(ShortName.DOT_DOT)) throw "the dot entries can not be removed";
 
         const std::string lowerName = entry.getName().toLowerCase(Locale.ROOT);
 
@@ -249,8 +247,7 @@ private:
         const std::string lowerName = name.toLowerCase(Locale.ROOT);
         
         if (!usedNames.add(lowerName)) {
-            throw new std::exception(
-                    "an entry named " + name + " already exists");
+            throw "an entry named " + name + " already exists";
         } else {
             usedNames.remove(lowerName);
         }
@@ -271,9 +268,8 @@ private:
 
         try {
             result = sng.generateShortName(name);
-        } catch (IllegalArgumentException ex) {
-            throw new std::exception(
-                    "could not generate short name for \"" + name + "\"", ex);
+        } catch (const std::exception&) {
+            throw "could not generate short name for \"" + name + "\"";
         }
         
         usedNames.add(result.asSimplestd::string().toLowerCase(Locale.ROOT));
@@ -342,8 +338,7 @@ private:
     static ClusterChainDirectory read(FatDirectoryEntry entry, Fat fat)
             throw (std::exception) {
 
-        if (!entry.isDirectory()) throw
-                new IllegalArgumentException(entry + " is no directory");
+        if (!entry.isDirectory()) entry + " is no directory";
 
         const ClusterChain chain = new ClusterChain(
                 fat, entry.getStartCluster(),

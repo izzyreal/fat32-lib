@@ -1,13 +1,13 @@
+#pragma once
+
+#include "FatDirectoryEntry.hpp"
+#include "FatType.hpp"
+#include "Fat.hpp"
+
 #include <vector>
 #include <string>
 
 namespace akaifat::fat {
-
-class FatDirectoryEntry;
-class FatType;
-class DirectoryFullException;
-
-class AbstractDirectory {
 
 public:
     static const int MAX_LABEL_LENGTH = 11;
@@ -26,20 +26,18 @@ public:
 
     int getSize();
 
-    void flush() throw (std::exception);
+    void flush();
 
-    void addEntry(FatDirectoryEntry e) throw (std::exception);
+    void addEntry(FatDirectoryEntry e);
     
-    void addEntries(FatDirectoryEntry[] entries)
-            throw (std::exception);
-    void removeEntry(FatDirectoryEntry entry) throw (std::exception);
+    void addEntries(std::vector<FatDirectoryEntry> entries);
+    void removeEntry(FatDirectoryEntry entry);
 
-    std::string& getLabel() throw (std::exception);
+    std::string& getLabel();
 
-    FatDirectoryEntry createSub(Fat fat) throw (std::exception);
+    FatDirectoryEntry createSub(Fat fat);
     
-    void setLabel(std::string& label) throw (std::illegal_argument,
-            UnsupportedOperationException, std::exception);
+    void setLabel(std::string& label);
 
 private:
     const std::vector<FatDirectoryEntry> entries;
@@ -50,7 +48,7 @@ private:
     int capacity;
     std::string volumeLabel;
 
-    void checkRoot() throw (std::exception);
+    void checkRoot();
 
 protected:
     AbstractDirectory(

@@ -67,8 +67,7 @@ public:
     static ClusterChainDirectory createRoot(Fat& fat) throw (std::exception) {
 
         if (fat.getFatType() != FatType.FAT32) {
-            throw new IllegalArgumentException(
-                    "only FAT32 stores root directory in a cluster chain");
+            throw "only FAT32 stores root directory in a cluster chain";
         }
 
         const Fat32BootSector bs = (Fat32BootSector) fat.getBootSector();

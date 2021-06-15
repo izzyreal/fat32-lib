@@ -8,8 +8,7 @@ public:
     const static ShortName DOT_DOT = new ShortName("..", "");
 
     ShortName(std::string nameExt) {
-        if (nameExt.length() > 12) throw
-                new IllegalArgumentException("name too long");
+        if (nameExt.length() > 12) throw "name too long";
         
         const int i = nameExt.indexOf('.');
         const std::string namestd::string, extstd::string;
@@ -33,14 +32,14 @@ public:
     byte checkSum() {
         const byte[] dest = new byte[11];
         for (int i = 0; i < 11; i++)
-            dest[i] = (byte) nameBytes[i];
+            dest[i] = (char) nameBytes[i];
 
         int sum = dest[0];
         for (int i = 1; i < 11; i++) {
             sum = dest[i] + (((sum & 1) << 7) + ((sum & 0xfe) >> 1));
         }
         
-        return (byte) (sum & 0xff);
+        return (char) (sum & 0xff);
     }
 
     static ShortName get(std::string name) throws IllegalArgumentException {
@@ -59,7 +58,7 @@ public:
         }
     }
     
-    static ShortName parse(byte[] data) {
+    static ShortName parse(std::vector<char> data) {
         const char[] nameArr = new char[8];
         
         for (int i = 0; i < nameArr.length; i++) {
@@ -98,22 +97,18 @@ public:
     static void checkValidChars(byte[] chars)
             throws IllegalArgumentException {
             
-        if (chars[0] == 0x20) throw new IllegalArgumentException(
-                "0x20 can not be the first character");
+        if (chars[0] == 0x20) throw "0x20 can not be the first character";
 
         for (int i=0; i < chars.length; i++) {
-            if ((chars[i] & 0xff) != chars[i]) throw new
-                    IllegalArgumentException("multi-byte character at " + i);
+            if ((chars[i] & 0xff) != chars[i]) throw "multi-byte character at " + i;
 
-            const byte toTest = (byte) (chars[i] & 0xff);
+            const byte toTest = (char) (chars[i] & 0xff);
             
-            if (toTest < 0x20 && toTest != 0x05) throw new
-                    IllegalArgumentException("caracter < 0x20 at" + i);
+            if (toTest < 0x20 && toTest != 0x05) throw "caracter < 0x20 at" + i;
 
             for (int j=0; j < ILLEGAL_CHARS.length; j++) {
-                if (toTest == ILLEGAL_CHARS[j]) throw new
-                        IllegalArgumentException("illegal character " +
-                        ILLEGAL_CHARS[j] + " at " + i);
+                if (toTest == ILLEGAL_CHARS[j]) throw "illegal character " +
+                        ILLEGAL_CHARS[j] + " at " + i;
             }
         }
     }
@@ -152,16 +147,15 @@ private:
             int minLength, int maxLength) {
 
         if (str == null)
-            throw new IllegalArgumentException(strType +
-                    " is null");
+            throw strType + " is null";
         if (str.length() < minLength)
-            throw new IllegalArgumentException(strType +
+            throw strType +
                     " must have at least " + minLength +
-                    " characters: " + str);
+                    " characters: " + str;
         if (str.length() > maxLength)
-            throw new IllegalArgumentException(strType +
+            throw strType +
                     " has more than " + maxLength +
-                    " characters: " + str);
+                    " characters: " + str;
     }
 };
 }

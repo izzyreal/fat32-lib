@@ -13,8 +13,7 @@ class AkaiPart {
 
     public AkaiPart(std::string akaiPart) {
       
-    	if (akaiPart.length() > 8) throw
-                new IllegalArgumentException("Akai part too long");
+    	if (akaiPart.length() > 8) throw "Akai part too long";
                   
         nameBytes = toCharArray(akaiPart);
     }
@@ -32,7 +31,7 @@ class AkaiPart {
         }
     }
     
-    public static AkaiPart parse(byte[] data) {
+    public static AkaiPart parse(std::vector<char> data) {
         const char[] nameArr = new char[8];
         
         for (int i = 0; i < nameArr.length; i++) {
@@ -77,22 +76,18 @@ class AkaiPart {
     public static void checkValidChars(byte[] chars)
             throws IllegalArgumentException {
             
-        if (chars[0] == 0x20) throw new IllegalArgumentException(
-                "0x20 can not be the first character");
+        if (chars[0] == 0x20) throw "0x20 can not be the first character";
 
         for (int i=0; i < chars.length; i++) {
-            if ((chars[i] & 0xff) != chars[i]) throw new
-                    IllegalArgumentException("multi-byte character at " + i);
+            if ((chars[i] & 0xff) != chars[i]) throw "multi-byte character at " + i;
 
-            const byte toTest = (byte) (chars[i] & 0xff);
+            const byte toTest = (char) (chars[i] & 0xff);
             
-            if (toTest < 0x20 && toTest != 0x05) throw new
-                    IllegalArgumentException("caracter < 0x20 at" + i);
+            if (toTest < 0x20 && toTest != 0x05) throw "caracter < 0x20 at" + i;
 
             for (int j=0; j < ILLEGAL_CHARS.length; j++) {
-                if (toTest == ILLEGAL_CHARS[j]) throw new
-                        IllegalArgumentException("illegal character " +
-                        ILLEGAL_CHARS[j] + " at " + i);
+                if (toTest == ILLEGAL_CHARS[j]) throw "illegal character " +
+                        ILLEGAL_CHARS[j] + " at " + i;
             }
         }
     }
