@@ -1,19 +1,58 @@
+#pragma once
+
 #include "../AbstractFileSystem.hpp"
 
-#include "AkaiFatFileSystem.hpp"
+#include "Fat.hpp"
+#include "FatLfnDirectory.hpp"
+#include "AbstractDirectory.hpp"
+#include "FatType.hpp"
 
 namespace akaifat::fat {
 class FatFileSystem : public akaifat::AbstractFileSystem {
+private:
+    Fat* fat;
+    BootSector* bs;
+    FatLfnDirectory* rootDir;
+    AbstractDirectory* rootDirStore;
+    FatType* fatType;
+    long filesOffset;
+    
+    FatFileSystem(BlockDevice* device, bool readOnly,
+            bool ignoreFatDifferences)
+           
+    : akaifat::AbstractFileSystem(readOnly)
+    {
+        bs = BootSector::read(device);
+        
+        if (bs->getNrFats() <= 0)
+               throw "boot sector says there are no FATs";
+        
+        filesOffset = bs->getFilesOffset();
+        fatType = bs->getFatType();
+        fat = Fat::read(bs, 0);
+
+        if (!ignoreFatDifferences) {
+            for (int i=1; i < bs->getNrFats(); i++) {
+                auto tmpFat = Fat::read(bs, i);
+                if (!fat->equals(tmpFat)) {
+                    throw "FAT " + std::to_string(i) + " differs from FAT 0";
+                }
+            }
+        }
+        
+//        rootDirStore = Fat16RootDirectory::read((Fat16BootSector) bs,readOnly);
+
+//        rootDir = new FatLfnDirectory(rootDirStore, fat, isReadOnly());
+    }
+
 public:
-    FatFileSystem(BlockDevice api, bool readOnly)
-    : AkaiFatFileSystem(api, readOnly, false)
+    FatFileSystem(BlockDevice* api, bool readOnly)
+    : FatFileSystem(api, readOnly, false)
     {
     }
 
-    static FatFileSystem read(BlockDevice device, bool readOnly)
-            {
-        
-        return new FatFileSystem(device, readOnly);
+    static FatFileSystem read(BlockDevice* device, bool readOnly) {
+        return FatFileSystem(device, readOnly);
     }
 
     long getFilesOffset() {
@@ -22,7 +61,7 @@ public:
         return filesOffset;
     }
 
-    FatType getFatType() {
+    FatType* getFatType() {
         checkClosed();
 
         return fatType;
@@ -31,29 +70,29 @@ public:
     std::string getVolumeLabel() {
         checkClosed();
         
-        const std::string fromDir = rootDirStore.getLabel();
+        std::string fromDir = rootDirStore->getLabel();
         
-        if (fromDir == null && fatType != FatType.FAT32) {
-            return ((Fat16BootSector)bs).getVolumeLabel();
-        } else {
-            return fromDir;
-        }
+//        if (fromDir == null && fatType != FatType.FAT32) {
+//            return ((Fat16BootSector)bs).getVolumeLabel();
+//        } else {
+//            return fromDir;
+//        }
+        return "";
     }
     
-    void setVolumeLabel(std::string label)
-            throws ReadOnlyException, IOException {
+    void setVolumeLabel(std::string label) {
         
         checkClosed();
         checkReadOnly();
 
-        rootDirStore.setLabel(label);
+        rootDirStore->setLabel(label);
         
-        if (fatType != FatType.FAT32) {
-            ((Fat16BootSector)bs).setVolumeLabel(label);
-        }
+//        if (fatType != FatType.FAT32) {
+//            ((Fat16BootSector)bs).setVolumeLabel(label);
+//        }
     }
 
-    AbstractDirectory getRootDirStore() {
+    AbstractDirectory* getRootDirStore() {
         checkClosed();
         
         return rootDirStore;
@@ -62,34 +101,34 @@ public:
     void flush() override {
         checkClosed();
         
-        if (bs.isDirty()) {
-            bs.write();
-        }
-        
-        for (int i = 0; i < bs.getNrFats(); i++) {
-            fat.writeCopy(bs.getFatOffset(i));
-        }
-        
-        rootDir.flush();
-        
-        if (fsiSector != null) {
-            fsiSector.setFreeClusterCount(fat.getFreeClusterCount());
-            fsiSector.setLastAllocatedCluster(fat.getLastAllocatedCluster());
-            fsiSector.write();
-        }
+//        if (bs->isDirty()) {
+//            bs->write();
+//        }
+//
+//        for (int i = 0; i < bs->getNrFats(); i++) {
+//            fat.writeCopy(bs->getFatOffset(i));
+//        }
+//
+//        rootDir.flush();
+//
+//        if (fsiSector != null) {
+//            fsiSector.setFreeClusterCount(fat.getFreeClusterCount());
+//            fsiSector.setLastAllocatedCluster(fat.getLastAllocatedCluster());
+//            fsiSector.write();
+//        }
     }
     
-    FatLfnDirectory getRoot() override {
+    FatLfnDirectory* getRoot() override {
         checkClosed();
         
         return rootDir;
     }
     
-    Fat getFat() {
+    Fat* getFat() {
         return fat;
     }
 
-    BootSector getBootSector() {
+    BootSector* getBootSector() {
         checkClosed();
         
         return bs;
@@ -98,15 +137,15 @@ public:
     long getFreeSpace() override {
         checkClosed();
 
-        return fat.getFreeClusterCount() * bs.getBytesPerCluster();
+        return fat->getFreeClusterCount() * bs->getBytesPerCluster();
     }
 
     long getTotalSpace() override {
         checkClosed();
 
-        if (fatType == FatType.FAT32) {
-            return bs.getNrTotalSectors() * bs.getBytesPerSector();
-        }
+//        if (fatType == FatType.FAT32) {
+//            return bs->getNrTotalSectors() * bs->getBytesPerSector();
+//        }
 
         return -1;
     }
@@ -114,59 +153,7 @@ public:
     long getUsableSpace() override {
         checkClosed();
 
-        return bs.getDataClusterCount() * bs.getBytesPerCluster();
-    }
-private:
-    const Fat fat;
-    const FsInfoSector fsiSector;
-    const BootSector bs;
-    const FatLfnDirectory rootDir;
-    const AbstractDirectory rootDirStore;
-    const FatType fatType;
-    const long filesOffset;
-    
-    FatFileSystem(BlockDevice device, bool readOnly,
-            bool ignoreFatDifferences)
-           
-    : akaifat::AbstractFileSystem(readOnly)
-    {        
-        bs = BootSector.read(device);
-        
-        if (bs.getNrFats() <= 0) 
-               throw "boot sector says there are no FATs";
-        
-        filesOffset = bs.getFilesOffset();
-        fatType = bs.getFatType();
-        fat = Fat.read(bs, 0);
-
-        if (!ignoreFatDifferences) {
-            for (int i=1; i < bs.getNrFats(); i++) {
-                const Fat tmpFat = Fat.read(bs, i);
-                if (!fat.equals(tmpFat)) {
-                    throw "FAT " + i + " differs from FAT 0";
-                }
-            }
-        }
-        
-        if (fatType == FatType.FAT32) {
-            const Fat32BootSector f32bs = (Fat32BootSector) bs;
-            const ClusterChain rootChain = new ClusterChain(fat,
-                    f32bs.getRootDirFirstCluster(), isReadOnly());
-            rootDirStore = ClusterChainDirectory.readRoot(rootChain);
-            fsiSector = FsInfoSector.read(f32bs);
-            
-            if (fsiSector.getFreeClusterCount() < fat.getFreeClusterCount()) {
-                throw "free cluster count mismatch - fat: " +
-                        fat.getFreeClusterCount() + " - fsinfo: " +
-                        fsiSector.getFreeClusterCount();
-            }
-        } else {
-            rootDirStore =
-                    Fat16RootDirectory.read((Fat16BootSector) bs,readOnly);
-            fsiSector = null;
-        }
-
-        rootDir = new FatLfnDirectory(rootDirStore, fat, isReadOnly()); 
+        return bs->getDataClusterCount() * bs->getBytesPerCluster();
     }
 };
 }

@@ -5,7 +5,7 @@
 namespace akaifat {
 class AbstractFileSystem : public FileSystem {
 private:
-    const bool readOnly;
+    bool readOnly;
     bool closed;
     
 public:
@@ -24,22 +24,22 @@ public:
         }
     }
     
-    const bool isClosed() override {
+    bool isClosed() override {
         return closed;
     }
     
-    const bool isReadOnly() override {
+    bool isReadOnly() override {
         return readOnly;
     }
 
 protected:
-    const void checkClosed() {
+    void checkClosed() {
         if (isClosed()) {
             throw "file system was already closed";
         }
     }
     
-    const void checkReadOnly() {
+    void checkReadOnly() {
         if (isReadOnly()) {
             throw "file system is read only";
         }

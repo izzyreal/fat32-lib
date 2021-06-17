@@ -1,19 +1,17 @@
 #pragma once
 
-#include "FsObject.hpp"
-
 namespace akaifat {
-class AbstractFsObject : public FsObject {
+class AbstractFsObject  {
 private:
-    const bool readOnly;
+    bool readOnly;
     bool valid;
     
 public:
-    bool isValid() override {
+    bool isValid() {
         return valid;
     }
 
-    bool isReadOnly() override {
+    bool isReadOnly() {
         return readOnly;
     }
     
@@ -23,15 +21,15 @@ protected:
         valid = true;
     }
 
-    const void invalidate() {
+    void invalidate() {
         valid = false;
     }
 
-    const void checkValid() {
+    void checkValid() {
         if (!isValid()) throw "file system is not valid";
     }
 
-    const void checkWritable() {
+    void checkWritable() {
         checkValid();
 
         if (isReadOnly()) {

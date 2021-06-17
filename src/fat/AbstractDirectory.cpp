@@ -15,17 +15,17 @@ AbstractDirectory::AbstractDirectory(
 {
 }
 
-void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry>& newEntries)
-{
-    if (newEntries.size() > capacity)
-        throw "too many entries";
-    
-    entries = newEntries;
-}
+//void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry>& newEntries)
+//{
+//    if (newEntries.size() > capacity)
+//        throw "too many entries";
+//    
+//    entries = newEntries;
+//}
 
-void AbstractDirectory::sizeChanged(const long newSize)
+void AbstractDirectory::sizeChanged(long newSize)
 {
-    const long newCount = newSize / FatDirectoryEntry.SIZE;
+    long newCount = newSize / FatDirectoryEntry.SIZE;
     
     if (newCount > MAX_INT)
         "directory too large";
@@ -35,11 +35,11 @@ void AbstractDirectory::sizeChanged(const long newSize)
 
 void AbstractDirectory::read()
 {
-    const std::vector<char> data(getCapacity() * FatDirectoryEntry.SIZE);
+    std::vector<char> data(getCapacity() * FatDirectoryEntry.SIZE);
     
     for (int i=0; i < getCapacity(); i++)
     {
-        const std::shared_ptr<FatDirectoryEntry> e =
+        std::shared_ptr<FatDirectoryEntry> e =
                 FatDirectoryEntry::read(type, data, isReadOnly());
         
         if (!e) break;
@@ -58,17 +58,17 @@ void AbstractDirectory::read()
     }
 }
 
-const std::shared_ptr<FatDirectoryEntry> AbstractDirectory::getEntry(int idx)
+std::shared_ptr<FatDirectoryEntry> AbstractDirectory::getEntry(int idx)
 {
     return entries.get(idx);
 }
 
-const int AbstractDirectory::getCapacity()
+int AbstractDirectory::getCapacity()
 {
     return capacity;
 }
 
-const int AbstractDirectory::getEntryCount()
+int AbstractDirectory::getEntryCount()
 {
     return entries.size();
 }
@@ -78,7 +78,7 @@ bool AbstractDirectory::isReadOnly()
     return readOnly;
 }
 
-const bool AbstractDirectory::isRoot()
+bool AbstractDirectory::isRoot()
 {
     return isRoot;
 }
@@ -90,7 +90,7 @@ int AbstractDirectory::getSize()
 
 void AbstractDirectory::flush()
 {    
-    const std::vector<char> data(
+    std::vector<char> data(
             getCapacity() * FatDirectoryEntry.SIZE + (volumeLabel != null ? FatDirectoryEntry.SIZE : 0));
     
     for (FatDirectoryEntry entry : entries)
@@ -101,7 +101,7 @@ void AbstractDirectory::flush()
             
     if (volumeLabel != null)
     {
-        const FatDirectoryEntry labelEntry =
+        FatDirectoryEntry labelEntry =
                 FatDirectoryEntry.createVolumeLabel(type, volumeLabel);
 
         labelEntry.write(data);
@@ -148,21 +148,21 @@ std::string& AbstractDirectory::getLabel()
 
 FatDirectoryEntry AbstractDirectory::createSub(Fat fat)
 {
-    const ClusterChain chain = new ClusterChain(fat, false);
+    ClusterChain chain = new ClusterChain(fat, false);
     chain.setChainLength(1);
 
-    const FatDirectoryEntry entry = FatDirectoryEntry.create(type, true);
+    FatDirectoryEntry entry = FatDirectoryEntry.create(type, true);
     entry.setStartCluster(chain.getStartCluster());
     
-    const ClusterChainDirectory dir =
+    ClusterChainDirectory dir =
             new ClusterChainDirectory(chain, false);
 
-    const FatDirectoryEntry dot = FatDirectoryEntry.create(type, true);
+    FatDirectoryEntry dot = FatDirectoryEntry.create(type, true);
     dot.setShortName(ShortName.DOT);
     dot.setStartCluster(dir.getStorageCluster());
     dir.addEntry(dot);
 
-    const FatDirectoryEntry dotDot = FatDirectoryEntry.create(type, true);
+    FatDirectoryEntry dotDot = FatDirectoryEntry.create(type, true);
     dotDot.setShortName(ShortName.DOT_DOT);
     dotDot.setStartCluster(getStorageCluster());
     dir.addEntry(dotDot);

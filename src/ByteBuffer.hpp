@@ -3,7 +3,6 @@
 #include <vector>
 
 namespace akaifat {
-
 class ByteBuffer {
 private:
     std::vector<char> buf;
@@ -19,6 +18,7 @@ public:
     long position() { return 0; }
     long remaining() { return 0; }
     void put(char c) { };
+    void put(std::vector<char>& data) {}
+    static ByteBuffer wrap(std::vector<char>& data) { return ByteBuffer(0); }
 };
-
 }

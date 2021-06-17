@@ -1,82 +1,93 @@
+#pragma once
+
+#include "../AbstractFsObject.hpp"
+#include "../FsDirectoryEntry.hpp"
+
+#include "AkaiFatLfnDirectory.hpp"
+#include "FatDirectoryEntry.hpp"
+#include "FatFile.hpp"
+#include "AkaiPart.hpp"
+
 namespace akaifat::fat {
-class AkaiFatLfnDirectoryEntry : public AbstractFsObject, public FsDirectoryEntry
+class AkaiFatLfnDirectoryEntry : public akaifat::AbstractFsObject, public akaifat::FsDirectoryEntry
 {
 private:
-	const FatDirectoryEntry realEntry;
+	FatDirectoryEntry* realEntry;
 
-	AkaiFatLfnDirectory parent;
+	AkaiFatLfnDirectory* parent;
 	std::string fileName;
 
 public:
-	AkaiFatLfnDirectoryEntry(std::string name, AkaiFatLfnDirectory akaiFatLfnDirectory, bool directory)
+	AkaiFatLfnDirectoryEntry(std::string name, AkaiFatLfnDirectory* akaiFatLfnDirectory, bool directory)
   : AbstractFsObject (false), fileName (name), parent (akaiFatLfnDirectory)
   {
-		realEntry = FatDirectoryEntry.create(akaiFatLfnDirectory.getFat().getFatType(), directory);
-		realEntry.setAkaiName(name);
+//		realEntry = FatDirectoryEntry::create(akaiFatLfnDirectory->getFat().getFatType(), directory);
+		realEntry->setAkaiName(name);
 	}
 
-	AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory akaiFatLfnDirectory, FatDirectoryEntry _realEntry, std::string _fileName)
-  : AbstractFsObject(akaiFatLfnDirectory.isReadOnly()), parent (akaiFatLfnDirectory), realEntry (_realEntry), fileName (_fileName)
+	AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory* akaiFatLfnDirectory, FatDirectoryEntry* _realEntry, std::string _fileName)
+  : AbstractFsObject(akaiFatLfnDirectory->isReadOnly()), parent (akaiFatLfnDirectory), realEntry (_realEntry), fileName (_fileName)
   {
 	}
 
-	static AkaiFatLfnDirectoryEntry extract(AkaiFatLfnDirectory& dir, int offset, int len)
+	static AkaiFatLfnDirectoryEntry* extract(AkaiFatLfnDirectory* dir, int offset, int len)
   {
-		const FatDirectoryEntry realEntry = dir.dir.getEntry(offset + len - 1);
-		const std::string shortName = realEntry.getShortName().asSimplestd::string();
-		const std::string akaiPart = AkaiPart.parse(realEntry.data).asSimplestd::string().trim();
-		std::string part1 = AkaiFatLfnDirectory.splitName(shortName)[0].trim();
-		std::string ext = AkaiFatLfnDirectory.splitName(shortName)[1].trim();
+//		FatDirectoryEntry realEntry = dir->dir->getEntry(offset + len - 1);
+//		std::string shortName = realEntry->getShortName().asSimpleString();
+//		std::string akaiPart = AkaiPart.parse(realEntry->data).asSimpleString().trim();
+//		std::string part1 = AkaiFatLfnDirectory.splitName(shortName)[0].trim();
+//		std::string ext = AkaiFatLfnDirectory.splitName(shortName)[1].trim();
 	
-  	if (ext.length() > 0) ext = "." + ext;
+//  	if (ext.length() > 0) ext = "." + ext;
 	
-  	std::string akaiFileName = part1 + akaiPart + ext;
+//  	std::string akaiFileName = part1 + akaiPart + ext;
 	
-  	return AkaiFatLfnDirectoryEntry(dir, realEntry, akaiFileName);
+//  	return new AkaiFatLfnDirectoryEntry(dir, realEntry, akaiFileName);
+        return nullptr;
 	}
 
 	bool isHiddenFlag()
   {
-		return realEntry.isHiddenFlag();
+		return realEntry->isHiddenFlag();
 	}
 
 	void setHiddenFlag(bool hidden)
   {
 		checkWritable();
-		realEntry.setHiddenFlag(hidden);
+		realEntry->setHiddenFlag(hidden);
 	}
 
 	bool isSystemFlag()
   {
-		return realEntry.isSystemFlag();
+		return realEntry->isSystemFlag();
 	}
 
 	void setSystemFlag(bool systemEntry)
   {
 		checkWritable();
-		realEntry.setSystemFlag(systemEntry);
+		realEntry->setSystemFlag(systemEntry);
 	}
 
 	bool isReadOnlyFlag()
   {
-		return realEntry.isReadonlyFlag();
+		return realEntry->isReadonlyFlag();
 	}
 
 	void setReadOnlyFlag(bool readOnly)
   {
 		checkWritable();
-		realEntry.setReadonlyFlag(readOnly);
+		realEntry->setReadonlyFlag(readOnly);
 	}
 
 	bool isArchiveFlag()
   {
-		return realEntry.isArchiveFlag();
+		return realEntry->isArchiveFlag();
 	}
 
   void setArchiveFlag(bool archive)
   {
 		checkWritable();
-		realEntry.setArchiveFlag(archive);
+		realEntry->setArchiveFlag(archive);
 	}
 
 	std::string getName() override
@@ -89,66 +100,68 @@ public:
 	std::string getAkaiPart()
   {
 		if (isDirectory()) return "";
-		return AkaiPart.parse(realEntry.data).asSimpleString();
+		return AkaiPart::parse(realEntry->data).asSimpleString();
 	}
 
 	void setAkaiPart(std::string s)
   {
 		if (isDirectory()) return;
-		AkaiPart ap = new AkaiPart(s);
-		ap.write(realEntry.data);
+//		AkaiPart ap = new AkaiPart(s);
+//		ap.write(realEntry->data);
 	}
 
-	FsDirectory getParent() override
+	akaifat::FsDirectory* getParent() override
   {
 		checkValid();
 		return parent;
 	}
 
-	void setName(std::string newName) throw (std::exception) override {
+	void setName(std::string newName) override {
 		checkWritable();
 
-		if (!parent.isFreeName(newName)) {
+		if (!parent->isFreeName(newName)) {
 			throw "the name \"" + newName + "\" is already in use";
 		}
 
-		parent.unlinkEntry(this);
+		parent->unlinkEntry(this);
 		fileName = newName;
-		parent.linkEntry(this);
+		parent->linkEntry(this);
 	}
 
-	void moveTo(AkaiFatLfnDirectory target, std::string newName) {
+	void moveTo(AkaiFatLfnDirectory* target, std::string newName) {
 
 		checkWritable();
 
-		if (!target.isFreeName(newName)) {
+		if (!target->isFreeName(newName)) {
 			throw "the name \"" + newName + "\" is already in use";
 		}
 
-		parent.unlinkEntry(this);
+		parent->unlinkEntry(this);
 		parent = target;
 		fileName = newName;
-		parent.linkEntry(this);
+		parent->linkEntry(this);
 	}
 
-	FatFile getFile() throw (std::exception) override {
-		return parent.getFile(realEntry);
+	FatFile* getFile() override {
+//		return parent->getFile(realEntry);
+        return nullptr;
 	}
 
-	AkaiFatLfnDirectory getDirectory() throw (std::exception) override {
-		return parent.getDirectory(realEntry);
+	AkaiFatLfnDirectory* getDirectory() override {
+//		return parent->getDirectory(realEntry);
+        return nullptr;
 	}
 
 	bool isFile() override {
-		return realEntry.isFile();
+		return realEntry->isFile();
 	}
 
 	bool isDirectory() override {
-		return realEntry.isDirectory();
+		return realEntry->isDirectory();
 	}
 
 	bool isDirty() override {
-		return realEntry.isDirty();
+		return realEntry->isDirty();
 	}
 
 };

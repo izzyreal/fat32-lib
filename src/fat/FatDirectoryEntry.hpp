@@ -1,22 +1,24 @@
+#pragma once
+
 #include "../AbstractFsObject.hpp"
 
-#include "AkaiFatLfnDirectory.hpp"
-#include "AbstractDirectory.hpp"
+//#include "AkaiFatLfnDirectory.hpp"
+//#include "AbstractDirectory.hpp"
 #include "LittleEndian.hpp"
 #include "ShortName.hpp"
 
 #include <vector>
 
+using namespace akaifat;
+
 namespace akaifat::fat {
 class FatDirectoryEntry : public AbstractFsObject {
 
 private:
-    const FatType& type;
+    FatType& type;
     bool dirty;
     static const int OFFSET_ATTRIBUTES = 0x0b;
-    
     static const int OFFSET_FILE_SIZE = 0x1c;
-    
     static const int F_READONLY = 0x01;
     static const int F_HIDDEN = 0x02;
     static const int F_SYSTEM = 0x04;
@@ -36,7 +38,7 @@ public:
     }
         
     void setFlag(int mask, bool set) {
-        const int oldFlags = getFlags();
+        int oldFlags = getFlags();
 
         if (((oldFlags & mask) != 0) == set) return;
         
@@ -59,9 +61,8 @@ public:
 
     std::vector<char> data;
     
-    const static int SIZE = 32;
-
-    static const int ENTRY_DELETED_MAGIC = 0xe5;
+    static int const SIZE = 32;
+    static int const ENTRY_DELETED_MAGIC = 0xe5;
     
     static FatDirectoryEntry read(
             FatType type, ByteBuffer buff, bool readOnly) {
@@ -161,15 +162,15 @@ public:
             
         std::string result;
         
-        for (int i=0; i < AbstractDirectory::MAX_LABEL_LENGTH; i++) {
-            auto b = data[i];
-            
-            if (b != 0) {
-                result.push_back((char) b);
-            } else {
-                break;
-            }
-        }
+//        for (int i=0; i < AbstractDirectory::MAX_LABEL_LENGTH; i++) {
+//            auto b = data[i];
+//
+//            if (b != 0) {
+//                result.push_back((char) b);
+//            } else {
+//                break;
+//            }
+//        }
         
         return result;
     }
@@ -206,41 +207,40 @@ public:
     }
 
     void setAkaiName(std::string s) {
-    	std::string part1 = AkaiFatLfnDirectory::splitName(s)[0];
-    	std::string part2 = "        ";
-    	std::string ext = AkaiFatLfnDirectory::splitName(s)[1];
-    	if (part1.length() > 8) {
-    		part2 = part1.substring(8);
-    		part1 = part1.substring(0, 8);
-    	}
-    	if (ext.length() > 0) ext = "."+ ext;
-    	const ShortName sn = new ShortName(part1 + ext);
-    	sn.write(data);
-    	System.out.println( "part 1 " + part1);
-    	System.out.println( "part 2 " + part2);
-    	const AkaiPart ap = new AkaiPart(part2);
-    	ap.write(data);
+//    	std::string part1 = AkaiFatLfnDirectory::splitName(s)[0];
+//    	std::string part2 = "        ";
+//    	std::string ext = AkaiFatLfnDirectory::splitName(s)[1];
+//    	if (part1.length() > 8) {
+//    		part2 = part1.substr(8);
+//    		part1 = part1.substr(0, 8);
+//    	}
+//    	if (ext.length() > 0) ext = "."+ ext;
+//    	ShortName sn = new ShortName(part1 + ext);
+//    	sn.write(data);
+//    	AkaiPart ap = new AkaiPart(part2);
+//    	ap.write(data);
     }
     
     long getStartCluster() {
-        if (type == FatType.FAT32) {
-            return
-                    (LittleEndian.getUInt16(data, 0x14) << 16) |
-                     LittleEndian.getUInt16(data, 0x1a);
-        } else {
-            return LittleEndian.getUInt16(data, 0x1a);
-        }
+//        if (type == FatType.FAT32) {
+//            return
+//                    (LittleEndian.getUInt16(data, 0x14) << 16) |
+//                     LittleEndian.getUInt16(data, 0x1a);
+//        } else {
+//            return LittleEndian.getUInt16(data, 0x1a);
+//        }
+        return 0;
     }
     
     void setStartCluster(long startCluster) {
-        if (startCluster > Integer.MAX_VALUE) throw new AssertionError();
-
-        if (type == FatType.FAT32) {
-            LittleEndian.setInt16(data, 0x1a, (int) (startCluster & 0xffff));
-            LittleEndian.setInt16(data, 0x14, (int) ((startCluster >> 16) & 0xffff));
-        } else {
-            LittleEndian.setInt16(data, 0x1a, (int) startCluster);
-        }
+//        if (startCluster > INT_MAX) throw new AssertionError();
+//
+//        if (type == FatType.FAT32) {
+//            LittleEndian.setInt16(data, 0x1a, (int) (startCluster & 0xffff));
+//            LittleEndian.setInt16(data, 0x14, (int) ((startCluster >> 16) & 0xffff));
+//        } else {
+//            LittleEndian.setInt16(data, 0x1a, (int) startCluster);
+//        }
     }
     
     void write(ByteBuffer buff) {
@@ -253,29 +253,30 @@ public:
     }
     
     std::string getLfnPart() {
-        const char[] unicodechar = new char[13];
-
-        unicodechar[0] = (char) LittleEndian.getUInt16(data, 1);
-        unicodechar[1] = (char) LittleEndian.getUInt16(data, 3);
-        unicodechar[2] = (char) LittleEndian.getUInt16(data, 5);
-        unicodechar[3] = (char) LittleEndian.getUInt16(data, 7);
-        unicodechar[4] = (char) LittleEndian.getUInt16(data, 9);
-        unicodechar[5] = (char) LittleEndian.getUInt16(data, 14);
-        unicodechar[6] = (char) LittleEndian.getUInt16(data, 16);
-        unicodechar[7] = (char) LittleEndian.getUInt16(data, 18);
-        unicodechar[8] = (char) LittleEndian.getUInt16(data, 20);
-        unicodechar[9] = (char) LittleEndian.getUInt16(data, 22);
-        unicodechar[10] = (char) LittleEndian.getUInt16(data, 24);
-        unicodechar[11] = (char) LittleEndian.getUInt16(data, 28);
-        unicodechar[12] = (char) LittleEndian.getUInt16(data, 30);
-
-        int end = 0;
-
-        while ((end < 13) && (unicodechar[end] != '\0')) {
-            end++;
-        }
-        
-        return new std::string(unicodechar).substring(0, end);
+//        char[] unicodechar = new char[13];
+//
+//        unicodechar[0] = (char) LittleEndian.getUInt16(data, 1);
+//        unicodechar[1] = (char) LittleEndian.getUInt16(data, 3);
+//        unicodechar[2] = (char) LittleEndian.getUInt16(data, 5);
+//        unicodechar[3] = (char) LittleEndian.getUInt16(data, 7);
+//        unicodechar[4] = (char) LittleEndian.getUInt16(data, 9);
+//        unicodechar[5] = (char) LittleEndian.getUInt16(data, 14);
+//        unicodechar[6] = (char) LittleEndian.getUInt16(data, 16);
+//        unicodechar[7] = (char) LittleEndian.getUInt16(data, 18);
+//        unicodechar[8] = (char) LittleEndian.getUInt16(data, 20);
+//        unicodechar[9] = (char) LittleEndian.getUInt16(data, 22);
+//        unicodechar[10] = (char) LittleEndian.getUInt16(data, 24);
+//        unicodechar[11] = (char) LittleEndian.getUInt16(data, 28);
+//        unicodechar[12] = (char) LittleEndian.getUInt16(data, 30);
+//
+//        int end = 0;
+//
+//        while ((end < 13) && (unicodechar[end] != '\0')) {
+//            end++;
+//        }
+//
+//        return new std::string(unicodechar).substring(0, end);
+        return "";
     }
 
 };

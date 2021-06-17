@@ -1,28 +1,32 @@
 #pragma once
 
-#include "FatDirectoryEntry.hpp"
 #include "FatType.hpp"
 #include "Fat.hpp"
 
 #include <vector>
 #include <string>
 
+using namespace akaifat;
+
 namespace akaifat::fat {
+
+class FatDirectoryEntry;
+
 class AbstractDirectory {
 public:
     static const int MAX_LABEL_LENGTH = 11;
     
-    void setEntries(std::vector<FatDirectoryEntry>& newEntries);
+    void setEntries(std::vector<FatDirectoryEntry*>& newEntries);
     
-    const FatDirectoryEntry getEntry(int idx);
+    FatDirectoryEntry* getEntry(int idx);
     
-    const int getCapacity();
+    int getCapacity();
 
-    const int getEntryCount();
+    int getEntryCount();
     
-    bool isReadOnly();
+//    bool isReadOnly();
 
-    const bool isRoot();
+    bool isRoot();
 
     int getSize();
 
@@ -30,20 +34,20 @@ public:
 
     void addEntry(FatDirectoryEntry e);
     
-    void addEntries(std::vector<FatDirectoryEntry> entries);
+    void addEntries(std::vector<FatDirectoryEntry>& entries);
     void removeEntry(FatDirectoryEntry entry);
 
     std::string& getLabel();
 
-    FatDirectoryEntry createSub(Fat fat);
+    FatDirectoryEntry* createSub(Fat fat);
     
     void setLabel(std::string& label);
 
 private:
-    const std::vector<FatDirectoryEntry> entries;
-    const bool readOnly;
-    const bool isRoot;
-    const FatType type;
+    std::vector<FatDirectoryEntry*> entries;
+    bool readOnly;
+    bool _isRoot;
+    FatType* type;
 
     int capacity;
     std::string volumeLabel;
@@ -52,25 +56,24 @@ private:
 
 protected:
     AbstractDirectory(
-        FatType type,
+        FatType* type,
         int capacity,
         bool readOnly,
         bool isRoot
     );
 
     
-    virtual void read(ByteBuffer data) throw (std::exception) = 0;
+    virtual void read(ByteBuffer& data) = 0;
 
-    virtual void write(ByteBuffer data) throw (std::exception) = 0;
+    virtual void write(ByteBuffer& data) = 0;
 
     virtual long getStorageCluster() = 0;
 
-    virtual void changeSize(const int entryCount)
-            throw (DirectoryFullException, std::exception) = 0;
+    virtual void changeSize(int entryCount) = 0;
             
-    void sizeChanged(const long newSize) throw (std::exception);
+    void sizeChanged(long newSize);
             
-    void read() throw (std::exception);
+    void read();
 
 };
 }

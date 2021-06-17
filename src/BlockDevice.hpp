@@ -1,4 +1,4 @@
-#include <exception>
+#pragma once
 
 #include "ByteBuffer.hpp"
 

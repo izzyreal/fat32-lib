@@ -1,4 +1,5 @@
-#include "fat/FatFileSystem.hpp"
+#pragma once
+
 #include "fat/AkaiFatFileSystem.hpp"
 
 namespace akaifat {
@@ -7,16 +8,10 @@ private:
     FileSystemFactory() { }
     
 public:
-    static FileSystem create(BlockDevice device, bool readOnly)
-            throw (std::exception) {
+    static FileSystem* createAkai(BlockDevice* device, bool readOnly)
+            {
             
-        return FatFileSystem.read(device, readOnly);
-    }
-
-    static FileSystem createAkai(BlockDevice device, bool readOnly)
-            throw (std::exception) {
-            
-        return AkaiFatFileSystem::read(device, readOnly);
+        return akaifat::fat::AkaiFatFileSystem::read(device, readOnly);
     }
     
 };

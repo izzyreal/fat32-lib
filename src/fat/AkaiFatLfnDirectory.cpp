@@ -2,35 +2,35 @@
 
 using namespace akaifat::fat;
 
-AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory& _dir, Fat& _fat, bool readOnly)
-: AbstractFsObject (readOnly), dir (_dir)
+AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory& _dir, Fat* _fat, bool readOnly)
+: AbstractFsObject (readOnly), dir (_dir), fat (_fat)
 {
   parseLfn();
 }
 
-Fat& AkaiFatLfnDirectory::getFat() {
+Fat* AkaiFatLfnDirectory::getFat() {
   return fat;
 }
 
-FatFile AkaiFatLfnDirectory::getFile(FatDirectoryEntry entry)
+FatFile* AkaiFatLfnDirectory::getFile(FatDirectoryEntry entry)
 {
-  FatFile file = entryToFile.get(entry);
+  auto file = entryToFile.get(entry);
 
-  if (file == null) {
-    file = FatFile.get(fat, entry);
+  if (!file) {
+    file = FatFile::get(fat, entry);
     entryToFile.put(entry, file);
   }
 
   return file;
 }
 
-AkaiFatLfnDirectory AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry entry)
+AkaiFatLfnDirectory* AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry entry)
 {
   AkaiFatLfnDirectory result = entryToDirectory.get(entry);
 
   if (result == null)
   {
-    const ClusterChainDirectory storage = read(entry, fat);
+    ClusterChainDirectory storage = read(entry, fat);
     result = new AkaiFatLfnDirectory(storage, fat, isReadOnly());
     entryToDirectory.put(entry, result);
   }
@@ -38,14 +38,14 @@ AkaiFatLfnDirectory AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry entry)
   return result;
 }
 
-AkaiFatLfnDirectoryEntry AkaiFatLfnDirectory::addFile(std::string name)
+AkaiFatLfnDirectoryEntry* AkaiFatLfnDirectory::addFile(std::string name)
 {
   checkWritable();
   checkUniqueName(name);
 
   name = name.trim();
 
-  const AkaiFatLfnDirectoryEntry entry = new AkaiFatLfnDirectoryEntry(name, this, false);
+  AkaiFatLfnDirectoryEntry entry = new AkaiFatLfnDirectoryEntry(name, this, false);
 
   dir.addEntries(new FatDirectoryEntry[]{entry.realEntry});
   akaiNameIndex.put(name.toLowerCase(Locale.ROOT), entry);
@@ -68,19 +68,19 @@ static std::string[] AkaiFatLfnDirectory::splitName(std::string s)
   return (new std::string[] { s.substring(0, i), s.substring(i + 1) });
 }
 
-AkaiFatLfnDirectoryEntry AkaiFatLfnDirectory::addDirectory(std::string name)
+AkaiFatLfnDirectoryEntry* AkaiFatLfnDirectory::addDirectory(std::string& name)
 {
   checkWritable();
   checkUniqueName(name);
   name = name.trim();
-  const FatDirectoryEntry real = dir.createSub(fat);
+  FatDirectoryEntry real = dir.createSub(fat);
   real.setAkaiName(name);
-  const AkaiFatLfnDirectoryEntry e = new AkaiFatLfnDirectoryEntry(this, real, name);
+  AkaiFatLfnDirectoryEntry e = new AkaiFatLfnDirectoryEntry(this, real, name);
 
   try {
     dir.addEntries(new FatDirectoryEntry[]{real});
-  } catch (IOException ex) {
-    const ClusterChain cc = new ClusterChain(fat, real.getStartCluster(), false);
+  } catch (std::exception&) {
+    ClusterChain cc = new ClusterChain(fat, real.getStartCluster(), false);
     cc.setChainLength(0);
     dir.removeEntry(real);
     throw ex;
@@ -119,7 +119,7 @@ Iterator<FsDirectoryEntry> AkaiFatLfnDirectory::iterator()
 {
   return new Iterator<FsDirectoryEntry>() {
 
-    const Iterator<AkaiFatLfnDirectoryEntry> it = akaiNameIndex.values().iterator();
+    Iterator<AkaiFatLfnDirectoryEntry> it = akaiNameIndex.values().iterator();
 
     @Override
     bool hasNext() {
@@ -138,16 +138,16 @@ Iterator<FsDirectoryEntry> AkaiFatLfnDirectory::iterator()
   };
 }
 
-void AkaiFatLfnDirectory::remove(std::string name)
+void AkaiFatLfnDirectory::remove(std::string& name)
 {
   checkWritable();
 
-  const AkaiFatLfnDirectoryEntry entry = getEntry(name);
+  AkaiFatLfnDirectoryEntry entry = getEntry(name);
   if (entry == null) return;
 
   unlinkEntry(entry);
 
-  const ClusterChain cc = new ClusterChain(fat, entry.realEntry.getStartCluster(), false);
+  ClusterChain cc = new ClusterChain(fat, entry.realEntry.getStartCluster(), false);
 
   cc.setChainLength(0);
 
@@ -158,7 +158,7 @@ void AkaiFatLfnDirectory::unlinkEntry(AkaiFatLfnDirectoryEntry entry)
 {
   if (entry.getName().startsWith(".") || entry.getName().length() == 0) return;
 
-  const std::string lowerName = entry.getName().toLowerCase(Locale.ROOT);
+  std::string lowerName = entry.getName().toLowerCase(Locale.ROOT);
 
   assert(akaiNameIndex.containsKey(lowerName));
   akaiNameIndex.remove(lowerName);
@@ -182,7 +182,7 @@ void AkaiFatLfnDirectory::linkEntry(AkaiFatLfnDirectoryEntry entry)
 
 void AkaiFatLfnDirectory::checkUniqueName(std::string name)
 {
-  const std::string lowerName = name.toLowerCase(Locale.ROOT);
+  std::string lowerName = name.toLowerCase(Locale.ROOT);
 
   if (!usedAkaiNames.add(lowerName))
   {
@@ -195,7 +195,7 @@ void AkaiFatLfnDirectory::checkUniqueName(std::string name)
 void AkaiFatLfnDirectory::parseLfn()
 {
   int i = 0;
-  const int size = dir.getEntryCount();
+  int size = dir.getEntryCount();
 
   while (i < size) {
     // jump over empty entries
@@ -218,7 +218,7 @@ void AkaiFatLfnDirectory::parseLfn()
     if (i >= size)
       break;
 
-    const AkaiFatLfnDirectoryEntry current = AkaiFatLfnDirectoryEntry.extract(this, offset, ++i - offset);
+    AkaiFatLfnDirectoryEntry current = AkaiFatLfnDirectoryEntry.extract(this, offset, ++i - offset);
 
     if (!current.realEntry.isDeleted() && current.isValid()) {
       checkUniqueName(current.getName());
@@ -237,19 +237,19 @@ void AkaiFatLfnDirectory::updateLFN()
           dest.add(currentEntry.realEntry);
       }
       
-      const int size = dest.size();
+      int size = dest.size();
 
       dir.changeSize(size);
       dir.setEntries(dest);
   }
 
-std::shared_ptr<ClusterChainDirectory> AkaiFatLfnDirectory::read(FatDirectoryEntry entry, Fat fat)
+std::shared_ptr<ClusterChainDirectory> AkaiFatLfnDirectory::read(FatDirectoryEntry* entry, Fat* fat)
 {
   if (!entry.isDirectory()) throw entry.getName() + " is no directory";
 
-  const ClusterChain chain(fat, entry.getStartCluster(), entry.isReadonlyFlag());
+  ClusterChain chain(fat, entry.getStartCluster(), entry.isReadonlyFlag());
 
-  const ClusterChainDirectory result = std::make_shared<ClusterChainDirectory>(chain, false);
+  ClusterChainDirectory result = std::make_shared<ClusterChainDirectory>(chain, false);
 
   result.read();
   return result;

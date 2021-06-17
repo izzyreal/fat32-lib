@@ -2,6 +2,8 @@
 
 #include "Sector.hpp"
 
+#include "FatType.hpp"
+
 #include <memory>
 
 namespace akaifat::fat {
@@ -14,9 +16,9 @@ public:
     static const int FILE_SYSTEM_TYPE_LENGTH = 8;
     static const int SECTORS_PER_CLUSTER_OFFSET = 0x0d;
     static const int EXTENDED_BOOT_SIGNATURE = 0x29;
-    const static int SIZE = 512;
+    static const int SIZE = 512;
     
-        static std::shared_ptr<BootSector> read(BlockDevice device) {
+        static BootSector* read(BlockDevice* device) {
         ByteBuffer bb(512);
 //        bb.order(ByteOrder.LITTLE_ENDIAN);
 //        device.read(0, bb);
@@ -25,45 +27,41 @@ public:
 //                (bb.get(511) & 0xff) != 0xaa)
 //                throw "missing boot sector signature";
                 
-//        const byte sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
+//        byte sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
 
 //        if (sectorsPerCluster <= 0)
 //                throw "suspicious sectors per cluster count " + std::to_string(sectorsPerCluster);
 //
-//        const int rootDirEntries = bb.getShort(
+//        int rootDirEntries = bb.getShort(
 //                Fat16BootSector.ROOT_DIR_ENTRIES_OFFSET);
-//        const int rootDirSectors = ((rootDirEntries * 32) +
+//        int rootDirSectors = ((rootDirEntries * 32) +
 //                (device.getSectorSize() - 1)) / device.getSectorSize();
 //
-//        const int total16 =
+//        int total16 =
 //                bb.getShort(TOTAL_SECTORS_16_OFFSET) & 0xffff;
-//        const long total32 =
+//        long total32 =
 //                bb.getInt(TOTAL_SECTORS_32_OFFSET) & 0xffffffffl;
 //
-//        const long totalSectors = total16 == 0 ? total32 : total16;
+//        long totalSectors = total16 == 0 ? total32 : total16;
 //
-//        const int fatSz16 =
+//        int fatSz16 =
 //                bb.getShort(Fat16BootSector.SECTORS_PER_FAT_OFFSET)  & 0xffff;
-//        const long fatSz32 =
-//                bb.getInt(Fat32BootSector.SECTORS_PER_FAT_OFFSET) & 0xffffffffl;
 //
-//        const long fatSz = fatSz16 == 0 ? fatSz32 : fatSz16;
-//        const int reservedSectors = bb.getShort(RESERVED_SECTORS_OFFSET);
-//        const int fatCount = bb.get(FAT_COUNT_OFFSET);
-//        const long dataSectors = totalSectors - (reservedSectors +
+//        long fatSz = fatSz16;
+//        int reservedSectors = bb.getShort(RESERVED_SECTORS_OFFSET);
+//        int fatCount = bb.get(FAT_COUNT_OFFSET);
+//        long dataSectors = totalSectors - (reservedSectors +
 //                (fatCount * fatSz) + rootDirSectors);
 //
-//        const long clusterCount = dataSectors / sectorsPerCluster;
+//        long clusterCount = dataSectors / sectorsPerCluster;
 //
-//        const BootSector result =
-//                (clusterCount > Fat16BootSector.MAX_FAT16_CLUSTERS) ?
-//            new Fat32BootSector(device) : new Fat16BootSector(device);
+//        BootSector result = new Fat16BootSector(device);
             
 //        result.read();
         return {};
     }
     
-    virtual FatType getFatType() = 0;
+    virtual FatType* getFatType() = 0;
     
     virtual long getSectorsPerFat() = 0;
     
@@ -83,7 +81,7 @@ public:
         return get16(RESERVED_SECTORS_OFFSET);
     }
 
-    const long getFatOffset(int fatNr) {
+    long getFatOffset(int fatNr) {
         long sectSize = getBytesPerSector();
         long sectsPerFat = getSectorsPerFat();
         long resSects = getNrReservedSectors();
@@ -96,11 +94,11 @@ public:
         return offset;
     }
 
-    const int getNrFats() {
+    int getNrFats() {
         return get8(FAT_COUNT_OFFSET);
     }
 
-    const long getRootDirOffset() {
+    long getRootDirOffset() {
         long sectSize = getBytesPerSector();
         long sectsPerFat = getSectorsPerFat();
         int fats = getNrFats();
@@ -112,7 +110,7 @@ public:
         return offset;
     }
 
-    const long getFilesOffset() {
+    long getFilesOffset() {
         long offset = getRootDirOffset();
         
         offset += getRootDirEntryCount() * 32l;
@@ -124,7 +122,7 @@ public:
     
     virtual int getExtendedBootSignatureOffset() = 0;
     
-    void init() {
+    virtual void init() {
 //        setBytesPerSector(getDevice().getSectorSize());
 //        setSectorCount(getDevice().getSize() / getDevice().getSectorSize());
         set8(getExtendedBootSignatureOffset(), EXTENDED_BOOT_SIGNATURE);
@@ -137,7 +135,7 @@ public:
     }
     
     std::string getFileSystemTypeLabel() {
-//        const std::stringBuilder sb = new std::stringBuilder(FILE_SYSTEM_TYPE_LENGTH);
+//        std::stringBuilder sb = new std::stringBuilder(FILE_SYSTEM_TYPE_LENGTH);
 
 //        for (int i=0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
 //            sb.append ((char) get8(getFileSystemTypeLabelOffset() + i));
@@ -158,7 +156,7 @@ public:
         }
     }
 
-    const long getDataClusterCount() {
+    long getDataClusterCount() {
         return getDataSize() / getBytesPerCluster();
     }
 
@@ -176,18 +174,18 @@ public:
     }
 
     void setOemName(std::string name) {
-        if (name.length() > 8) throw "only 8 characters are allowed";
-
-        for (int i = 0; i < 8; i++) {
-            char ch;
-            if (i < name.length()) {
+//        if (name.length() > 8) throw "only 8 characters are allowed";
+//
+//        for (int i = 0; i < 8; i++) {
+//            char ch;
+//            if (i < name.length()) {
 //                ch = name.charAt(i);
-            } else {
-                ch = (char) 0;
-            }
-
-            set8(0x3 + i, ch);
-        }
+//            } else {
+//                ch = (char) 0;
+//            }
+//
+//            set8(0x3 + i, ch);
+//        }
     }
     
     void setBytesPerSector(int v) {
@@ -224,7 +222,7 @@ public:
         set16(RESERVED_SECTORS_OFFSET, v);
     }
 
-    const void setNrFats(int v) {
+    void setNrFats(int v) {
         if (v == getNrFats()) return;
         
         set8(FAT_COUNT_OFFSET, v);
@@ -270,7 +268,7 @@ public:
     }
 
 protected:
-    BootSector(BlockDevice& device)
+    BootSector(BlockDevice* device)
     : Sector(device, 0, SIZE)
     {
         markDirty();

@@ -1,3 +1,7 @@
+#pragma once
+
+#include <vector>
+
 namespace akaifat::fat {
 class ShortName {
 private:
@@ -9,9 +13,9 @@ private:
         return result;
     }
     
-    const static char ASCII_SPACE = 0x20;
+    static const char ASCII_SPACE = 0x20;
     
-    const std::vector<char> nameBytes;
+    std::vector<char> nameBytes;
     
     static std::vector<char> toCharArray(std::string& name, std::string& ext) {
         checkValidName(name);
@@ -47,18 +51,18 @@ private:
     }
 
 public:
-//    const static Charset ASCII = Charset.forName("ASCII");
+//    static Charset ASCII = Charset.forName("ASCII");
     
-//    const static ShortName DOT = ShortName(".", "");
+//    static ShortName DOT = ShortName(".", "");
 //
-//    const static ShortName DOT_DOT = ShortName("..", "");
+//    static ShortName DOT_DOT = ShortName("..", "");
 
     ShortName(){}
     
     ShortName(std::string nameExt) {
         if (nameExt.length() > 12) throw "name too long";
         
-        const auto i = nameExt.find_last_of('.');
+        auto i = nameExt.find_last_of('.');
         
         std::string name;
         std::string ext;
@@ -80,7 +84,7 @@ public:
     }
     
     char checkSum() {
-//        const byte[] dest = new byte[11];
+//        byte[] dest = new byte[11];
 //        for (int i = 0; i < 11; i++)
 //            dest[i] = (char) nameBytes[i];
 //
@@ -104,13 +108,13 @@ public:
         try {
             ShortName::get(nameExt);
             return true;
-        } catch (const std::exception&) {
+        } catch (std::exception&) {
             return false;
         }
     }
     
     static ShortName parse(std::vector<char>& data) {
-//        const char[] nameArr = new char[8];
+//        char[] nameArr = new char[8];
 //
 //        for (int i = 0; i < nameArr.length; i++) {
 //            nameArr[i] = (char) LittleEndian.getUInt8(data, i);
@@ -120,7 +124,7 @@ public:
 //            nameArr[0] = (char) 0xe5;
 //        }
 //
-//        const char[] extArr = new char[3];
+//        char[] extArr = new char[3];
 //        for (int i = 0; i < extArr.length; i++) {
 //            extArr[i] = (char) LittleEndian.getUInt8(data, 0x08 + i);
 //        }
@@ -136,8 +140,8 @@ public:
     }
     
     std::string asSimpleString() {
-//        const std::string name = new std::string(nameBytes, 0, 8, ASCII).trim();
-//        const std::string ext = new std::string(nameBytes, 8, 3, ASCII).trim();
+//        std::string name = new std::string(nameBytes, 0, 8, ASCII).trim();
+//        std::string ext = new std::string(nameBytes, 8, 3, ASCII).trim();
 //
 //        return ext.isEmpty() ? name : name + "." + ext;
         return "";
@@ -155,7 +159,7 @@ public:
         for (int i=0; i < chars.size(); i++) {
             if ((chars[i] & 0xff) != chars[i]) throw "multi-byte character at " + std::to_string(i);
 
-            const auto toTest = (char) (chars[i] & 0xff);
+            auto toTest = (char) (chars[i] & 0xff);
             
             if (toTest < 0x20 && toTest != 0x05) throw "character < 0x20 at" + std::to_string(i);
 

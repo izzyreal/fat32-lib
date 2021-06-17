@@ -1,68 +1,135 @@
 #pragma once
 
 #include "BootSector.hpp"
+#include "FatType.hpp"
+
+#include <memory>
 
 namespace akaifat::fat {
 class Fat {
-public:
-    const static int FIRST_CLUSTER = 2;
+private:
+    std::vector<long> entries;
+    FatType* fatType;
+    BootSector* bs;
+    long offset;
+    int lastClusterIndex;
+    int sectorCount;
+    int sectorSize;
+    BlockDevice* device;
     
-    static Fat read(BootSector bs, int fatNr) {
+    int lastAllocatedCluster;
+
+    Fat(BootSector* _bs, long _offset)
+    : bs (_bs), offset (_offset)
+    {
+        device = bs->getDevice();
+        fatType = bs->getFatType();
         
-        if (fatNr > bs.getNrFats()) {
-            throw "boot sector says there are only " + bs.getNrFats() +
-                    " FATs when reading FAT #" + fatNr;
+        if (bs->getSectorsPerFat() > INT_MAX)
+            throw "FAT too large";
+
+        if (bs->getSectorsPerFat() <= 0)
+                throw "boot sector says there are " + std::to_string(bs->getSectorsPerFat()) +
+                " sectors per FAT";
+
+        if (bs->getBytesPerSector() <= 0)
+                throw "boot sector says there are " + std::to_string(bs->getBytesPerSector()) +
+                " bytes per sector";
+
+        sectorCount = (int) bs->getSectorsPerFat();
+        sectorSize = bs->getBytesPerSector();
+        lastAllocatedCluster = FIRST_CLUSTER;
+        
+        if (bs->getDataClusterCount() > INT_MAX) throw
+            "too many data clusters";
+        
+        if (bs->getDataClusterCount() == 0) throw
+            "no data clusters";
+        
+        lastClusterIndex = (int) bs->getDataClusterCount() + FIRST_CLUSTER;
+
+        entries = std::vector<long>((sectorCount * sectorSize) /
+                fatType->getEntrySize());
+                
+        if (lastClusterIndex > entries.size())
+            throw "file system has " + std::to_string(lastClusterIndex) +
+            "clusters but only " + std::to_string(entries.size()) + " FAT entries";
+    }
+    
+
+    void init(int mediumDescriptor) {
+        entries[0] =
+                (mediumDescriptor & 0xFF) |
+                (0xFFFFF00L & fatType->getBitMask());
+        entries[1] = fatType->getEofMarker();
+    }
+    
+    void read() {
+        std::vector<char> data(sectorCount * sectorSize);
+        device->read(offset, ByteBuffer::wrap(data));
+
+        for (int i = 0; i < entries.size(); i++)
+            entries[i] = fatType->readEntry(data, i);
+    }
+    
+public:
+    static const int FIRST_CLUSTER = 2;
+    
+    static Fat* read(BootSector* bs, int fatNr) {
+        
+        if (fatNr > bs->getNrFats()) {
+            throw "boot sector says there are only " + std::to_string(bs->getNrFats()) +
+                    " FATs when reading FAT #" + std::to_string(fatNr);
         }
         
-        const long fatOffset = bs.getFatOffset(fatNr);
-        const Fat result = new Fat(bs, fatOffset);
-        result.read();
+        long fatOffset = bs->getFatOffset(fatNr);
+        auto result = new Fat(bs, fatOffset);
+//        result.read();
         return result;
     }
     
-    static Fat create(BootSector bs, int fatNr)
-            throws IOException, IllegalArgumentException {
+    static Fat* create(BootSector* bs, int fatNr) {
         
-        if (fatNr > bs.getNrFats()) {
-            throw "boot sector says there are only " + bs.getNrFats() +
-                    " FATs when creating FAT #" + fatNr;
+        if (fatNr > bs->getNrFats()) {
+            throw "boot sector says there are only " + std::to_string(bs->getNrFats()) +
+                    " FATs when creating FAT #" + std::to_string(fatNr);
         }
         
-        const long fatOffset = bs.getFatOffset(fatNr);
-        const Fat result = new Fat(bs, fatOffset);
+        long fatOffset = bs->getFatOffset(fatNr);
+        auto result = new Fat(bs, fatOffset);
 
-        if (bs.getDataClusterCount() > result.entries.length)
+        if (bs->getDataClusterCount() > result->entries.size())
             throw "FAT too small for device";
             
-        result.init(bs.getMediumDescriptor());
-        result.write();
+        result->init(bs->getMediumDescriptor());
+        result->write();
         return result;
     }
 
-    FatType getFatType() {
+    FatType* getFatType() {
         return fatType;
     }
     
-    BootSector getBootSector() {
+    BootSector* getBootSector() {
         return bs;
     }
 
-    BlockDevice getDevice() {
+    BlockDevice* getDevice() {
         return device;
     }
    
-    void write() throw (std::exception) {
+    void write() {
         writeCopy(offset);
     }
     
-    void writeCopy(long offset) throw (std::exception) {
-        const std::vector<char> data = new byte[sectorCount * sectorSize];
+    void writeCopy(long offset) {
+        std::vector<char> data(sectorCount * sectorSize);
         
-        for (int index = 0; index < entries.length; index++) {
-            fatType.writeEntry(data, index, entries[index]);
+        for (int index = 0; index < entries.size(); index++) {
+            fatType->writeEntry(data, index, entries[index]);
         }
         
-        device.write(offset, ByteBuffer.wrap(data));
+        device->write(offset, ByteBuffer::wrap(data));
     }
     
     int getMediumDescriptor() {
@@ -77,7 +144,7 @@ public:
         return lastAllocatedCluster;
     }
     
-    long[] getChain(long startCluster) {
+    std::vector<long> getChain(long startCluster) {
         testCluster(startCluster);
         // Count the chain first
         int count = 1;
@@ -87,7 +154,7 @@ public:
             cluster = entries[(int) cluster];
         }
         // Now create the chain
-        long[] chain = new long[count];
+        std::vector<long> chain(count);
         chain[0] = startCluster;
         cluster = startCluster;
         int i = 0;
@@ -108,7 +175,7 @@ public:
         }
     }
 
-    long allocNew() throw (std::exception) {
+    long allocNew() {
 
         int i;
         int entryIndex = -1;
@@ -130,11 +197,11 @@ public:
         }
         
         if (entryIndex < 0) {
-            throw "FAT Full (" + (lastClusterIndex - FIRST_CLUSTER)
-                    + ", " + i + ")";
+            throw "FAT Full (" + std::to_string(lastClusterIndex - FIRST_CLUSTER)
+                    + ", " + std::to_string(i) + ")";
         }
         
-        entries[entryIndex] = fatType.getEofMarker();
+        entries[entryIndex] = fatType->getEofMarker();
         lastAllocatedCluster = entryIndex % lastClusterIndex;
         if (lastAllocatedCluster < FIRST_CLUSTER)
             lastAllocatedCluster = FIRST_CLUSTER;
@@ -156,8 +223,8 @@ public:
         return lastAllocatedCluster;
     }
     
-    long[] allocNew(int nrClusters) throw (std::exception) {
-        const long rc[] = new long[nrClusters];
+    std::vector<long> allocNew(int nrClusters) {
+        std::vector<long> rc(nrClusters);
         
         rc[0] = allocNew();
         for (int i = 1; i < nrClusters; i++) {
@@ -167,8 +234,7 @@ public:
         return rc;
     }
     
-    long allocAppend(long cluster)
-            throw (std::exception) {
+    long allocAppend(long cluster) {
         
         testCluster(cluster);
         
@@ -184,7 +250,7 @@ public:
 
     void setEof(long cluster) {
         testCluster(cluster);
-        entries[(int) cluster] = fatType.getEofMarker();
+        entries[(int) cluster] = fatType->getEofMarker();
     }
 
     void setFree(long cluster) {
@@ -192,111 +258,45 @@ public:
         entries[(int) cluster] = 0;
     }
     
-    bool equals(Fat& other) override {
-        if (fatType != other.fatType) return false;
-        if (sectorCount != other.sectorCount) return false;
-        if (sectorSize != other.sectorSize) return false;
-        if (lastClusterIndex != other.lastClusterIndex) return false;
-        if (!Arrays.equals(entries, other.entries)) return false;
+    bool equals(Fat* other) {
+        if (fatType != other->fatType) return false;
+        if (sectorCount != other->sectorCount) return false;
+        if (sectorSize != other->sectorSize) return false;
+        if (lastClusterIndex != other->lastClusterIndex) return false;
+//        if (!Arrays.equals(entries, other.entries)) return false;
         
-        return (getMediumDescriptor() == other.getMediumDescriptor());
+        return (getMediumDescriptor() == other->getMediumDescriptor());
     }
     
-    int hashCode() override {
+    int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Arrays.hashCode(entries);
-        hash = 23 * hash + fatType.hashCode();
+//        hash = 23 * hash + Arrays.hashCode(entries);
+        hash = 23 * hash + (int) fatType->hashCode();
         hash = 23 * hash + sectorCount;
         hash = 23 * hash + sectorSize;
         hash = 23 * hash + lastClusterIndex;
         return hash;
     }
 
-protected:
+    // Can be protected?
+    void testCluster(long cluster) {
+        if ((cluster < FIRST_CLUSTER) || (cluster >= entries.size())) {
+            throw "invalid cluster value " + std::to_string(cluster);
+        }
+    }
+
     bool isFreeCluster(long entry) {
-        if (entry > Integer.MAX_VALUE) throw new IllegalArgumentException();
+        if (entry > INT_MAX) throw "entry is bigger than INT_MAX";
         return (entries[(int) entry] == 0);
     }
     
     bool isReservedCluster(long entry) {
-        return fatType.isReservedCluster(entry);
+        return fatType->isReservedCluster(entry);
     }
 
     bool isEofCluster(long entry) {
-        return fatType.isEofCluster(entry);
-    }
-    
-    void testCluster(long cluster) throws IllegalArgumentException {
-        if ((cluster < FIRST_CLUSTER) || (cluster >= entries.length)) {
-            throw new IllegalArgumentException(
-                    "invalid cluster value " + cluster);
-        }
+        return fatType->isEofCluster(entry);
     }
 
-private:
-    const long[] entries;
-    const FatType& fatType;
-    const int sectorCount;
-    const int sectorSize;
-    const BlockDevice& device;
-    const BootSector& bs;
-    const long offset;
-    const int lastClusterIndex;
-    
-    int lastAllocatedCluster;
-
-    Fat(BootSector& _bs, long offset)
-    : bs (_bs)
-    {
-        fatType = bs.getFatType();
-        if (bs.getSectorsPerFat() > Integer.MAX_VALUE)
-            throw "FAT too large";
-
-        if (bs.getSectorsPerFat() <= 0) 
-                throw "boot sector says there are " + bs.getSectorsPerFat() +
-                " sectors per FAT";
-
-        if (bs.getBytesPerSector() <= 0) 
-                throw "boot sector says there are " + bs.getBytesPerSector() +
-                " bytes per sector";
-
-        sectorCount = (int) bs.getSectorsPerFat();
-        sectorSize = bs.getBytesPerSector();
-        device = bs.getDevice();
-        offset = offset;
-        lastAllocatedCluster = FIRST_CLUSTER;
-        
-        if (bs.getDataClusterCount() > Integer.MAX_VALUE) throw
-                "too many data clusters";
-        
-        if (bs.getDataClusterCount() == 0) throw
-                "no data clusters";
-        
-        lastClusterIndex = (int) bs.getDataClusterCount() + FIRST_CLUSTER;
-
-        entries = new long[(int) ((sectorCount * sectorSize) /
-                fatType.getEntrySize())];
-                
-        if (lastClusterIndex > entries.length) 
-            throw "file system has " + lastClusterIndex +
-            "clusters but only " + entries.length + " FAT entries";
-    }
-    
-
-    void init(int mediumDescriptor) {
-        entries[0] = 
-                (mediumDescriptor & 0xFF) |
-                (0xFFFFF00L & fatType.getBitMask());
-        entries[1] = fatType.getEofMarker();
-    }
-    
-    void read() throw (std::exception) {
-        const std::vector<char> data = new byte[sectorCount * sectorSize];
-        device.read(offset, ByteBuffer.wrap(data));
-
-        for (int i = 0; i < entries.length; i++)
-            entries[i] = fatType.readEntry(data, i);
-    }
- 
 };
 }

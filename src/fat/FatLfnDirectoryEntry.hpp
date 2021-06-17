@@ -1,106 +1,107 @@
+#pragma once
+
 #include "../AbstractFsObject.hpp"
 #include "../FsDirectoryEntry.hpp"
+
+#include "FatLfnDirectory.hpp"
+#include "FatDirectoryEntry.hpp"
+
+#include <string>
 
 namespace akaifat::fat {
 class FatLfnDirectoryEntry
         : public akaifat::AbstractFsObject, public akaifat::FsDirectoryEntry {
 private:
-    FatLfnDirectory parent;
+    FatLfnDirectory* parent;
     std::string fileName;
     
 public:
-    const FatDirectoryEntry realEntry;
+    FatDirectoryEntry* realEntry;
         
     FatLfnDirectoryEntry(std::string name, ShortName sn,
-            FatLfnDirectory parent, bool directory) {
-        
-        super(false);
-        
-        parent = parent;
+            FatLfnDirectory* _parent, bool directory)
+            : akaifat::AbstractFsObject(false), parent (_parent) {
         fileName = name;
         
-        realEntry = FatDirectoryEntry.create(
-                parent.getFat().getFatType(), directory);
-        realEntry.setShortName(sn);
+//        realEntry = FatDirectoryEntry.create(
+//                parent->getFat().getFatType(), directory);
+//        realEntry->setShortName(sn);
     }
 
-    FatLfnDirectoryEntry(FatLfnDirectory parent,
-            FatDirectoryEntry realEntry, std::string fileName) {
-        
-        super(parent.isReadOnly());
-        
-        parent = parent;
-        realEntry = realEntry;
-        fileName = fileName;
+    FatLfnDirectoryEntry(FatLfnDirectory* _parent,
+            FatDirectoryEntry* _realEntry, std::string _fileName)
+            : akaifat::AbstractFsObject (_parent->isReadOnly()), parent (_parent), realEntry (_realEntry), fileName (_fileName)
+    {
     }
     
-    static FatLfnDirectoryEntry extract(
-            FatLfnDirectory dir, int offset, int len) {
+    static FatLfnDirectoryEntry* extract(
+            FatLfnDirectory* dir, int offset, int len) {
             
-        const FatDirectoryEntry realEntry = dir.dir.getEntry(offset + len - 1);
-        const std::string fileName;
+        auto realEntry = dir->dir->getEntry(offset + len - 1);
+        std::string fileName;
         
         if (len == 1) {
             /* this is just an old plain 8.3 entry */
-            fileName = realEntry.getShortName().asSimplestd::string();
+            fileName = realEntry->getShortName().asSimpleString();
         } else {
             /* stored in reverse order */
-            const std::stringBuilder name = new std::stringBuilder(13 * (len - 1));
+//            std::stringBuilder name = new std::stringBuilder(13 * (len - 1));
             
             for (int i = len - 2; i >= 0; i--) {
-                FatDirectoryEntry entry = dir.dir.getEntry(i + offset);
-                name.append(entry.getLfnPart());
+                auto entry = dir->dir->getEntry(i + offset);
+//                name.append(entry.getLfnPart());
             }
             
-            fileName = name.to_string().trim();
+//            fileName = name.to_string().trim();
         }
         
-        return new FatLfnDirectoryEntry(dir, realEntry, fileName);
+//        return new FatLfnDirectoryEntry(dir, realEntry, fileName);
+        return nullptr;
     }
     
     bool isHiddenFlag() {
-        return realEntry.isHiddenFlag();
+        return realEntry->isHiddenFlag();
     }
     
-    void setHiddenFlag(bool hidden) throws ReadOnlyException {
+    void setHiddenFlag(bool hidden) {
         checkWritable();
         
-        realEntry.setHiddenFlag(hidden);
+        realEntry->setHiddenFlag(hidden);
     }
     
     bool isSystemFlag() {
-        return realEntry.isSystemFlag();
+        return realEntry->isSystemFlag();
     }
     
-    void setSystemFlag(bool systemEntry) throws ReadOnlyException {
+    void setSystemFlag(bool systemEntry) {
         checkWritable();
         
-        realEntry.setSystemFlag(systemEntry);
+        realEntry->setSystemFlag(systemEntry);
     }
 
     bool isReadOnlyFlag() {
-        return realEntry.isReadonlyFlag();
+        return realEntry->isReadonlyFlag();
     }
 
-    void setReadOnlyFlag(bool readOnly) throws ReadOnlyException {
+    void setReadOnlyFlag(bool readOnly) {
         checkWritable();
         
-        realEntry.setReadonlyFlag(readOnly);
+        realEntry->setReadonlyFlag(readOnly);
     }
 
     bool isArchiveFlag() {
-        return realEntry.isArchiveFlag();
+        return realEntry->isArchiveFlag();
     }
 
-    void setArchiveFlag(bool archive) throws ReadOnlyException {
+    void setArchiveFlag(bool archive) {
         checkWritable();
 
-        realEntry.setArchiveFlag(archive);
+        realEntry->setArchiveFlag(archive);
     }
     
-    FatDirectoryEntry[] compactForm() {
-            return new FatDirectoryEntry[]{realEntry};
-    }
+//    FatDirectoryEntry[] compactForm() {
+//            return new FatDirectoryEntry[]{realEntry};
+//    }
 
     std::string getName() override {
         checkValid();
@@ -108,72 +109,66 @@ public:
         return fileName;
     }
     
-    std::string getAkaiPartstd::string() {
+    std::string getAkaiPartString() {
     	if (isDirectory()) return "";
-    	return AkaiPart.parse(realEntry.data).asSimplestd::string();
+    	return AkaiPart::parse(realEntry->data).asSimpleString();
     }
     
-    void setAkaiPartstd::string(std::string s) {
+    void setAkaiPartString(std::string& s) {
     	if (isDirectory()) return;
-    	AkaiPart ap = new AkaiPart(s);
-    	ap.write(realEntry.data);
+    	AkaiPart ap(s);
+    	ap.write(realEntry->data);
     }
     
-    FsDirectory getParent() override {
+    FsDirectory* getParent() override {
         checkValid();
         
         return parent;
     }
     
-    void setName(std::string newName) throw (std::exception) override {
+    void setName(std::string newName) override {
         checkWritable();
         
-        if (!parent.isFreeName(newName)) {
+        if (!parent->isFreeName(newName)) {
             throw "the name \"" + newName + "\" is already in use";
         }
         
-        parent.unlinkEntry(this);
+        parent->unlinkEntry(this);
         fileName = newName;
-        parent.linkEntry(this);
+        parent->linkEntry(this);
     }
     
-    void moveTo(FatLfnDirectory target, std::string newName)
-            throws IOException, ReadOnlyException {
-
+    void moveTo(FatLfnDirectory* target, std::string& newName) {
         checkWritable();
 
-        if (!target.isFreeName(newName)) {
+        if (!target->isFreeName(newName)) {
             throw "the name \"" + newName + "\" is already in use";
         }
         
-        parent.unlinkEntry(this);
+        parent->unlinkEntry(this);
         parent = target;
         fileName = newName;
-        parent.linkEntry(this);
+        parent->linkEntry(this);
     }
         
-    FatFile getFile() throw (std::exception) override {
-        return parent.getFile(realEntry);
+    FatFile* getFile() override {
+        return parent->getFile(realEntry);
     }
     
-    FatLfnDirectory getDirectory() throw (std::exception) override {
-        return parent.getDirectory(realEntry);
+    FatLfnDirectory* getDirectory() override {
+        return parent->getDirectory(realEntry);
     }
     
-    std::string tostd::string() override {
-        return "LFN = " + fileName + " / SFN = " + realEntry.getShortName();
-    }
-        
     bool isFile() override {
-        return realEntry.isFile();
+        return realEntry->isFile();
     }
 
     bool isDirectory() override {
-        return realEntry.isDirectory();
+        return realEntry->isDirectory();
     }
 
     bool isDirty() override {
-        return realEntry.isDirty();
+        return realEntry->isDirty();
     }
     
 };

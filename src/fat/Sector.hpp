@@ -5,15 +5,15 @@
 namespace akaifat::fat {
 class Sector {
 private:
-    const BlockDevice& device;
-    const long offset;
+    BlockDevice* device;
+    long offset;
     
     bool dirty;
     
 protected:
-    const ByteBuffer buffer;
+    ByteBuffer buffer;
 
-    Sector(BlockDevice& _device, long _offset, int size)
+    Sector(BlockDevice* _device, long _offset, int size)
     : device (_device), offset (_offset), buffer (ByteBuffer(size)), dirty (true)
     {
 //        buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -26,7 +26,7 @@ protected:
 //        dirty = false;
     }
     
-    const void markDirty() {
+    void markDirty() {
         dirty = true;
     }
 
@@ -69,15 +69,15 @@ protected:
     }
 
 public:
-    const bool isDirty() {
+    bool isDirty() {
         return dirty;
     }
     
-    const BlockDevice& getDevice() {
+    BlockDevice* getDevice() {
         return device;
     }
 
-    const void write() {
+    void write() {
         if (!isDirty()) return;
         
 //        buffer.position(0);

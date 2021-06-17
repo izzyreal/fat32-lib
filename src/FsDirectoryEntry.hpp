@@ -1,16 +1,14 @@
 #pragma once
 
-#include "FsObject.hpp"
-
 #include "FsDirectory.hpp"
 #include "FsFile.hpp"
 
 #include <exception>
 
 namespace akaifat {
-class FsDirectoryEntry : public FsObject {
+class FsDirectoryEntry {
 public:
-//    const static Comparator<FsDirectoryEntry> DIRECTORY_ENTRY_COMPARATOR =
+//    static Comparator<FsDirectoryEntry> DIRECTORY_ENTRY_COMPARATOR =
 //            new Comparator<FsDirectoryEntry>() {
 //
 //        @Override
@@ -27,7 +25,7 @@ public:
     
     virtual std::string getName() = 0;
 
-    virtual FsDirectory getParent() = 0;
+    virtual FsDirectory* getParent() = 0;
 
     virtual bool isFile() = 0;
 
@@ -35,10 +33,14 @@ public:
 
     virtual void setName(std::string newName) = 0;
 
-    virtual FsFile getFile() = 0;
+    virtual FsFile* getFile() = 0;
 
-    virtual FsDirectory getDirectory() = 0;
+    virtual FsDirectory* getDirectory() = 0;
 
     virtual bool isDirty() = 0;
+    
+    virtual bool isValid() = 0;
+    
+    virtual bool isReadOnly() = 0;
 };
 }

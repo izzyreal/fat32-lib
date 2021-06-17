@@ -1,18 +1,19 @@
 #pragma once
-#include "FsDirectory.hpp"
-
 #include <exception>
 
 namespace akaifat {
+
+class FsDirectory;
+
 class FileSystem {
 public:
-    virtual FsDirectory getRoot() = 0;
+    virtual FsDirectory* getRoot() = 0;
 
-    virtual const bool isReadOnly() = 0;
+    virtual bool isReadOnly() = 0;
 
     virtual void close() = 0;
     
-    virtual const bool isClosed() = 0;
+    virtual bool isClosed() = 0;
 
     virtual long getTotalSpace() = 0;
 

@@ -13,16 +13,16 @@ public:
     }
 
     static int getUInt16(std::vector<char>& src, int offset) {
-        const int v0 = src[offset + 0] & 0xFF;
-        const int v1 = src[offset + 1] & 0xFF;
+        int v0 = src[offset + 0] & 0xFF;
+        int v1 = src[offset + 1] & 0xFF;
         return ((v1 << 8) | v0);
     }
 
     static long getUInt32(std::vector<char>& src, int offset) {
-        const long v0 = src[offset + 0] & 0xFF;
-        const long v1 = src[offset + 1] & 0xFF;
-        const long v2 = src[offset + 2] & 0xFF;
-        const long v3 = src[offset + 3] & 0xFF;
+        long v0 = src[offset + 0] & 0xFF;
+        long v1 = src[offset + 1] & 0xFF;
+        long v2 = src[offset + 2] & 0xFF;
+        long v3 = src[offset + 3] & 0xFF;
         return ((v3 << 24) | (v2 << 16) | (v1 << 8) | v0);
     }
 
