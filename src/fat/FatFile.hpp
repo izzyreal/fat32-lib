@@ -69,7 +69,7 @@ public:
         chain.readData(offset, dest);
     }
 
-    void write(long offset, ByteBuffer srcBuf) override {
+    void write(long offset, ByteBuffer& srcBuf) override {
 
         checkWritable();
         

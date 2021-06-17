@@ -24,7 +24,9 @@ public:
     eofMarker (0xFFFFFFFL & _bitMask)
     {
     }
-
+    
+    virtual ~FatType(){}
+    
     virtual long readEntry(std::vector<char>& data, int index) = 0;
 
     virtual void writeEntry(std::vector<char>& data, int index, long entry) = 0;
@@ -95,7 +97,7 @@ public:
         }
 };
 
-class Fat16Type : FatType {
+class Fat16Type : public FatType {
 
 public:
     Fat16Type() : FatType((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   "){}
@@ -119,7 +121,6 @@ class Fat32Type : FatType {
 
 public:
     Fat32Type() : FatType((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") {}
-        
         long readEntry(std::vector<char>& data, int index) override {
             int idx = index * 4;
             long l1 = data[idx] & 0xFF;

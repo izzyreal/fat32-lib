@@ -66,7 +66,8 @@ private:
     
     void read() {
         std::vector<char> data(sectorCount * sectorSize);
-        device->read(offset, ByteBuffer::wrap(data));
+        ByteBuffer bb(data);
+        device->read(offset, bb);
 
         for (int i = 0; i < entries.size(); i++)
             entries[i] = fatType->readEntry(data, i);
@@ -129,7 +130,8 @@ public:
             fatType->writeEntry(data, index, entries[index]);
         }
         
-        device->write(offset, ByteBuffer::wrap(data));
+        auto bb = ByteBuffer(data);
+        device->write(offset, bb);
     }
     
     int getMediumDescriptor() {

@@ -73,11 +73,9 @@ public:
                 rootDirSectors);
         long clusterCount = dataSectors / getSectorsPerCluster();
         
-        if (clusterCount > MAX_FAT16_CLUSTERS) throw "too many clusters for FAT12/16: " + std::to_string(clusterCount);
+        if (clusterCount > MAX_FAT16_CLUSTERS) throw "too many clusters for FAT16: " + std::to_string(clusterCount);
         
-//        return clusterCount > MAX_FAT12_CLUSTERS ?
-//            FatType.FAT16 : FatType.FAT12;
-        return nullptr;
+        return new Fat16Type();
     }
     
     

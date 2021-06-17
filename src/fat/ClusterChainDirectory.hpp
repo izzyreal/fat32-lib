@@ -55,7 +55,7 @@ public:
     ClusterChain& chain;
     
     static ClusterChainDirectory readRoot(
-            ClusterChain chain) {
+            ClusterChain& chain) {
         
         ClusterChainDirectory result(chain, true);
         

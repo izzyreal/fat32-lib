@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ByteBuffer.hpp"
+#include "../BlockDevice.hpp"
 
 namespace akaifat::fat {
 class Sector {

@@ -14,6 +14,7 @@ class FatDirectoryEntry;
 
 class AbstractDirectory {
 public:
+    virtual ~AbstractDirectory(){}
     static const int MAX_LABEL_LENGTH = 11;
     
     void setEntries(std::vector<FatDirectoryEntry*>& newEntries);
@@ -61,8 +62,7 @@ protected:
         bool readOnly,
         bool isRoot
     );
-
-    
+        
     virtual void read(ByteBuffer& data) = 0;
 
     virtual void write(ByteBuffer& data) = 0;

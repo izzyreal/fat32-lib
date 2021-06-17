@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 namespace akaifat::fat {
@@ -18,8 +19,8 @@ private:
     std::vector<char> nameBytes;
     
     static std::vector<char> toCharArray(std::string& name, std::string& ext) {
-        checkValidName(name);
-        checkValidExt(ext);
+//        checkValidName(name);
+//        checkValidExt(ext);
         
         std::vector<char> result (11);
         //Arrays.fill(result, ASCII_SPACE);
@@ -29,15 +30,15 @@ private:
         return result;
     }
 
-    static void checkValidName(std::string name) {
+    static void checkValidName(std::string& name) {
         checkString(name, "name", 1, 8);
     }
 
-    static void checkValidExt(std::string ext) {
+    static void checkValidExt(std::string& ext) {
         checkString(ext, "extension", 0, 3);
     }
 
-    static void checkString(std::string str, std::string strType,
+    static void checkString(std::string& str, std::string strType,
             int minLength, int maxLength) {
 
         if (str.length() < minLength)

@@ -16,25 +16,24 @@ AkaiFatFileSystem::AkaiFatFileSystem(
     if (bs.getNrFats() <= 0) 
             throw "boot sector says there are no FATs";
     
-//    filesOffset = bs->getFilesOffset();
-//    fatType = bs->getFatType();
-//    fat = Fat::read(bs, 0);
-//
-//    if (!ignoreFatDifferences)
-//    {
-//        for (int i=1; i < bs.getNrFats(); i++)
-//        {
-//            Fat tmpFat = Fat.read(bs, i);
-//        
-//            if (!fat.equals(tmpFat))
-//                throw "FAT " + i + " differs from FAT 0";
-//        }
-//    }
-//
-//        rootDirStore =
-//                Fat16RootDirectory.read((Fat16BootSector) bs,readOnly);
-//
-//    rootDir = new AkaiFatLfnDirectory(rootDirStore, fat, isReadOnly());
+    filesOffset = bs->getFilesOffset();
+    fatType = bs->getFatType();
+    fat = Fat::read(bs, 0);
+
+    if (!ignoreFatDifferences)
+    {
+        for (int i=1; i < bs->getNrFats(); i++)
+        {
+            auto tmpFat = Fat::read(bs, i);
+        
+            if (!fat->equals(tmpFat))
+                throw "FAT " + std::to_string(i) + " differs from FAT 0";
+        }
+    }
+
+    rootDirStore = Fat16RootDirectory::read(bs,readOnly);
+
+    rootDir = new AkaiFatLfnDirectory(rootDirStore, fat, isReadOnly());
         
 }
 

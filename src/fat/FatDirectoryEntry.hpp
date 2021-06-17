@@ -6,6 +6,7 @@
 //#include "AbstractDirectory.hpp"
 #include "LittleEndian.hpp"
 #include "ShortName.hpp"
+#include "FatType.hpp"
 
 #include <vector>
 

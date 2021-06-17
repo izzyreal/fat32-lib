@@ -5,7 +5,7 @@
 #include "FatType.hpp"
 #include "AkaiFatLfnDirectory.hpp"
 #include "Fat.hpp"
-#include "BootSector.hpp"
+#include "Fat16BootSector.hpp"
 
 #include <memory>
 
@@ -14,21 +14,29 @@ class AkaiFatFileSystem : public akaifat::AbstractFileSystem
 {
 private:
     Fat* fat;
-    BootSector* bs;
+    Fat16BootSector* bs;
     AkaiFatLfnDirectory* rootDir;
     AbstractDirectory* rootDirStore;
     FatType* fatType;
     long filesOffset;
-  
-    AkaiFatFileSystem(BlockDevice* device, bool readOnly,
-            bool ignoreFatDifferences);
             
 public:
-    static AkaiFatFileSystem* read(BlockDevice* device, bool readOnly);
-
+    AkaiFatFileSystem(BlockDevice* device, bool readOnly,
+            bool ignoreFatDifferences);
+    
     AkaiFatFileSystem(BlockDevice* api, bool readOnly)
     : AkaiFatFileSystem (api, readOnly, false) {}
 
+    static AkaiFatFileSystem* read(BlockDevice* device, bool readOnly);
+
+    ~AkaiFatFileSystem() {
+        if (fat != nullptr) delete fat;
+        if (bs != nullptr) delete bs;
+        if (rootDir != nullptr) delete rootDir;
+        if (rootDirStore != nullptr) delete rootDirStore;
+        if (fatType != nullptr) delete fatType;
+    }
+    
     long getFilesOffset();
 
     FatType* getFatType();

@@ -19,7 +19,7 @@ public:
     static const int SIZE = 512;
     
         static BootSector* read(BlockDevice* device) {
-        ByteBuffer bb(512);
+            ByteBuffer bb(512);
 //        bb.order(ByteOrder.LITTLE_ENDIAN);
 //        device.read(0, bb);
         

@@ -20,6 +20,8 @@ protected:
     : readOnly (_readOnly){
         valid = true;
     }
+    
+    virtual ~AbstractFsObject(){}
 
     void invalidate() {
         valid = false;
