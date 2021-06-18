@@ -24,16 +24,27 @@ public:
     }
     
     char get() { return buf[pos++]; }
-    char get(int index) { return buf[index]; }
+    char get(long index) { return buf[index]; }
+
+    unsigned int getInt() {
+        return getInt(pos);
+    }
+    
+    unsigned int getInt(long index) {
+        char chars[4];
+        for (int i = 0; i < 4; i++)
+            chars[i] = buf[index + i];
+        pos += 4;
+        return *(unsigned int *) chars;
+    }
     
     short getShort() {
-        short result = getShort(pos);
-        pos += 2;
-        return result;
+        return getShort(pos);
     }
     
     short getShort(long index) {
         short result = (buf[index] & 0xff) | (buf[index + 1] << 8);
+        pos += 2;
         return result;
     }
     

@@ -66,14 +66,25 @@ public:
 
     
     FatType* getFatType() override {
-        long rootDirSectors = ((getRootDirEntryCount() * 32) +
-                (getBytesPerSector() - 1)) / getBytesPerSector();
-        long dataSectors = getSectorCount() -
-                (getNrReservedSectors() + (getNrFats() * getSectorsPerFat()) +
-                rootDirSectors);
-        long clusterCount = dataSectors / getSectorsPerCluster();
+        auto rootDirEntryCount = getRootDirEntryCount();
+        auto bytesPerSector = getBytesPerSector();
         
-        if (clusterCount > MAX_FAT16_CLUSTERS) throw "too many clusters for FAT16: " + std::to_string(clusterCount);
+        long rootDirSectors = ((rootDirEntryCount * 32) +
+                (bytesPerSector - 1)) / bytesPerSector;
+        
+        auto sectorCount = getSectorCount();
+        auto nrReservedSectors = getNrReservedSectors();
+        auto nrFats = getNrFats();
+        auto sectorsPerFat = getSectorsPerFat();
+        
+        long dataSectors = sectorCount -
+                (nrReservedSectors + (nrFats * sectorsPerFat) +
+                rootDirSectors);
+        
+        auto sectorsPerCluster = getSectorsPerCluster();
+        long clusterCount = dataSectors / sectorsPerCluster;
+        
+        if (clusterCount > MAX_FAT16_CLUSTERS) throw std::runtime_error("too many clusters for FAT16: " + std::to_string(clusterCount));
         
         return new Fat16Type();
     }

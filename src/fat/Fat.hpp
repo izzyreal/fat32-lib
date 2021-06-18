@@ -52,8 +52,8 @@ private:
                 fatType->getEntrySize());
                 
         if (lastClusterIndex > entries.size())
-            throw "file system has " + std::to_string(lastClusterIndex) +
-            "clusters but only " + std::to_string(entries.size()) + " FAT entries";
+            throw std::runtime_error("file system has " + std::to_string(lastClusterIndex) +
+            " clusters but only " + std::to_string(entries.size()) + " FAT entries");
     }
     
 

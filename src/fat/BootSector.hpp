@@ -102,7 +102,7 @@ public:
         return {};
     }
     
-    void setFileSystemTypeLabel(std::string fsType) {
+    void setFileSystemTypeLabel(std::string& fsType) {
         
         if (fsType.length() != FILE_SYSTEM_TYPE_LENGTH) {
             throw "invalid file system type length";
@@ -255,8 +255,11 @@ private:
     }
     
     long getDataSize() {
-        return (getSectorCount() * getBytesPerSector()) -
-        getFilesOffset();
+        auto spc = getSectorCount();
+        auto bps = getBytesPerSector();
+        auto filesOffset = getFilesOffset();
+        
+        return (getSectorCount() * getBytesPerSector()) - getFilesOffset();
     }
 };
 }

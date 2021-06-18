@@ -31,11 +31,10 @@ protected:
     }
 
     long get32(int offset) {
-//        return buffer.getInt(offset);
-        return 0;
+        return buffer.getInt(offset);
     }
     
-    int get8(int offset) {
+    char get8(int offset) {
         return buffer.get(offset) & 0xff;
     }
     

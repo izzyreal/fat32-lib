@@ -25,7 +25,8 @@ public:
             bool ignoreFatDifferences);
     
     AkaiFatFileSystem(BlockDevice* api, bool readOnly)
-    : AkaiFatFileSystem (api, readOnly, false) {}
+    // Should ignoreFatDifferences be false?
+    : AkaiFatFileSystem (api, readOnly, true) {}
 
     static AkaiFatFileSystem* read(BlockDevice* device, bool readOnly);
 
