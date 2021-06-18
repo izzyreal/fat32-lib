@@ -25,7 +25,7 @@ public:
 
     int getEntryCount();
     
-//    bool isReadOnly();
+    bool isDirReadOnly();
 
     bool isRoot();
 
@@ -33,14 +33,14 @@ public:
 
     void flush();
 
-    void addEntry(FatDirectoryEntry e);
+    void addEntry(FatDirectoryEntry*);
     
-    void addEntries(std::vector<FatDirectoryEntry>& entries);
-    void removeEntry(FatDirectoryEntry entry);
+    void addEntries(std::vector<FatDirectoryEntry*>&);
+    void removeEntry(FatDirectoryEntry*);
 
     std::string& getLabel();
 
-    FatDirectoryEntry* createSub(Fat fat);
+    FatDirectoryEntry* createSub(Fat* fat);
     
     void setLabel(std::string& label);
 

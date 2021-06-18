@@ -2,6 +2,7 @@
 
 #include "../AbstractFsObject.hpp"
 #include "../FsDirectoryEntry.hpp"
+#include "../FsDirectory.hpp"
 
 #include "AkaiFatLfnDirectory.hpp"
 #include "AkaiFatLfnDirectoryEntry.hpp"
@@ -148,7 +149,7 @@ public:
         return nullptr;
     }
     
-    AkaiFatLfnDirectory* getDirectory() override {
+    akaifat::FsDirectory* getDirectory() override {
         //		return parent->getDirectory(realEntry);
         return nullptr;
     }

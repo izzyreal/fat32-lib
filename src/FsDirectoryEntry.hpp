@@ -1,11 +1,13 @@
 #pragma once
 
-#include "FsDirectory.hpp"
-#include "FsFile.hpp"
-
 #include <exception>
+#include <string>
 
 namespace akaifat {
+
+class FsDirectory;
+class FsFile;
+
 class FsDirectoryEntry {
 public:
 //    static Comparator<FsDirectoryEntry> DIRECTORY_ENTRY_COMPARATOR =

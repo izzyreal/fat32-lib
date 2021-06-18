@@ -45,7 +45,7 @@ public:
     
     void setVolumeLabel(std::string label);
 
-    AbstractDirectory getRootDirStore();
+    AbstractDirectory* getRootDirStore();
     
     void flush() override;
     
@@ -53,7 +53,7 @@ public:
     
     Fat* getFat();
 
-    BootSector getBootSector();
+    BootSector* getBootSector();
 
     long getFreeSpace() override;
 

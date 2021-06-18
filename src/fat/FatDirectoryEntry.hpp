@@ -4,6 +4,7 @@
 
 //#include "AkaiFatLfnDirectory.hpp"
 //#include "AbstractDirectory.hpp"
+#include "../ByteBuffer.hpp"
 #include "LittleEndian.hpp"
 #include "ShortName.hpp"
 #include "FatType.hpp"
@@ -16,7 +17,7 @@ namespace akaifat::fat {
 class FatDirectoryEntry : public AbstractFsObject {
 
 private:
-    FatType& type;
+    FatType* type;
     bool dirty;
     static const int OFFSET_ATTRIBUTES = 0x0b;
     static const int OFFSET_FILE_SIZE = 0x1c;
@@ -28,12 +29,12 @@ private:
     static const int F_ARCHIVE = 0x20;
 
 public:
-    FatDirectoryEntry(FatType& fs)
+    FatDirectoryEntry(FatType* fs)
     : FatDirectoryEntry(fs, std::vector<char>(SIZE), false)
     {
     }
 
-    FatDirectoryEntry(FatType& fs, std::vector<char> _data, bool readOnly)
+    FatDirectoryEntry(FatType* fs, std::vector<char> _data, bool readOnly)
     : AbstractFsObject(readOnly), type (fs), data (_data)
     {
     }
@@ -65,14 +66,14 @@ public:
     static int const SIZE = 32;
     static int const ENTRY_DELETED_MAGIC = 0xe5;
     
-    static FatDirectoryEntry read(
-            FatType type, ByteBuffer buff, bool readOnly) {
+    static FatDirectoryEntry* read(
+            FatType* type, ByteBuffer& buff, bool readOnly) {
         
         assert (buff.remaining() >= SIZE);
 
         std::vector<char> data(SIZE);
         buff.get(data);
-        return FatDirectoryEntry(type, data, readOnly);
+        return new FatDirectoryEntry(type, data, readOnly);
     }
 
     static void writeNullEntry(ByteBuffer buff) {
@@ -131,17 +132,18 @@ public:
         return ((getFlags() & (F_DIRECTORY | F_VOLUME_ID)) == F_DIRECTORY);
     }
     
-    static FatDirectoryEntry create(FatType type, bool directory) {
+    static FatDirectoryEntry create(FatType* type, bool directory) {
         FatDirectoryEntry result(type);
 
         if (directory) {
             result.setFlags(F_DIRECTORY);
-        }        
+        }
+        
         return result;
     }
     
     static FatDirectoryEntry createVolumeLabel(
-            FatType type, std::string volumeLabel) {
+            FatType* type, std::string volumeLabel) {
         
         assert(volumeLabel.length() != 0);
         

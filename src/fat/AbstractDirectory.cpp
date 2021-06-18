@@ -2,16 +2,15 @@
 
 #include "FatType.hpp"
 #include "FatDirectoryEntry.hpp"
-#include "DirectoryFullException.hpp"
 
-using namespace akaifat;
+using namespace akaifat::fat;
 
 AbstractDirectory::AbstractDirectory(
-    FatType _type,
+    FatType* _type,
     int _capacity,
     bool _readOnly,
-    bool _isRoot
-) : type (_type), capacity (_capacity), readOnly (_readOnly), isRoot (_isRoot)
+    bool __isRoot
+) : type (_type), capacity (_capacity), readOnly (_readOnly), _isRoot (__isRoot)
 {
 }
 
@@ -25,28 +24,26 @@ AbstractDirectory::AbstractDirectory(
 
 void AbstractDirectory::sizeChanged(long newSize)
 {
-    long newCount = newSize / FatDirectoryEntry.SIZE;
+    long newCount = newSize / FatDirectoryEntry::SIZE;
     
-    if (newCount > MAX_INT)
-        "directory too large";
+    if (newCount > INT_MAX) throw "directory too large";
     
     capacity = (int) newCount;
 }
 
 void AbstractDirectory::read()
 {
-    std::vector<char> data(getCapacity() * FatDirectoryEntry.SIZE);
+    ByteBuffer data(getCapacity() * FatDirectoryEntry::SIZE);
     
-    for (int i=0; i < getCapacity(); i++)
+    for (int i = 0; i < getCapacity(); i++)
     {
-        std::shared_ptr<FatDirectoryEntry> e =
-                FatDirectoryEntry::read(type, data, isReadOnly());
+        auto e = FatDirectoryEntry::read(type, data, readOnly);
         
         if (!e) break;
         
         if (e->isVolumeLabel())
         {
-            if (!isRoot)
+            if (!_isRoot)
                 throw "volume label in non-root directory";
             
             volumeLabel = e->getVolumeLabel();
@@ -58,9 +55,9 @@ void AbstractDirectory::read()
     }
 }
 
-std::shared_ptr<FatDirectoryEntry> AbstractDirectory::getEntry(int idx)
+FatDirectoryEntry* AbstractDirectory::getEntry(int idx)
 {
-    return entries.get(idx);
+    return entries[idx];
 }
 
 int AbstractDirectory::getCapacity()
@@ -70,72 +67,72 @@ int AbstractDirectory::getCapacity()
 
 int AbstractDirectory::getEntryCount()
 {
-    return entries.size();
+    return (int) entries.size();
 }
 
-bool AbstractDirectory::isReadOnly()
+bool AbstractDirectory::isDirReadOnly()
 {
     return readOnly;
 }
 
 bool AbstractDirectory::isRoot()
 {
-    return isRoot;
+    return _isRoot;
 }
 
 int AbstractDirectory::getSize()
 {
-    return entries.size() + ((volumeLabel != null) ? 1 : 0);
+    return (int) entries.size() + ((volumeLabel.length() != 0) ? 1 : 0);
 }
 
 void AbstractDirectory::flush()
-{    
-    std::vector<char> data(
-            getCapacity() * FatDirectoryEntry.SIZE + (volumeLabel != null ? FatDirectoryEntry.SIZE : 0));
+{
+    std::vector<char> data(getCapacity() * FatDirectoryEntry::SIZE + (volumeLabel.length() != 0 ? FatDirectoryEntry::SIZE : 0));
     
-    for (FatDirectoryEntry entry : entries)
+    for (auto entry : entries)
     {
-        if (entry != null)
-            entry.write(data);
+        if (entry != nullptr)
+            entry->write(data);
     }
             
-    if (volumeLabel != null)
+    if (volumeLabel.length() != 0)
     {
-        FatDirectoryEntry labelEntry =
-                FatDirectoryEntry.createVolumeLabel(type, volumeLabel);
+        auto labelEntry =
+                FatDirectoryEntry::createVolumeLabel(type, volumeLabel);
 
         labelEntry.write(data);
     }
     
-    if (data.hasRemaining())
-        FatDirectoryEntry.writeNullEntry(data);
+//    if (data.hasRemaining())
+//        FatDirectoryEntry::writeNullEntry(data);
     
-    write(data);
+//    write(data);
 }
 
-void AbstractDirectory::addEntry(FatDirectoryEntry e)
+void AbstractDirectory::addEntry(FatDirectoryEntry* e)
 {
-    assert (e != null);
+    assert (e != nullptr);
     
     if (getSize() == getCapacity())
         changeSize(getCapacity() + 1);
 
-    entries.add(e);
+    entries.push_back(e);
 }
 
-void AbstractDirectory::addEntries(FatDirectoryEntry[] entries)
+void AbstractDirectory::addEntries(std::vector<FatDirectoryEntry*>& newEntries)
 {    
-    if (getSize() + entries.length > getCapacity())
-        changeSize(getSize() + entries.length);
+    if (getSize() + newEntries.size() > getCapacity())
+        changeSize( (int) (getSize() + newEntries.size()) );
 
-    entries.addAll(Arrays.asList(entries));
+    for (auto& e : newEntries)
+        entries.push_back(e);
 }
 
-void AbstractDirectory::removeEntry(FatDirectoryEntry entry)
+void AbstractDirectory::removeEntry(FatDirectoryEntry* entry)
 {
-    assert (entry != null);
+    assert (entry != nullptr);
     
-    entries.remove(entry);
+//    entries.remove(entry);
     changeSize(getSize());
 }
 
@@ -146,60 +143,61 @@ std::string& AbstractDirectory::getLabel()
     return volumeLabel;
 }
 
-FatDirectoryEntry AbstractDirectory::createSub(Fat fat)
+FatDirectoryEntry* AbstractDirectory::createSub(Fat* fat)
 {
-    ClusterChain chain = new ClusterChain(fat, false);
-    chain.setChainLength(1);
-
-    FatDirectoryEntry entry = FatDirectoryEntry.create(type, true);
-    entry.setStartCluster(chain.getStartCluster());
-    
-    ClusterChainDirectory dir =
-            new ClusterChainDirectory(chain, false);
-
-    FatDirectoryEntry dot = FatDirectoryEntry.create(type, true);
-    dot.setShortName(ShortName.DOT);
-    dot.setStartCluster(dir.getStorageCluster());
-    dir.addEntry(dot);
-
-    FatDirectoryEntry dotDot = FatDirectoryEntry.create(type, true);
-    dotDot.setShortName(ShortName.DOT_DOT);
-    dotDot.setStartCluster(getStorageCluster());
-    dir.addEntry(dotDot);
-
-    dir.flush();
-
-    return entry;
+//    auto chain = new ClusterChain(fat, false);
+//    chain.setChainLength(1);
+//
+//    auto entry = FatDirectoryEntry::create(type, true);
+//    entry.setStartCluster(chain.getStartCluster());
+//
+//    ClusterChainDirectory dir =
+//            new ClusterChainDirectory(chain, false);
+//
+//    auto dot = FatDirectoryEntry::create(type, true);
+//    dot.setShortName(ShortName.DOT);
+//    dot.setStartCluster(dir.getStorageCluster());
+//    dir.addEntry(dot);
+//
+//    FatDirectoryEntry dotDot = FatDirectoryEntry.create(type, true);
+//    dotDot.setShortName(ShortName.DOT_DOT);
+//    dotDot.setStartCluster(getStorageCluster());
+//    dir.addEntry(dotDot);
+//
+//    dir.flush();
+//
+//    return entry;
+    return nullptr;
 }
 
 void AbstractDirectory::setLabel(std::string& label)
 {
     checkRoot();
 
-    if (label != null && label.length() > MAX_LABEL_LENGTH) throw "label too long";
+    if (label.length() > MAX_LABEL_LENGTH) throw "label too long";
 
-    if (volumeLabel != null)
-    {
-        if (label == null)
-        {
-            changeSize(getSize() - 1);
-            volumeLabel = null;
-        }
-        else
-        {
-            ShortName.checkValidChars(label.getBytes(ShortName.ASCII));
-            volumeLabel = label;
-        }
-    }
-    else
-    {
-        if (label != null)
-        {
-            changeSize(getSize() + 1);
-            ShortName.checkValidChars(label.getBytes(ShortName.ASCII));
-            volumeLabel = label;
-        }
-    }
+//    if (volumeLabel != null)
+//    {
+//        if (label == null)
+//        {
+//            changeSize(getSize() - 1);
+//            volumeLabel = null;
+//        }
+//        else
+//        {
+//            ShortName.checkValidChars(label.getBytes(ShortName.ASCII));
+//            volumeLabel = label;
+//        }
+//    }
+//    else
+//    {
+//        if (label != null)
+//        {
+//            changeSize(getSize() + 1);
+//            ShortName.checkValidChars(label.getBytes(ShortName.ASCII));
+//            volumeLabel = label;
+//        }
+//    }
 }
 
 void AbstractDirectory::checkRoot() {
