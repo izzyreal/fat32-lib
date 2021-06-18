@@ -7,6 +7,7 @@ class ByteBuffer {
 private:
     std::vector<char> buf;
     long pos = 0;
+    long limit_ = 0;
     
 public:
     ByteBuffer(long size)
@@ -23,15 +24,23 @@ public:
     }
     
     char get() { return buf[pos++]; }
+    char get(int index) { return buf[index]; }
     
     short getShort() {
-        short result = (buf[pos + 1] << 8) | (buf[pos] & 0xff);
+        short result = getShort(pos);
         pos += 2;
+        return result;
+    }
+    
+    short getShort(long index) {
+        short result = (buf[index] & 0xff) | (buf[index + 1] << 8);
         return result;
     }
     
     long position() { return pos; }
     long remaining() { return buf.size() - pos; }
+    void rewind() { pos = 0; }
+    void limit(long newLimit) { limit_ = 0; }
     
     void put(char c) { buf[pos++] = c; }
     void put(std::vector<char>& data) {
@@ -43,7 +52,7 @@ public:
     }
     
     std::vector<char>& getBuffer() { return buf; }
-    long getCapacity() { return buf.size(); }
+    long capacity() { return buf.size(); }
     
 };
 }

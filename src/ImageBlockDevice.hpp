@@ -17,7 +17,13 @@ public:
     
     bool isClosed() { return false; }
 
-    long getSize() { return 0; }
+    long getSize() {
+        const auto begin = img.tellg();
+        img.seekg (0, std::ios::end);
+        const auto end = img.tellg();
+        const auto fsize = (end-begin);
+        return fsize;
+    }
 
     void read(long devOffset, ByteBuffer& dest) {
         if (isClosed()) throw "device closed";
@@ -27,7 +33,7 @@ public:
         
         img.seekg(devOffset);
         std::vector<char>& buf = dest.getBuffer();
-        img.read(&buf[0], dest.getCapacity());
+        img.read(&buf[0], dest.capacity());
     }
 
     void write(long devOffset, ByteBuffer& src) {

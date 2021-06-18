@@ -3,6 +3,8 @@
 #include "../ByteBuffer.hpp"
 #include "../BlockDevice.hpp"
 
+#include <string>
+
 namespace akaifat::fat {
 class Sector {
 private:
@@ -20,20 +22,12 @@ protected:
 //        buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
     
-    void read() {
-//        buffer.rewind();
-//        buffer.limit(buffer.capacity());
-//        device.read(offset, buffer);
-//        dirty = false;
-    }
-    
     void markDirty() {
         dirty = true;
     }
 
     int get16(int offset) {
-//        return buffer.getShort(offset) & 0xffff;
-        return 0;
+        return buffer.getShort(offset) & 0xffff;
     }
 
     long get32(int offset) {
@@ -42,8 +36,7 @@ protected:
     }
     
     int get8(int offset) {
-//        return buffer.get(offset) & 0xff;
-        return 0;
+        return buffer.get(offset) & 0xff;
     }
     
     void set16(int offset, int value) {
@@ -70,6 +63,13 @@ protected:
     }
 
 public:
+    void read_() {
+        buffer.rewind();
+        buffer.limit(buffer.capacity());
+        device->read(offset, buffer);
+        dirty = false;
+    }
+    
     bool isDirty() {
         return dirty;
     }
