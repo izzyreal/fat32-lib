@@ -26,6 +26,12 @@ private:
         //Arrays.fill(result, ASCII_SPACE);
         //System.arraycopy(name.getBytes(ASCII), 0, result, 0, name.length());
         //System.arraycopy(ext.getBytes(ASCII), 0, result, 8, ext.length());
+
+        for (int i = 0; i < name.length(); i++)
+            result[i] = name[i];
+        
+        for (int i = 8; i < 8 + ext.length(); i++)
+            result[i] = ext[i - 8];
         
         return result;
     }
@@ -81,7 +87,7 @@ public:
     }
     
     ShortName(std::string name, std::string ext) {
-//        nameBytes = toCharArray(name, ext);
+        nameBytes = toCharArray(name, ext);
     }
     
     char checkSum() {
@@ -115,25 +121,22 @@ public:
     }
     
     static ShortName parse(std::vector<char>& data) {
-//        char[] nameArr = new char[8];
-//
-//        for (int i = 0; i < nameArr.length; i++) {
-//            nameArr[i] = (char) LittleEndian.getUInt8(data, i);
-//        }
-//
-//        if (LittleEndian.getUInt8(data, 0) == 0x05) {
-//            nameArr[0] = (char) 0xe5;
-//        }
-//
+        std::vector<char> nameArr(8);
+
+        for (int i = 0; i < nameArr.size(); i++) {
+            nameArr[i] = (char) LittleEndian::getUInt8(data, i);
+        }
+
+        if (LittleEndian::getUInt8(data, 0) == 0x05) {
+            nameArr[0] = (char) 0xe5;
+        }
+
 //        char[] extArr = new char[3];
 //        for (int i = 0; i < extArr.length; i++) {
 //            extArr[i] = (char) LittleEndian.getUInt8(data, 0x08 + i);
 //        }
-//
-//        return new ShortName(
-//                new std::string(nameArr).trim(),
-//                new std::string(extArr).trim());
-        return ShortName();
+
+        return ShortName(std::string(&nameArr[0]), std::string(""));
     }
 
     void write(std::vector<char>& dest) {
@@ -145,7 +148,7 @@ public:
 //        std::string ext = new std::string(nameBytes, 8, 3, ASCII).trim();
 //
 //        return ext.isEmpty() ? name : name + "." + ext;
-        return "";
+        return std::string(&nameBytes[0]);
     }
     
     int hashCode() {

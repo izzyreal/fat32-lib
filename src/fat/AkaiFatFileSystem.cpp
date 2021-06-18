@@ -61,15 +61,7 @@ FatType* AkaiFatFileSystem::getFatType()
 std::string AkaiFatFileSystem::getVolumeLabel()
 {
     checkClosed();
-    
-    std::string fromDir = rootDirStore->getLabel();
-    
-//    if (fromDir == null && fatType != FatType.FAT32) {
-//        return ((Fat16BootSector)bs).getVolumeLabel();
-//    } else {
-//        return fromDir;
-//    }
-    return "DUMMYLABEL";
+    return rootDirStore->getLabel();
 }
 
 void AkaiFatFileSystem::setVolumeLabel(std::string label)

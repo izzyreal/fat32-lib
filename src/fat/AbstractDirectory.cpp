@@ -33,13 +33,22 @@ void AbstractDirectory::sizeChanged(long newSize)
 
 void AbstractDirectory::read()
 {
-    ByteBuffer data(getCapacity() * FatDirectoryEntry::SIZE);
+    auto capacity = getCapacity();
     
-    for (int i = 0; i < getCapacity(); i++)
+    ByteBuffer data(capacity * FatDirectoryEntry::SIZE);
+    
+    read(data);
+    data.flip();
+
+    for (int i = 0; i < capacity; i++)
     {
         auto e = FatDirectoryEntry::read(type, data, readOnly);
         
         if (!e) break;
+        
+        auto name = e->getShortName().asSimpleString();
+        
+        printf("Name: %s\n", name.c_str());
         
         if (e->isVolumeLabel())
         {

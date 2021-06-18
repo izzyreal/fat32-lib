@@ -160,7 +160,14 @@ public:
         return nullptr;
     }
     
-
+    bool isDirValid() override {
+        return isValid();
+    }
+            
+    bool isDirReadOnly() override {
+        return isReadOnly();
+    }
+            
     void flush() override {
         checkWritable();
         

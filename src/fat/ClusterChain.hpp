@@ -4,6 +4,8 @@
 
 #include "Fat.hpp"
 
+#include <algorithm>
+
 namespace akaifat::fat {
 class ClusterChain : public akaifat::AbstractFsObject {
 private:
@@ -120,7 +122,7 @@ public:
     
     void readData(long offset, ByteBuffer& dest) {
 
-        auto len = dest.remaining();
+        int len = (int) dest.remaining();
 
         if ((startCluster == 0 && len > 0)) {
             throw "cannot read from empty cluster chain";
@@ -133,10 +135,9 @@ public:
         
         if (offset % clusterSize != 0) {
             int clusOfs = (int) (offset % clusterSize);
-//            int size = Math.min(len,
-//                    (int) (clusterSize - (offset % clusterSize)));
-            int size = 0;
-//            dest.limit(dest.position() + size);
+            int size = std::min(len,
+                    (int) (clusterSize - (offset % clusterSize)));
+            dest.limit(dest.position() + size);
 
             dev->read(getDevOffset(chain[chainIdx], clusOfs), dest);
             
@@ -145,13 +146,13 @@ public:
         }
 
         while (len > 0) {
-//            int size = Math.min(clusterSize, len);
-//            dest.limit(dest.position() + size);
-//
-//            dev.read(getDevOffset(chain[chainIdx], 0), dest);
-//
-//            len -= size;
-//            chainIdx++;
+            int size = std::min(clusterSize, len);
+            dest.limit(dest.position() + size);
+
+            dev->read(getDevOffset(chain[chainIdx], 0), dest);
+
+            len -= size;
+            chainIdx++;
         }
     }
     

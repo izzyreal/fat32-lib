@@ -14,13 +14,14 @@ public:
     : buf (std::vector<char>(size)) {}
     ByteBuffer(std::vector<char>& data) : buf (data) {}
 
+    void flip() { limit_ = pos; pos = 0; }
+    
     void get(std::vector<char>& dest) {
         for (int i = 0; i < dest.size(); i++)
         {
             if (i >= buf.size()) throw "invalid bytebuffer read";
             dest[i] = get();
         }
-        pos += dest.size();
     }
     
     char get() { return buf[pos++]; }

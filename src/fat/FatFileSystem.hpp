@@ -40,9 +40,8 @@ private:
             }
         }
         
-//        rootDirStore = Fat16RootDirectory::read((Fat16BootSector) bs,readOnly);
-
-//        rootDir = new FatLfnDirectory(rootDirStore, fat, isReadOnly());
+        rootDirStore = Fat16RootDirectory::read(dynamic_cast<Fat16BootSector*>(bs), readOnly);
+        rootDir = new FatLfnDirectory(rootDirStore, fat, isReadOnly());
     }
 
 public:

@@ -22,6 +22,7 @@ protected:
         device->read(deviceOffset, data);
     }
 
+    void read() override { AbstractDirectory::read(); }
     
     void write(ByteBuffer& data) override {
         device->write(deviceOffset, data);
@@ -41,10 +42,9 @@ protected:
 public:
     static Fat16RootDirectory* read(
             Fat16BootSector* bs, bool readOnly) {
-//        Fat16RootDirectory result(bs, readOnly);
-//        result.read();
-//        return result;
-        return nullptr;
+        auto result = new Fat16RootDirectory(bs, readOnly);
+        result->read();
+        return result;
     }
 
     static Fat16RootDirectory* create(

@@ -71,9 +71,9 @@ protected:
 
     virtual void changeSize(int entryCount) = 0;
             
-    void sizeChanged(long newSize);
+    virtual void sizeChanged(long newSize);
             
-    void read();
+    virtual void read();
 
 };
 }
