@@ -44,6 +44,8 @@ public:
     
     void setLabel(std::string& label);
 
+    std::vector<FatDirectoryEntry*>& getEntries();
+    
 private:
     std::vector<FatDirectoryEntry*> entries;
     bool readOnly;

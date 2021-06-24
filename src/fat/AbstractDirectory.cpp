@@ -44,11 +44,9 @@ void AbstractDirectory::read()
     {
         auto e = FatDirectoryEntry::read(type, data, readOnly);
         
+        printf("AbstractDirectory read entry with name: %s\n", e->getShortName().asSimpleString().c_str());
+        
         if (!e) break;
-        
-        auto name = e->getShortName().asSimpleString();
-        
-        printf("Name: %s\n", name.c_str());
         
         if (e->isVolumeLabel())
         {
@@ -109,7 +107,7 @@ void AbstractDirectory::flush()
         auto labelEntry =
                 FatDirectoryEntry::createVolumeLabel(type, volumeLabel);
 
-        labelEntry.write(data);
+        labelEntry->write(data);
     }
     
 //    if (data.hasRemaining())
@@ -214,4 +212,9 @@ void AbstractDirectory::checkRoot() {
     {
         throw "only supported on root directories";
     }
+}
+
+std::vector<FatDirectoryEntry*>& AbstractDirectory::getEntries()
+{
+    return entries;
 }

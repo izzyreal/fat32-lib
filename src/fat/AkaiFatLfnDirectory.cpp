@@ -126,29 +126,6 @@ void AkaiFatLfnDirectory::flush()
 //  dir.flush();
 }
 
-//Iterator<FsDirectoryEntry> AkaiFatLfnDirectory::iterator()
-//{
-//  return new Iterator<FsDirectoryEntry>() {
-//
-//    Iterator<AkaiFatLfnDirectoryEntry> it = akaiNameIndex.values().iterator();
-//
-//    @Override
-//    bool hasNext() {
-//      return it.hasNext();
-//    }
-//
-//    @Override
-//    FsDirectoryEntry next() {
-//      return it.next();
-//    }
-//
-//    @Override
-//    void remove() {
-//      throw new UnsupportedOperationException();
-//    }
-//  };
-//}
-
 void AkaiFatLfnDirectory::remove(std::string& name)
 {
 //  checkWritable();

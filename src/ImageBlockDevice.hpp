@@ -10,10 +10,10 @@
 namespace akaifat {
 class ImageBlockDevice : public BlockDevice {
 private:
-    std::ifstream& img;
+    std::fstream& img;
     
 public:
-    ImageBlockDevice(std::ifstream& _img) : img (_img) {}
+    ImageBlockDevice(std::fstream& _img) : img (_img) {}
     
     bool isClosed() { return false; }
 

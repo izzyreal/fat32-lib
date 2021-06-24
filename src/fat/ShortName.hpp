@@ -1,5 +1,9 @@
 #pragma once
 
+#include "../strutil.hpp"
+
+#include "LittleEndian.hpp"
+
 #include <string>
 #include <vector>
 
@@ -74,15 +78,15 @@ public:
         std::string name;
         std::string ext;
         
-        if (i < 0) {
-//            name = nameExt.toUpperCase(Locale.ROOT);
+        if (i == std::string::npos) {
+            name = StrUtil::to_upper_copy(nameExt);
             ext = "";
         } else {
-//            name = nameExt.substring(0, i).toUpperCase(Locale.ROOT);
-//            ext = nameExt.substring(i + 1).toUpperCase(Locale.ROOT);
+            name = StrUtil::to_upper_copy(nameExt.substr(0, i));
+            ext = StrUtil::to_upper_copy(nameExt.substr(i + 1));
         }
         
-//        nameBytes = toCharArray(namestd::string, extstd::string);
+        nameBytes = toCharArray(name, ext);
 //        checkValidChars(nameBytes);
     }
     
@@ -91,17 +95,16 @@ public:
     }
     
     char checkSum() {
-//        byte[] dest = new byte[11];
-//        for (int i = 0; i < 11; i++)
-//            dest[i] = (char) nameBytes[i];
-//
-//        int sum = dest[0];
-//        for (int i = 1; i < 11; i++) {
-//            sum = dest[i] + (((sum & 1) << 7) + ((sum & 0xfe) >> 1));
-//        }
-//
-//        return (char) (sum & 0xff);
-        return 0;
+        std::vector<char> dest(11);
+        for (int i = 0; i < 11; i++)
+            dest[i] = (char) nameBytes[i];
+
+        int sum = dest[0];
+        
+        for (int i = 1; i < 11; i++)
+            sum = dest[i] + (((sum & 1) << 7) + ((sum & 0xfe) >> 1));
+
+        return (char) (sum & 0xff);
     }
 
     static ShortName get(std::string name) {
@@ -121,22 +124,24 @@ public:
     }
     
     static ShortName parse(std::vector<char>& data) {
-        std::vector<char> nameArr(8);
+        std::string name = "";
 
-        for (int i = 0; i < nameArr.size(); i++) {
-            nameArr[i] = (char) LittleEndian::getUInt8(data, i);
-        }
+        for (int i = 0; i < 8; i++)
+            name.push_back((char) LittleEndian::getUInt8(data, i));
 
         if (LittleEndian::getUInt8(data, 0) == 0x05) {
-            nameArr[0] = (char) 0xe5;
+            name[0] = (char) 0xe5;
         }
 
-//        char[] extArr = new char[3];
-//        for (int i = 0; i < extArr.length; i++) {
-//            extArr[i] = (char) LittleEndian.getUInt8(data, 0x08 + i);
-//        }
+        std::string ext = "";
+        
+        for (int i = 0; i < 3; i++)
+            ext.push_back((char) LittleEndian::getUInt8(data, 0x08 + i));
+        
+        StrUtil::trim(name, " ");
+        StrUtil::trim(ext, " ");
 
-        return ShortName(std::string(&nameArr[0]), std::string(""));
+        return ShortName(name, ext);
     }
 
     void write(std::vector<char>& dest) {

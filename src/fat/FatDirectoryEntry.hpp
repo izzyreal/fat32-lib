@@ -132,30 +132,30 @@ public:
         return ((getFlags() & (F_DIRECTORY | F_VOLUME_ID)) == F_DIRECTORY);
     }
     
-    static FatDirectoryEntry create(FatType* type, bool directory) {
-        FatDirectoryEntry result(type);
+    static FatDirectoryEntry* create(FatType* type, bool directory) {
+        auto result = new FatDirectoryEntry(type);
 
         if (directory) {
-            result.setFlags(F_DIRECTORY);
+            result->setFlags(F_DIRECTORY);
         }
         
         return result;
     }
     
-    static FatDirectoryEntry createVolumeLabel(
+    static FatDirectoryEntry* createVolumeLabel(
             FatType* type, std::string volumeLabel) {
         
         assert(volumeLabel.length() != 0);
         
-        std::vector<char> data (SIZE);
+        std::vector<char> data(SIZE);
         
 //        System.arraycopy(
 //                    volumeLabel.getBytes(ShortName.ASCII), 0,
 //                    data, 0,
 //                    volumeLabel.length());
         
-        FatDirectoryEntry result(type, data, false);
-        result.setFlags(FatDirectoryEntry::F_VOLUME_ID);
+        auto result = new FatDirectoryEntry(type, data, false);
+        result->setFlags(FatDirectoryEntry::F_VOLUME_ID);
         return result;
     }
     

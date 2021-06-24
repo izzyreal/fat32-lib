@@ -255,10 +255,6 @@ private:
     }
     
     long getDataSize() {
-        auto spc = getSectorCount();
-        auto bps = getBytesPerSector();
-        auto filesOffset = getFilesOffset();
-        
         return (getSectorCount() * getBytesPerSector()) - getFilesOffset();
     }
 };
