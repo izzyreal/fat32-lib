@@ -138,73 +138,75 @@ void AkaiFatLfnDirectory::remove(std::string &name) {
 }
 
 void AkaiFatLfnDirectory::unlinkEntry(AkaiFatLfnDirectoryEntry *entry) {
-//  if (entry.getName().startsWith(".") || entry.getName().length() == 0) return;
-//
-//  std::string lowerName = entry.getName().toLowerCase(Locale.ROOT);
-//
-//  assert(akaiNameIndex.containsKey(lowerName));
-//  akaiNameIndex.remove(lowerName);
-//
-//  assert(usedAkaiNames.contains(lowerName));
-//  usedAkaiNames.remove(lowerName);
-//
-//  if (entry.isFile()) {
-//    entryToFile.remove(entry.realEntry);
-//  } else {
-//    entryToDirectory.remove(entry.realEntry);
-//  }
+    if (entry->getName()[0] == '.' || entry->getName().length() == 0) return;
+
+    std::string lowerName = StrUtil::to_lower_copy(entry->getName());
+
+    assert(akaiNameIndex[lowerName]);
+
+    akaiNameIndex.erase(lowerName);
+
+    assert(usedAkaiNames.find(lowerName) != usedAkaiNames.end());
+    usedAkaiNames.erase(lowerName);
+
+    if (entry->isFile()) {
+        entryToFile.erase(entry->realEntry);
+    } else {
+        entryToDirectory.erase(entry->realEntry);
+    }
 }
 
 void AkaiFatLfnDirectory::linkEntry(AkaiFatLfnDirectoryEntry *entry) {
-//  checkUniqueName(entry.getName());
-//  entry.realEntry.setAkaiName(entry.getName());
-//  akaiNameIndex.put(entry.getName().toLowerCase(Locale.ROOT), entry);
+    auto name = entry->getName();
+    checkUniqueName(name);
+    entry->realEntry->setAkaiName(name);
+    akaiNameIndex[StrUtil::to_lower_copy(name)] = entry;
 }
 
 void AkaiFatLfnDirectory::checkUniqueName(std::string &name) {
-//  std::string lowerName = name.toLowerCase(Locale.ROOT);
-//
-//  if (!usedAkaiNames.add(lowerName))
-//  {
-//    throw "an entry named " + name + " already exists";
-//  } else {
-//    usedAkaiNames.remove(lowerName);
-//  }
+    std::string lowerName = StrUtil::to_lower_copy(name);
+
+    if (!usedAkaiNames.emplace(lowerName).second) {
+        throw std::runtime_error("an entry named " + name + " already exists");
+    } else {
+        usedAkaiNames.erase(lowerName);
+    }
 }
 
 void AkaiFatLfnDirectory::parseLfn() {
-//  int i = 0;
-//  int size = dir.getEntryCount();
-//
-//  while (i < size) {
-//    // jump over empty entries
-//    while (i < size && dir.getEntry(i) == null) {
-//      i++;
-//    }
-//
-//    if (i >= size) {
-//      break;
-//    }
-//
-//    int offset = i;
-//
-//    while (dir.getEntry(i).isLfnEntry()) {
-//      i++;
-//      if (i >= size)
-//        break;
-//    }
-//
-//    if (i >= size)
-//      break;
-//
-//    AkaiFatLfnDirectoryEntry current = AkaiFatLfnDirectoryEntry.extract(this, offset, ++i - offset);
-//
-//    if (!current.realEntry.isDeleted() && current.isValid()) {
-//      checkUniqueName(current.getName());
-//      usedAkaiNames.add(current.getName().toLowerCase(Locale.ROOT));
-//      akaiNameIndex.put(current.getName().toLowerCase(Locale.ROOT), current);
-//    }
-//  }
+    int i = 0;
+    int size = dir->getEntryCount();
+
+    while (i < size) {
+        while (i < size && (dir->getEntry(i) == nullptr || dir->getEntry(i)->getShortName().asSimpleString().length() == 0)) {
+            i++;
+        }
+
+        if (i >= size) {
+            break;
+        }
+
+        int offset = i;
+
+        while (dir->getEntry(i)->isLfnEntry()) {
+            i++;
+            if (i >= size)
+                break;
+        }
+
+        if (i >= size)
+            break;
+
+        auto current = AkaiFatLfnDirectoryEntry::extract(this, offset, ++i - offset);
+
+        if (!current->realEntry->isDeleted() && current->isValid()) {
+            auto name = current->getName();
+            checkUniqueName(name);
+            auto nameLower = StrUtil::to_lower_copy(name);
+            usedAkaiNames.emplace(nameLower);
+            akaiNameIndex[nameLower] = current;
+        }
+    }
 }
 
 void AkaiFatLfnDirectory::updateLFN() {
@@ -230,6 +232,6 @@ ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *
     return result;
 }
 
-std::map<std::string, AkaiFatLfnDirectoryEntry *>::iterator AkaiFatLfnDirectory::iterator() {
+std::map<std::string, AkaiFatLfnDirectoryEntry*>::iterator AkaiFatLfnDirectory::iterator() {
     return akaiNameIndex.begin();
 }

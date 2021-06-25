@@ -3,7 +3,10 @@
 #include "ImageBlockDevice.hpp"
 #include "FileSystemFactory.hpp"
 
+#include "fat/AkaiFatLfnDirectoryEntry.hpp"
+
 using namespace akaifat;
+using namespace akaifat::fat;
 
 int main() {
     std::fstream img;
@@ -12,7 +15,20 @@ int main() {
     img.seekg(std::ios::beg);
 
     ImageBlockDevice device(img);
-    auto fs = FileSystemFactory::createAkai(&device, false);
+    auto fs = dynamic_cast<AkaiFatFileSystem*>(FileSystemFactory::createAkai(&device, false));
+
+    auto root = fs->getRoot();
+
+    if (root != nullptr) {
+        auto fat = root->getFat();
+        auto file = root->iterator();
+        auto name = file->second->getName();
+        printf("Name: %s\n", name.c_str());
+    }
+    else
+    {
+        printf("root is nullptr!\n");
+    }
 
     img.close();
 

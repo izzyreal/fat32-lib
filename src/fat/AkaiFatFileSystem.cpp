@@ -16,7 +16,7 @@ AkaiFatFileSystem::AkaiFatFileSystem(
     bs (dynamic_cast<Fat16BootSector*>(BootSector::read(device)))
 {                
     if (bs->getNrFats() <= 0) 
-            throw "boot sector says there are no FATs";
+            throw std::runtime_error("boot sector says there are no FATs");
     
     filesOffset = bs->getFilesOffset();
     fatType = bs->getFatType();
@@ -29,14 +29,13 @@ AkaiFatFileSystem::AkaiFatFileSystem(
             auto tmpFat = Fat::read(bs, i);
         
             if (!fat->equals(tmpFat))
-                throw "FAT " + std::to_string(i) + " differs from FAT 0";
+                throw std::runtime_error("FAT " + std::to_string(i) + " differs from FAT 0");
         }
     }
 
     rootDirStore = Fat16RootDirectory::read(bs, readOnly);
 
-//    rootDir = new AkaiFatLfnDirectory(rootDirStore, fat, isReadOnly());
-        
+    rootDir = new AkaiFatLfnDirectory(rootDirStore, fat, readOnly);
 }
 
 AkaiFatFileSystem* AkaiFatFileSystem::read(BlockDevice* device, bool readOnly)
