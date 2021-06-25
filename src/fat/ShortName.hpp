@@ -61,9 +61,6 @@ namespace akaifat::fat {
         }
 
     public:
-//    static Charset ASCII = Charset.forName("ASCII");
-
-//
         ShortName() = default;
 
         explicit ShortName(std::string &nameExt) {

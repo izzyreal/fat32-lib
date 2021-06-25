@@ -1,7 +1,6 @@
 #include "AkaiFatLfnDirectory.hpp"
 
 #include "AkaiFatLfnDirectoryEntry.hpp"
-#include "../FsDirectoryEntry.hpp"
 
 using namespace akaifat::fat;
 using namespace akaifat;
@@ -11,34 +10,43 @@ AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory *_dir, Fat *_fat, boo
     parseLfn();
 }
 
+bool AkaiFatLfnDirectory::isDirReadOnly() {
+    return AbstractFsObject::isReadOnly();
+}
+
+bool AkaiFatLfnDirectory::isDirValid() {
+    return AbstractFsObject::isValid();
+}
+
 Fat *AkaiFatLfnDirectory::getFat() {
     return fat;
 }
 
 FatFile *AkaiFatLfnDirectory::getFile(FatDirectoryEntry *entry) {
-//  auto file = entryToFile.get(entry);
+    FatFile *file;
 
-//  if (!file) {
-//    file = FatFile::get(fat, entry);
-//    entryToFile.put(entry, file);
-//  }
+    if (entryToFile.find(entry) == end(entryToFile)) {
+        file = FatFile::get(fat, entry);
+        entryToFile[entry] = file;
+    } else {
+        file = entryToFile[entry];
+    }
 
-//  return file;
-    return nullptr;
+    return file;
 }
 
 AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry *entry) {
-//  AkaiFatLfnDirectory result = entryToDirectory.get(entry);
-//
-//  if (result == null)
-//  {
-//    ClusterChainDirectory storage = read(entry, fat);
-//    result = new AkaiFatLfnDirectory(storage, fat, isReadOnly());
-//    entryToDirectory.put(entry, result);
-//  }
-//
-//  return result;
-    return nullptr;
+    AkaiFatLfnDirectory *result;
+
+    if (entryToDirectory.find(entry) == end(entryToDirectory)) {
+        auto storage = read(entry, fat);
+        result = new AkaiFatLfnDirectory(storage, fat, isReadOnly());
+        entryToDirectory[entry] = result;
+    } else {
+        result = entryToDirectory[entry];
+    }
+
+    return result;
 }
 
 FsDirectoryEntry *AkaiFatLfnDirectory::addFile(std::string &name) {
@@ -97,10 +105,8 @@ FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &name) {
     return nullptr;
 }
 
-FsDirectoryEntry *AkaiFatLfnDirectory::getEntry(std::string &name){
-//  name = name.trim().toLowerCase(Locale.ROOT);
-//  return akaiNameIndex.get(name);
-    return nullptr;
+FsDirectoryEntry *AkaiFatLfnDirectory::getEntry(std::string &name) {
+    return akaiNameIndex[StrUtil::to_lower_copy(name)];
 }
 
 void AkaiFatLfnDirectory::flush() {
@@ -214,13 +220,15 @@ void AkaiFatLfnDirectory::updateLFN() {
 }
 
 ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *fat) {
-    if (!entry->isDirectory()) throw entry->getShortName().asSimpleString() + " is no directory";
+    if (!entry->isDirectory()) throw std::runtime_error(entry->getShortName().asSimpleString() + " is no directory");
 
     ClusterChain chain(fat, entry->getStartCluster(), entry->isReadonlyFlag());
 
-//  auto result = new akaifat::fat::ClusterChainDirectory>(chain, false);
+    auto result = new ClusterChainDirectory(chain, false);
 
-//  result->read();
-//  return result;
-    return nullptr;
+    result->read();
+}
+
+std::map<std::string, AkaiFatLfnDirectoryEntry *>::iterator AkaiFatLfnDirectory::iterator() {
+    return akaiNameIndex.begin();
 }

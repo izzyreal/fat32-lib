@@ -12,7 +12,7 @@ namespace akaifat {
 class FsDirectory {
 public:
     
-    virtual std::map<std::string, FsDirectoryEntry*>::iterator iterator() = 0;
+//    virtual std::map<std::string, FsDirectoryEntry*>::iterator iterator() = 0;
     
     virtual FsDirectoryEntry* getEntry(std::string& name) = 0;
 

@@ -59,7 +59,7 @@ private:
 
     void checkRoot() const;
 
-protected:
+public:
     AbstractDirectory(
         FatType* type,
         int capacity,

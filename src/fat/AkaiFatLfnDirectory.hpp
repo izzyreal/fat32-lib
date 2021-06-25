@@ -28,6 +28,8 @@ public:
 
     AkaiFatLfnDirectory* getDirectory(FatDirectoryEntry* entry);
 
+    std::map<std::string, AkaiFatLfnDirectoryEntry*>::iterator iterator();
+
     akaifat::FsDirectoryEntry* addFile(std::string& name) override;
 
 	bool isFreeName(std::string& name);
@@ -50,8 +52,8 @@ private:
 	std::set<std::string> usedAkaiNames;
 	Fat* fat;
 	std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
-//	std::map<FatDirectoryEntry, FatFile> entryToFile;
-//	std::map<FatDirectoryEntry, AkaiFatLfnDirectory> entryToDirectory;
+	std::map<FatDirectoryEntry*, FatFile*> entryToFile;
+	std::map<FatDirectoryEntry*, AkaiFatLfnDirectory*> entryToDirectory;
 
 	void checkUniqueName(std::string& name);
 
@@ -60,5 +62,9 @@ private:
 	void updateLFN();
 
 	static ClusterChainDirectory* read(FatDirectoryEntry*, Fat*);
+
+    bool isDirValid();
+
+    bool isDirReadOnly();
 };
 }
