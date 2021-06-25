@@ -25,6 +25,10 @@ public:
         //		realEntry = FatDirectoryEntry::create(akaiFatLfnDirectory->getFat().getFatType(), directory);
         realEntry->setAkaiName(name);
     }
+
+    bool isValid() override { return AbstractFsObject::isValid(); }
+
+    bool isReadOnly() override { return AbstractFsObject::isReadOnly(); }
     
     AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory* akaiFatLfnDirectory, FatDirectoryEntry* _realEntry, std::string _fileName)
     : AbstractFsObject(akaiFatLfnDirectory->isReadOnly()), parent (akaiFatLfnDirectory), realEntry (_realEntry), fileName (_fileName)

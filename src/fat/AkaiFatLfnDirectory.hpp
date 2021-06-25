@@ -63,8 +63,8 @@ private:
 
 	static ClusterChainDirectory* read(FatDirectoryEntry*, Fat*);
 
-    bool isDirValid();
+    bool isDirValid() override;
 
-    bool isDirReadOnly();
+    bool isDirReadOnly() override;
 };
 }
