@@ -20,11 +20,11 @@ public:
         return s;
     }
 
-    // trim from left & right
-    static inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
-    {
-        return ltrim(rtrim(s, t), t);
-    }
+//    // trim from left & right
+//    static inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+//    {
+//        return ltrim(rtrim(s, t), t);
+//    }
 
     // copying versions
     static inline std::string ltrim_copy(std::string s, const char* t = " \t\n\r\f\v")
@@ -40,6 +40,19 @@ public:
     static inline std::string trim_copy(std::string s, const char* t = " \t\n\r\f\v")
     {
         return trim(s, t);
+    }
+
+    static std::string trim(const std::string& str,
+                     const std::string& whitespace = " \t\0")
+    {
+        const auto strBegin = str.find_first_not_of(whitespace);
+        if (strBegin == std::string::npos)
+            return ""; // no content
+
+        const auto strEnd = str.find_last_not_of(whitespace);
+        const auto strRange = strEnd - strBegin + 1;
+
+        return str.substr(strBegin, strRange);
     }
     
     static inline void to_upper(std::string& s)

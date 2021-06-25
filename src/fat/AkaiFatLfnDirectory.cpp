@@ -6,18 +6,16 @@
 using namespace akaifat::fat;
 using namespace akaifat;
 
-AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory* _dir, Fat* _fat, bool readOnly)
-: AbstractFsObject (readOnly), dir (_dir), fat (_fat)
-{
-  parseLfn();
+AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory *_dir, Fat *_fat, bool readOnly)
+        : AbstractFsObject(readOnly), dir(_dir), fat(_fat) {
+    parseLfn();
 }
 
-Fat* AkaiFatLfnDirectory::getFat() {
-  return fat;
+Fat *AkaiFatLfnDirectory::getFat() {
+    return fat;
 }
 
-FatFile* AkaiFatLfnDirectory::getFile(FatDirectoryEntry* entry)
-{
+FatFile *AkaiFatLfnDirectory::getFile(FatDirectoryEntry *entry) {
 //  auto file = entryToFile.get(entry);
 
 //  if (!file) {
@@ -29,8 +27,7 @@ FatFile* AkaiFatLfnDirectory::getFile(FatDirectoryEntry* entry)
     return nullptr;
 }
 
-AkaiFatLfnDirectory* AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry* entry)
-{
+AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry *entry) {
 //  AkaiFatLfnDirectory result = entryToDirectory.get(entry);
 //
 //  if (result == null)
@@ -44,8 +41,7 @@ AkaiFatLfnDirectory* AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry* entry)
     return nullptr;
 }
 
-FsDirectoryEntry* AkaiFatLfnDirectory::addFile(std::string& name)
-{
+FsDirectoryEntry *AkaiFatLfnDirectory::addFile(std::string &name) {
 //  checkWritable();
 //  checkUniqueName(name);
 
@@ -62,23 +58,20 @@ FsDirectoryEntry* AkaiFatLfnDirectory::addFile(std::string& name)
     return nullptr;
 }
 
-bool AkaiFatLfnDirectory::isFreeName(std::string& name)
-{
+bool AkaiFatLfnDirectory::isFreeName(std::string &name) {
 //  return !usedAkaiNames.contains(name.toLowerCase(Locale.ROOT));
     return true;
 }
 
 
-std::vector<std::string> AkaiFatLfnDirectory::splitName(std::string& s)
-{
+std::vector<std::string> AkaiFatLfnDirectory::splitName(std::string &s) {
 //  if (!s.contains(".")) return (new std::string[] { s, "" });
 //  int i = s.lastIndexOf(".");
 //  return (new std::string[] { s.substring(0, i), s.substring(i + 1) });
     return {};
 }
 
-FsDirectoryEntry* AkaiFatLfnDirectory::addDirectory(std::string& name)
-{
+FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &name) {
 //  checkWritable();
 //  checkUniqueName(name);
 //  name = name.trim();
@@ -104,15 +97,13 @@ FsDirectoryEntry* AkaiFatLfnDirectory::addDirectory(std::string& name)
     return nullptr;
 }
 
-FsDirectoryEntry* AkaiFatLfnDirectory::getEntry(std::string& name)
-{
+FsDirectoryEntry *AkaiFatLfnDirectory::getEntry(std::string &name){
 //  name = name.trim().toLowerCase(Locale.ROOT);
 //  return akaiNameIndex.get(name);
     return nullptr;
 }
 
-void AkaiFatLfnDirectory::flush()
-{
+void AkaiFatLfnDirectory::flush() {
 //  checkWritable();
 //
 //  for (FatFile f : entryToFile.values()) {
@@ -126,8 +117,7 @@ void AkaiFatLfnDirectory::flush()
 //  dir.flush();
 }
 
-void AkaiFatLfnDirectory::remove(std::string& name)
-{
+void AkaiFatLfnDirectory::remove(std::string &name) {
 //  checkWritable();
 //
 //  AkaiFatLfnDirectoryEntry entry = getEntry(name);
@@ -139,11 +129,10 @@ void AkaiFatLfnDirectory::remove(std::string& name)
 //
 //  cc.setChainLength(0);
 //
-//  updateLFN();
+    updateLFN();
 }
 
-void AkaiFatLfnDirectory::unlinkEntry(AkaiFatLfnDirectoryEntry* entry)
-{
+void AkaiFatLfnDirectory::unlinkEntry(AkaiFatLfnDirectoryEntry *entry) {
 //  if (entry.getName().startsWith(".") || entry.getName().length() == 0) return;
 //
 //  std::string lowerName = entry.getName().toLowerCase(Locale.ROOT);
@@ -161,15 +150,13 @@ void AkaiFatLfnDirectory::unlinkEntry(AkaiFatLfnDirectoryEntry* entry)
 //  }
 }
 
-void AkaiFatLfnDirectory::linkEntry(AkaiFatLfnDirectoryEntry* entry)
-{
+void AkaiFatLfnDirectory::linkEntry(AkaiFatLfnDirectoryEntry *entry) {
 //  checkUniqueName(entry.getName());
 //  entry.realEntry.setAkaiName(entry.getName());
 //  akaiNameIndex.put(entry.getName().toLowerCase(Locale.ROOT), entry);
 }
 
-void AkaiFatLfnDirectory::checkUniqueName(std::string& name)
-{
+void AkaiFatLfnDirectory::checkUniqueName(std::string &name) {
 //  std::string lowerName = name.toLowerCase(Locale.ROOT);
 //
 //  if (!usedAkaiNames.add(lowerName))
@@ -180,8 +167,7 @@ void AkaiFatLfnDirectory::checkUniqueName(std::string& name)
 //  }
 }
 
-void AkaiFatLfnDirectory::parseLfn()
-{
+void AkaiFatLfnDirectory::parseLfn() {
 //  int i = 0;
 //  int size = dir.getEntryCount();
 //
@@ -216,26 +202,21 @@ void AkaiFatLfnDirectory::parseLfn()
 //  }
 }
 
-void AkaiFatLfnDirectory::updateLFN()
-{
-//      ArrayList<FatDirectoryEntry> dest =
-//              new ArrayList<FatDirectoryEntry>();
-//
-//      for (AkaiFatLfnDirectoryEntry currentEntry : akaiNameIndex.values()) {
-//          dest.add(currentEntry.realEntry);
-//      }
-//
-//      int size = dest.size();
-//
-//      dir.changeSize(size);
-//      dir.setEntries(dest);
-  }
+void AkaiFatLfnDirectory::updateLFN() {
+    std::vector<FatDirectoryEntry *> dest;
 
-ClusterChainDirectory* AkaiFatLfnDirectory::read(FatDirectoryEntry* entry, Fat* fat)
-{
-  if (!entry->isDirectory()) throw entry->getShortName().asSimpleString() + " is no directory";
+    for (auto &currentEntry : akaiNameIndex) {
+        dest.push_back(currentEntry.second->realEntry);
+    }
 
-  ClusterChain chain(fat, entry->getStartCluster(), entry->isReadonlyFlag());
+    dir->changeSize(static_cast<int>(dest.size()));
+    dir->setEntries(dest);
+}
+
+ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *fat) {
+    if (!entry->isDirectory()) throw entry->getShortName().asSimpleString() + " is no directory";
+
+    ClusterChain chain(fat, entry->getStartCluster(), entry->isReadonlyFlag());
 
 //  auto result = new akaifat::fat::ClusterChainDirectory>(chain, false);
 

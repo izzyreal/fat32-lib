@@ -11,5 +11,4 @@ add_executable(fat32_lib_cpp
         src/fat/AkaiFatFileSystem.cpp
         src/fat/AkaiFatLfnDirectory.cpp
         src/fat/BootSector.cpp
-        src/fat/FatLfnDirectoryEntry.cpp
         )

@@ -2,6 +2,7 @@
 
 #include "FatType.hpp"
 #include "FatDirectoryEntry.hpp"
+#include "ClusterChainDirectory.hpp"
 
 using namespace akaifat::fat;
 
@@ -9,32 +10,31 @@ AbstractDirectory::AbstractDirectory(
     FatType* _type,
     int _capacity,
     bool _readOnly,
-    bool __isRoot
-) : type (_type), capacity (_capacity), readOnly (_readOnly), _isRoot (__isRoot)
+    bool _root
+) : type (_type), capacity (_capacity), readOnly (_readOnly), _isRoot (_root)
 {
 }
 
-//void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry>& newEntries)
-//{
-//    if (newEntries.size() > capacity)
-//        throw "too many entries";
-//    
-//    entries = newEntries;
-//}
+void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry*>& newEntries)
+{
+    if (newEntries.size() > capacity)
+        throw std::runtime_error("too many entries");
+
+    entries = newEntries;
+}
 
 void AbstractDirectory::sizeChanged(long newSize)
 {
     long newCount = newSize / FatDirectoryEntry::SIZE;
     
-    if (newCount > INT_MAX) throw "directory too large";
+    if (newCount > INT_MAX)
+        throw  std::runtime_error("directory too large");
     
     capacity = (int) newCount;
 }
 
 void AbstractDirectory::read()
 {
-    auto capacity = getCapacity();
-    
     ByteBuffer data(capacity * FatDirectoryEntry::SIZE);
     
     read(data);
@@ -44,14 +44,15 @@ void AbstractDirectory::read()
     {
         auto e = FatDirectoryEntry::read(type, data, readOnly);
         
-        printf("AbstractDirectory read entry with name: %s\n", e->getShortName().asSimpleString().c_str());
-        
-        if (!e) break;
-        
+        if (e == nullptr) break;
+
+        if (e->getShortName().asSimpleString().length() > 0)
+            printf("AbstractDirectory read entry with name: %s\n", e->getShortName().asSimpleString().c_str());
+
         if (e->isVolumeLabel())
         {
             if (!_isRoot)
-                throw "volume label in non-root directory";
+                throw std::runtime_error("volume label in non-root directory");
             
             volumeLabel = e->getVolumeLabel();
         }
@@ -67,7 +68,7 @@ FatDirectoryEntry* AbstractDirectory::getEntry(int idx)
     return entries[idx];
 }
 
-int AbstractDirectory::getCapacity()
+int AbstractDirectory::getCapacity() const
 {
     return capacity;
 }
@@ -82,7 +83,7 @@ bool AbstractDirectory::isDirReadOnly()
     return readOnly;
 }
 
-bool AbstractDirectory::isRoot()
+bool AbstractDirectory::isRoot() const
 {
     return _isRoot;
 }
@@ -94,7 +95,7 @@ int AbstractDirectory::getSize()
 
 void AbstractDirectory::flush()
 {
-    std::vector<char> data(getCapacity() * FatDirectoryEntry::SIZE + (volumeLabel.length() != 0 ? FatDirectoryEntry::SIZE : 0));
+    ByteBuffer data(capacity * FatDirectoryEntry::SIZE + (volumeLabel.length() != 0 ? FatDirectoryEntry::SIZE : 0));
     
     for (auto entry : entries)
     {
@@ -110,25 +111,25 @@ void AbstractDirectory::flush()
         labelEntry->write(data);
     }
     
-//    if (data.hasRemaining())
-//        FatDirectoryEntry::writeNullEntry(data);
+    if (data.hasRemaining())
+        FatDirectoryEntry::writeNullEntry(data);
     
-//    write(data);
+    write(data);
 }
 
 void AbstractDirectory::addEntry(FatDirectoryEntry* e)
 {
     assert (e != nullptr);
     
-    if (getSize() == getCapacity())
-        changeSize(getCapacity() + 1);
+    if (getSize() == capacity)
+        changeSize(capacity + 1);
 
     entries.push_back(e);
 }
 
 void AbstractDirectory::addEntries(std::vector<FatDirectoryEntry*>& newEntries)
 {    
-    if (getSize() + newEntries.size() > getCapacity())
+    if (getSize() + newEntries.size() > capacity)
         changeSize( (int) (getSize() + newEntries.size()) );
 
     for (auto& e : newEntries)
@@ -138,8 +139,12 @@ void AbstractDirectory::addEntries(std::vector<FatDirectoryEntry*>& newEntries)
 void AbstractDirectory::removeEntry(FatDirectoryEntry* entry)
 {
     assert (entry != nullptr);
-    
-//    entries.remove(entry);
+
+    auto it = find(begin(entries), end(entries), entry);
+
+    if (it != end(entries))
+        entries.erase(it);
+
     changeSize(getSize());
 }
 
@@ -152,36 +157,34 @@ std::string& AbstractDirectory::getLabel()
 
 FatDirectoryEntry* AbstractDirectory::createSub(Fat* fat)
 {
-//    auto chain = new ClusterChain(fat, false);
-//    chain.setChainLength(1);
-//
-//    auto entry = FatDirectoryEntry::create(type, true);
-//    entry.setStartCluster(chain.getStartCluster());
-//
-//    ClusterChainDirectory dir =
-//            new ClusterChainDirectory(chain, false);
-//
-//    auto dot = FatDirectoryEntry::create(type, true);
-//    dot.setShortName(ShortName.DOT);
-//    dot.setStartCluster(dir.getStorageCluster());
-//    dir.addEntry(dot);
-//
-//    FatDirectoryEntry dotDot = FatDirectoryEntry.create(type, true);
-//    dotDot.setShortName(ShortName.DOT_DOT);
-//    dotDot.setStartCluster(getStorageCluster());
-//    dir.addEntry(dotDot);
-//
-//    dir.flush();
-//
-//    return entry;
-    return nullptr;
+    auto chain = new ClusterChain(fat, false);
+    chain->setChainLength(1);
+
+    auto entry = FatDirectoryEntry::create(type, true);
+    entry->setStartCluster(chain->getStartCluster());
+
+    auto dir = new ClusterChainDirectory(*chain, false);
+
+    auto dot = FatDirectoryEntry::create(type, true);
+    dot->setShortName(ShortName::DOT());
+    dot->setStartCluster(dir->getStorageCluster());
+    dir->addEntry(dot);
+
+    auto dotDot = FatDirectoryEntry::create(type, true);
+    dotDot->setShortName(ShortName::DOT_DOT());
+    dotDot->setStartCluster(getStorageCluster());
+    dir->addEntry(dotDot);
+
+    dir->flush();
+
+    return entry;
 }
 
 void AbstractDirectory::setLabel(std::string& label)
 {
     checkRoot();
 
-    if (label.length() > MAX_LABEL_LENGTH) throw "label too long";
+    if (label.length() > MAX_LABEL_LENGTH) throw std::runtime_error("label too long");
 
 //    if (volumeLabel != null)
 //    {
@@ -207,10 +210,10 @@ void AbstractDirectory::setLabel(std::string& label)
 //    }
 }
 
-void AbstractDirectory::checkRoot() {
+void AbstractDirectory::checkRoot() const {
     if (!isRoot())
     {
-        throw "only supported on root directories";
+        throw std::runtime_error("only supported on root directories");
     }
 }
 

@@ -21,13 +21,13 @@ public:
     
     FatDirectoryEntry* getEntry(int idx);
     
-    int getCapacity();
+    int getCapacity() const;
 
     int getEntryCount();
     
     bool isDirReadOnly();
 
-    bool isRoot();
+    bool isRoot() const;
 
     int getSize();
 
@@ -45,7 +45,9 @@ public:
     void setLabel(std::string& label);
 
     std::vector<FatDirectoryEntry*>& getEntries();
-    
+
+    virtual void changeSize(int entryCount) = 0;
+
 private:
     std::vector<FatDirectoryEntry*> entries;
     bool readOnly;
@@ -55,7 +57,7 @@ private:
     int capacity;
     std::string volumeLabel;
 
-    void checkRoot();
+    void checkRoot() const;
 
 protected:
     AbstractDirectory(
@@ -71,8 +73,6 @@ protected:
 
     virtual long getStorageCluster() = 0;
 
-    virtual void changeSize(int entryCount) = 0;
-            
     virtual void sizeChanged(long newSize);
             
     virtual void read();

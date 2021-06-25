@@ -202,8 +202,8 @@ public:
         return ((getFlags() & (F_DIRECTORY | F_VOLUME_ID)) == 0);
     }
     
-    void setShortName(ShortName sn) {
-        //if (sn.equals(getShortName())) return;
+    void setShortName(ShortName& sn) {
+        if (sn.equals(getShortName())) return;
         
         sn.write(data);
         dirty = true;
@@ -225,28 +225,17 @@ public:
     }
     
     long getStartCluster() {
-//        if (type == FatType.FAT32) {
-//            return
-//                    (LittleEndian.getUInt16(data, 0x14) << 16) |
-//                     LittleEndian.getUInt16(data, 0x1a);
-//        } else {
-//            return LittleEndian.getUInt16(data, 0x1a);
-//        }
-        return 0;
+        return LittleEndian::getUInt16(data, 0x1a);
     }
     
     void setStartCluster(long startCluster) {
-//        if (startCluster > INT_MAX) throw new AssertionError();
-//
-//        if (type == FatType.FAT32) {
-//            LittleEndian.setInt16(data, 0x1a, (int) (startCluster & 0xffff));
-//            LittleEndian.setInt16(data, 0x14, (int) ((startCluster >> 16) & 0xffff));
-//        } else {
-//            LittleEndian.setInt16(data, 0x1a, (int) startCluster);
-//        }
+        if (startCluster > INT_MAX)
+            throw std::runtime_error("startCluster too big");
+
+        LittleEndian::setInt16(data, 0x1a, (int) startCluster);
     }
     
-    void write(ByteBuffer buff) {
+    void write(ByteBuffer& buff) {
         buff.put(data);
         dirty = false;
     }

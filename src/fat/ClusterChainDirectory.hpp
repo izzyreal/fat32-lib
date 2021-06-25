@@ -6,17 +6,8 @@
 namespace akaifat::fat {
 class ClusterChainDirectory : public AbstractDirectory {
 protected:
-    ClusterChainDirectory(ClusterChain& _chain, bool isRoot)
-    : AbstractDirectory(
-                chain.getFat()->getFatType(),
-//                (int)(chain.getLengthOnDisk() / FatDirectoryEntry::SIZE),
-                (int)(_chain.getLengthOnDisk() / 32),
-                _chain.isReadOnly(), isRoot), chain (_chain)
-    {
-    }
 
 
-    
     void read(ByteBuffer& data) override {
         chain.readData(0, data);
     }
@@ -33,10 +24,6 @@ protected:
         }
     }
 
-    long getStorageCluster() override {
-        return isRoot() ? 0 : chain.getStartCluster();
-    }
-    
     void changeSize(int entryCount) override {
 
         assert (entryCount >= 0);
@@ -65,6 +52,19 @@ public:
         
     void delete_() {
         chain.setChainLength(0);
+    }
+
+    ClusterChainDirectory(ClusterChain& _chain, bool isRoot)
+    : AbstractDirectory(
+                chain.getFat()->getFatType(),
+//                (int)(chain.getLengthOnDisk() / FatDirectoryEntry::SIZE),
+                (int)(_chain.getLengthOnDisk() / 32),
+                _chain.isReadOnly(), isRoot), chain (_chain)
+    {
+    }
+
+    long getStorageCluster() override {
+        return isRoot() ? 0 : chain.getStartCluster();
     }
 };
 }

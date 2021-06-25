@@ -49,7 +49,7 @@ public:
 private:
 	std::set<std::string> usedAkaiNames;
 	Fat* fat;
-//	std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
+	std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
 //	std::map<FatDirectoryEntry, FatFile> entryToFile;
 //	std::map<FatDirectoryEntry, AkaiFatLfnDirectory> entryToDirectory;
 

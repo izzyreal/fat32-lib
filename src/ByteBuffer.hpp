@@ -51,6 +51,7 @@ public:
     
     long position() { return pos; }
     long remaining() { return buf.size() - pos; }
+    bool hasRemaining() { return remaining() > 0; }
     void rewind() { pos = 0; }
     void limit(long newLimit) { limit_ = 0; }
     

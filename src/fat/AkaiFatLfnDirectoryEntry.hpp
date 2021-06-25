@@ -14,8 +14,7 @@ namespace akaifat::fat {
 class AkaiFatLfnDirectoryEntry : public akaifat::AbstractFsObject, public akaifat::FsDirectoryEntry
 {
 private:
-    FatDirectoryEntry* realEntry;
-    
+
     AkaiFatLfnDirectory* parent;
     std::string fileName;
     
@@ -165,6 +164,7 @@ public:
     bool isDirty() override {
         return realEntry->isDirty();
     }
-    
+
+    FatDirectoryEntry* realEntry;
 };
 }
