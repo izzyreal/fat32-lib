@@ -34,7 +34,12 @@ int main() {
     printf("- TEST1 LISTING -\n");
 
     for (auto &e : dirEntries)
+    {
+        if (e.second->getName().length() == 0 || e.second->getName().length() == 1) {
+            printf("");
+        }
         printf("Name: %s\n", e.second->getName().c_str());
+    }
 
     img.close();
 

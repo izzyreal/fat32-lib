@@ -72,11 +72,14 @@ bool AkaiFatLfnDirectory::isFreeName(std::string &name) {
 
 
 std::vector<std::string> AkaiFatLfnDirectory::splitName(std::string &s) {
+    if (s == ".") return {".", ""};
+    if (s == "..") return {"..", ""};
+
     auto it = s.find_last_of('.');
 
-    if (it == std::string::npos) return std::vector<std::string>{s, ""};
+    if (it == std::string::npos) return {s, ""};
 
-    return std::vector<std::string>{s.substr(0, it), s.substr(it + 1)};
+    return {s.substr(0, it), s.substr(it + 1)};
 }
 
 FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &_name) {

@@ -48,6 +48,9 @@ void AbstractDirectory::read()
 
         try {
             auto sn = e->getShortName();
+            if (sn.asSimpleString().length() == 0) {
+                printf("Hey!\n");
+            }
         } catch (const std::exception&) {
             continue;
         }
