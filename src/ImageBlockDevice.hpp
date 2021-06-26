@@ -26,10 +26,10 @@ public:
     }
 
     void read(long devOffset, ByteBuffer& dest) {
-        if (isClosed()) throw "device closed";
+        if (isClosed()) throw std::runtime_error("device closed");
         
         auto toRead = dest.remaining();
-        if ((devOffset + toRead) > getSize()) throw "reading past end of device";
+        if ((devOffset + toRead) > getSize()) throw std::runtime_error("reading past end of device");
         
         img.seekg(devOffset);
         std::vector<char>& buf = dest.getBuffer();

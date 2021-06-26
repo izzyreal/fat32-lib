@@ -20,10 +20,22 @@ int main() {
     auto root = fs->getRoot();
 
     if (root != nullptr) {
-        auto fat = root->getFat();
-        auto file = root->iterator();
-        auto name = file->second->getName();
-        printf("Name: %s\n", name.c_str());
+        auto entries = root->akaiNameIndex;
+        for (auto& e : entries)
+            printf("Name: %s\n", e.first.c_str());
+        auto test1 = entries["test1"];
+        if (test1->isDirectory()) {
+            printf("test1 is a directory\n");
+        } else {
+            printf("test1 is NOT a directory\n");
+        }
+
+        auto dir = test1->getDirectory();
+//        auto dirEntries = dir->akaiNameIndex;
+
+//        for (auto& e : dirEntries)
+//            printf("Name1: %s\n", e.second->getName().c_str());
+
     }
     else
     {

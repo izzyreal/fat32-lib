@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 namespace akaifat {
 class AbstractFsObject  {
 private:
@@ -28,14 +30,14 @@ protected:
     }
 
     void checkValid() {
-        if (!isValid()) throw "file system is not valid";
+        if (!isValid()) throw std::runtime_error("file system is not valid");
     }
 
     void checkWritable() {
         checkValid();
 
         if (isReadOnly()) {
-            throw "file system is read only";
+            throw std::runtime_error("file system is read only");
         }
     }
 };

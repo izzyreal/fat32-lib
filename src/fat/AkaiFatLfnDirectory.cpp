@@ -231,7 +231,3 @@ ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *
 
     return result;
 }
-
-std::map<std::string, AkaiFatLfnDirectoryEntry*>::iterator AkaiFatLfnDirectory::iterator() {
-    return akaiNameIndex.begin();
-}

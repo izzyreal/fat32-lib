@@ -19,6 +19,7 @@ class AkaiFatLfnDirectory : public akaifat::AbstractFsObject, public akaifat::Fs
 {
 public:
 	AbstractDirectory* dir;
+    std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
 
 	AkaiFatLfnDirectory(AbstractDirectory* dir, Fat* fat, bool readOnly);
 
@@ -27,8 +28,6 @@ public:
 	FatFile* getFile(FatDirectoryEntry* entry);
 
     AkaiFatLfnDirectory* getDirectory(FatDirectoryEntry* entry);
-
-    std::map<std::string, AkaiFatLfnDirectoryEntry*>::iterator iterator();
 
     akaifat::FsDirectoryEntry* addFile(std::string& name) override;
 
@@ -51,7 +50,6 @@ public:
 private:
 	std::set<std::string> usedAkaiNames;
 	Fat* fat;
-	std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
 	std::map<FatDirectoryEntry*, FatFile*> entryToFile;
 	std::map<FatDirectoryEntry*, AkaiFatLfnDirectory*> entryToDirectory;
 

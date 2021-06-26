@@ -12,12 +12,12 @@ BootSector* BootSector::read(BlockDevice* device) {
     
     if ((bb.get(510) & 0xff) != 0x55 ||
         (bb.get(511) & 0xff) != 0xaa)
-        throw "missing boot sector signature";
+        throw std::runtime_error("missing boot sector signature");
     
     int sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
     
     if (sectorsPerCluster <= 0)
-        throw "suspicious sectors per cluster count " + std::to_string(sectorsPerCluster);
+        throw std::runtime_error("suspicious sectors per cluster count " + std::to_string(sectorsPerCluster));
                 
     auto result = new Fat16BootSector(device);
     result->read_();

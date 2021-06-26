@@ -70,9 +70,7 @@ void AkaiFatFileSystem::setVolumeLabel(std::string label)
     checkReadOnly();
 
     rootDirStore->setLabel(label);
-    
-//    if (fatType != FatType.FAT32)
-//        dynamic_cast<Fat16BootSector*>(bs)->setVolumeLabel(label);
+    bs->setVolumeLabel(label);
 }
 
 AbstractDirectory* AkaiFatFileSystem::getRootDirStore()

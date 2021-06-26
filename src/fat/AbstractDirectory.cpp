@@ -184,37 +184,15 @@ void AbstractDirectory::setLabel(std::string& label)
 {
     checkRoot();
 
-    if (label.length() > MAX_LABEL_LENGTH) throw std::runtime_error("label too long");
+    if (label.length() > MAX_LABEL_LENGTH)
+        throw std::runtime_error("label too long");
 
-//    if (volumeLabel != null)
-//    {
-//        if (label == null)
-//        {
-//            changeSize(getSize() - 1);
-//            volumeLabel = null;
-//        }
-//        else
-//        {
-//            ShortName.checkValidChars(label.getBytes(ShortName.ASCII));
-//            volumeLabel = label;
-//        }
-//    }
-//    else
-//    {
-//        if (label != null)
-//        {
-//            changeSize(getSize() + 1);
-//            ShortName.checkValidChars(label.getBytes(ShortName.ASCII));
-//            volumeLabel = label;
-//        }
-//    }
+    volumeLabel = label;
 }
 
 void AbstractDirectory::checkRoot() const {
     if (!isRoot())
-    {
         throw std::runtime_error("only supported on root directories");
-    }
 }
 
 std::vector<FatDirectoryEntry*>& AbstractDirectory::getEntries()

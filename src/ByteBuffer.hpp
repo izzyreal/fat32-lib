@@ -19,7 +19,7 @@ public:
     void get(std::vector<char>& dest) {
         for (int i = 0; i < dest.size(); i++)
         {
-            if (i >= buf.size()) throw "invalid bytebuffer read";
+            if (i >= buf.size()) throw std::runtime_error("invalid bytebuffer read");
             dest[i] = get();
         }
     }
@@ -58,7 +58,7 @@ public:
     void put(char c) { buf[pos++] = c; }
     void put(std::vector<char>& data) {
         for (int i = 0; i < data.size(); i++) {
-            if (i >= buf.size()) throw "invalid bytebuffer write";
+            if (i >= buf.size()) throw std::runtime_error("invalid bytebuffer write");
             buf[i] = data[i];
         }
         pos += data.size();
