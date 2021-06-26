@@ -19,7 +19,6 @@ protected:
     Sector(BlockDevice* _device, long _offset, int size)
     : device (_device), offset (_offset), buffer (ByteBuffer(size)), dirty (true)
     {
-//        buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
     
     void markDirty() {
@@ -39,7 +38,7 @@ protected:
     }
     
     void set16(int offset, int value) {
-//        buffer.putShort(offset, (short) (value & 0xffff));
+        buffer.putShort(offset, (short) (value & 0xffff));
         dirty = true;
     }
 
@@ -50,10 +49,10 @@ protected:
 
     void set8(int offset, int value) {
         if ((value & 0xff) != value) {
-            throw std::to_string(value) + " too big to be stored in a single octet";
+            throw std::runtime_error(std::to_string(value) + " too big to be stored in a single octet");
         }
         
-//        buffer.put(offset, (char) (value & 0xff));
+        buffer.put(offset, (char) (value & 0xff));
         dirty = true;
     }
     
@@ -80,9 +79,9 @@ public:
     void write() {
         if (!isDirty()) return;
         
-//        buffer.position(0);
-//        buffer.limit(buffer.capacity());
-//        device.write(offset, buffer);
+        buffer.position(0);
+        buffer.limit(buffer.capacity());
+        device->write(offset, buffer);
         dirty = false;
     }
 };

@@ -7,7 +7,6 @@ using namespace akaifat::fat;
 
 BootSector* BootSector::read(BlockDevice* device) {
     ByteBuffer bb(512);
-    //        bb.order(ByteOrder.LITTLE_ENDIAN);
     device->read(0, bb);
     
     if ((bb.get(510) & 0xff) != 0x55 ||

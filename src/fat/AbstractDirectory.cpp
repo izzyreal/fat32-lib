@@ -48,9 +48,7 @@ void AbstractDirectory::read()
 
         try {
             auto sn = e->getShortName();
-            if (sn.asSimpleString().length() == 0) {
-                printf("Hey!\n");
-            }
+            // A hack to skip empty entries
         } catch (const std::exception&) {
             continue;
         }

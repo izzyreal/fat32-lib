@@ -58,6 +58,8 @@ public:
     long limit() { return limit_; }
 
     void put(char c) { buf[pos++] = c; }
+    void put(int offset, char c) { buf[offset] = c; }
+
     void put(std::vector<char>& data) {
         for (int i = 0; i < data.size(); i++) {
             if (i >= buf.size()) throw std::runtime_error("invalid bytebuffer write");
@@ -68,6 +70,10 @@ public:
     
     std::vector<char>& getBuffer() { return buf; }
     long capacity() { return buf.size(); }
-    
+
+    void putShort(int offset, short s) {
+        buf[offset] = s & 0xFF00;
+        buf[offset+1] = s & 0x00FF;
+    }
 };
 }

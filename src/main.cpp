@@ -10,7 +10,7 @@ using namespace akaifat::fat;
 
 int main() {
     std::fstream img;
-    img.open("/Users/izmar/Desktop/fat16.img", std::ios_base::in | std::ios_base::out | std::ios_base::app);
+    img.open("/Users/izmar/Desktop/fat16.img", std::ios_base::in | std::ios_base::out);
 
     img.seekg(std::ios::beg);
 
@@ -19,9 +19,13 @@ int main() {
 
     auto root = fs->getRoot();
 
+    auto bs = dynamic_cast<Fat16BootSector *>(fs->getBootSector());
+
+    auto volumeLabel = bs->getVolumeLabel();
+
     auto entries = root->akaiNameIndex;
 
-    printf("- ROOT LISTING -\n");
+    printf("- %s ROOT LISTING -\n", StrUtil::trim_copy(volumeLabel).c_str());
 
     for (auto &e : entries)
         printf("Name: %s\n", e.first.c_str());
@@ -33,9 +37,10 @@ int main() {
 
     printf("- TEST1 LISTING -\n");
 
-    for (auto &e : dirEntries)
-    {
+    for (auto &e : dirEntries) {
+
         printf("Name: %s\n", e.second->getName().c_str());
+
         if (e.second->getName() == "SNARE4.SND") {
             printf("SNARE4.SND data:");
             ByteBuffer buf(e.second->getFile()->getLength());
@@ -44,9 +49,15 @@ int main() {
             for (int i = 0; i < 500; i++)
                 printf("%c", buf.get());
             printf("\n");
+
+//            std::fstream output;
+//            output.open("/Users/izmar/Desktop/SNARE5.SND", std::ios_base::out | std::ios_base::binary);
+//            auto buf_ = buf.getBuffer();
+//            output.write(&buf_[0], buf.capacity());
+//            output.close();
         }
     }
-
+    
     img.close();
 
     return 0;

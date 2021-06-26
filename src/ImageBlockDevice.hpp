@@ -39,8 +39,17 @@ public:
         dest.position(dest.position() + toRead);
     }
 
-    void write(long devOffset, ByteBuffer& src) {
-        
+    void write(long devOffset, ByteBuffer& src) override {
+        if (isClosed()) throw std::runtime_error("device closed");
+
+        auto toWriteTotal = src.remaining();
+        if ((devOffset + toWriteTotal) > getSize()) throw std::runtime_error("writing past end of device");
+
+        img.seekp(devOffset);
+        std::vector<char>& buf = src.getBuffer();
+        auto toWrite = src.limit() - src.position();
+        img.write(&buf[0] + src.position(), toWrite);
+        src.position(src.position() + toWrite);
     }
             
     void flush() {}

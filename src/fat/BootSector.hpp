@@ -223,7 +223,7 @@ namespace akaifat::fat {
         void setNrHiddenSectors(long v) {
             if (v == getNrHiddenSectors()) return;
 
-            set32(0x1c, v);
+//            set32(0x1c, v);
         }
 
     protected:
