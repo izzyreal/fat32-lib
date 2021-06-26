@@ -11,8 +11,8 @@ private:
     
 public:
     ByteBuffer(long size)
-    : buf (std::vector<char>(size)) {}
-    ByteBuffer(std::vector<char>& data) : buf (data) {}
+    : buf (std::vector<char>(size)), limit_ (size) {}
+    ByteBuffer(std::vector<char>& data) : buf (data), limit_ (data.size()) {}
 
     void flip() { limit_ = pos; pos = 0; }
     
@@ -50,11 +50,13 @@ public:
     }
     
     long position() { return pos; }
+    void position(long newPos) { pos = newPos; }
     long remaining() { return buf.size() - pos; }
     bool hasRemaining() { return remaining() > 0; }
     void rewind() { pos = 0; }
-    void limit(long newLimit) { limit_ = 0; }
-    
+    void limit(long newLimit) { limit_ = newLimit; }
+    long limit() { return limit_; }
+
     void put(char c) { buf[pos++] = c; }
     void put(std::vector<char>& data) {
         for (int i = 0; i < data.size(); i++) {

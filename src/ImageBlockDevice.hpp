@@ -28,12 +28,15 @@ public:
     void read(long devOffset, ByteBuffer& dest) {
         if (isClosed()) throw std::runtime_error("device closed");
         
-        auto toRead = dest.remaining();
-        if ((devOffset + toRead) > getSize()) throw std::runtime_error("reading past end of device");
+        auto toReadTotal = dest.remaining();
+        if ((devOffset + toReadTotal) > getSize()) throw std::runtime_error("reading past end of device");
         
         img.seekg(devOffset);
         std::vector<char>& buf = dest.getBuffer();
-        img.read(&buf[0], dest.capacity());
+
+        auto toRead = dest.limit() - dest.position();
+        img.read(&buf[0] + dest.position(), toRead);
+        dest.position(dest.position() + toRead);
     }
 
     void write(long devOffset, ByteBuffer& src) {

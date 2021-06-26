@@ -35,10 +35,16 @@ int main() {
 
     for (auto &e : dirEntries)
     {
-        if (e.second->getName().length() == 0 || e.second->getName().length() == 1) {
-            printf("");
-        }
         printf("Name: %s\n", e.second->getName().c_str());
+        if (e.second->getName() == "SNARE4.SND") {
+            printf("SNARE4.SND data:");
+            ByteBuffer buf(e.second->getFile()->getLength());
+            e.second->getFile()->read(0, buf);
+            buf.rewind();
+            for (int i = 0; i < 500; i++)
+                printf("%c", buf.get());
+            printf("\n");
+        }
     }
 
     img.close();
