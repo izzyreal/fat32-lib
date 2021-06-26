@@ -15,32 +15,26 @@ int main() {
     img.seekg(std::ios::beg);
 
     ImageBlockDevice device(img);
-    auto fs = dynamic_cast<AkaiFatFileSystem*>(FileSystemFactory::createAkai(&device, false));
+    auto fs = dynamic_cast<AkaiFatFileSystem *>(FileSystemFactory::createAkai(&device, false));
 
     auto root = fs->getRoot();
 
-    if (root != nullptr) {
-        auto entries = root->akaiNameIndex;
-        for (auto& e : entries)
-            printf("Name: %s\n", e.first.c_str());
-        auto test1 = entries["test1"];
-        if (test1->isDirectory()) {
-            printf("test1 is a directory\n");
-        } else {
-            printf("test1 is NOT a directory\n");
-        }
+    auto entries = root->akaiNameIndex;
 
-        auto dir = test1->getDirectory();
-//        auto dirEntries = dir->akaiNameIndex;
+    printf("- ROOT LISTING -\n");
 
-//        for (auto& e : dirEntries)
-//            printf("Name1: %s\n", e.second->getName().c_str());
+    for (auto &e : entries)
+        printf("Name: %s\n", e.first.c_str());
 
-    }
-    else
-    {
-        printf("root is nullptr!\n");
-    }
+    auto test1 = entries["test1"];
+
+    auto dir = dynamic_cast<AkaiFatLfnDirectory *>(test1->getDirectory());
+    auto dirEntries = dir->akaiNameIndex;
+
+    printf("- TEST1 LISTING -\n");
+
+    for (auto &e : dirEntries)
+        printf("Name: %s\n", e.second->getName().c_str());
 
     img.close();
 

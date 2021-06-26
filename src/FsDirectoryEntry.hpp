@@ -10,21 +10,6 @@ class FsFile;
 
 class FsDirectoryEntry {
 public:
-//    static Comparator<FsDirectoryEntry> DIRECTORY_ENTRY_COMPARATOR =
-//            new Comparator<FsDirectoryEntry>() {
-//
-//        @Override
-//        int compare(FsDirectoryEntry e1, FsDirectoryEntry e2) {
-//            if (e2.isDirectory() == e1.isDirectory()) {
-//                /* compare names */
-//                return e1.getName().compareTo(e2.getName());
-//            } else {
-//                if (e2.isDirectory()) return 1;
-//                else return -1;
-//            }
-//        }
-//    };
-    
     virtual std::string getName() = 0;
 
     virtual FsDirectory* getParent() = 0;

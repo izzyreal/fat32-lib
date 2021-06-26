@@ -46,8 +46,11 @@ void AbstractDirectory::read()
         
         if (e == nullptr) break;
 
-        if (e->getShortName().asSimpleString().length() > 0)
-            printf("AbstractDirectory read entry with name: %s\n", e->getShortName().asSimpleString().c_str());
+        try {
+            auto sn = e->getShortName();
+        } catch (const std::exception&) {
+            continue;
+        }
 
         if (e->isVolumeLabel())
         {

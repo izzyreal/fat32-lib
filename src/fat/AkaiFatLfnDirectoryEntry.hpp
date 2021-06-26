@@ -123,7 +123,7 @@ namespace akaifat::fat {
             checkWritable();
 
             if (!target->isFreeName(newName)) {
-                throw "the name \"" + newName + "\" is already in use";
+                throw std::runtime_error("the name \"" + newName + "\" is already in use");
             }
 
             parent->unlinkEntry(this);

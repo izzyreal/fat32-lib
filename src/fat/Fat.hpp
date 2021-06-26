@@ -65,12 +65,11 @@ private:
     }
     
     void read() {
-        std::vector<char> data(sectorCount * sectorSize);
-        ByteBuffer bb(data);
+        ByteBuffer bb(sectorCount * sectorSize);
         device->read(offset, bb);
 
         for (int i = 0; i < entries.size(); i++)
-            entries[i] = fatType->readEntry(data, i);
+            entries[i] = fatType->readEntry(bb.getBuffer(), i);
     }
     
 public:

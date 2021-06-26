@@ -107,7 +107,8 @@ public:
             int idx = index << 1;
             int b1 = data[idx] & 0xFF;
             int b2 = data[idx + 1] & 0xFF;
-            return (b2 << 8) | b1;
+            auto result = (b2 << 8) | b1;
+            return result;
         }
 
         
