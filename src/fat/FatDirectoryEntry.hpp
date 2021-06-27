@@ -69,12 +69,15 @@ namespace akaifat::fat {
 
             assert (buff.remaining() >= SIZE);
 
+            if (buff.get(buff.position()) == 0)
+                return nullptr;
+
             std::vector<char> data(SIZE);
             buff.get(data);
             return new FatDirectoryEntry(type, data, readOnly);
         }
 
-        static void writeNullEntry(ByteBuffer buff) {
+        static void writeNullEntry(ByteBuffer &buff) {
             for (int i = 0; i < SIZE; i++) {
                 buff.put((char) 0);
             }
@@ -188,7 +191,7 @@ namespace akaifat::fat {
 
         ShortName getShortName() {
             if (data[0] == 0) {
-                throw std::runtime_error("data[0] == 0 so there's no ShortName");
+                return ShortName("uninit", "");
             } else {
                 return ShortName::parse(data);
             }
@@ -199,26 +202,11 @@ namespace akaifat::fat {
         }
 
         void setShortName(ShortName &sn) {
-            if (sn.equals(getShortName())) return;
-
             sn.write(data);
             dirty = true;
         }
 
-        void setAkaiName(std::string s) {
-//    	std::string part1 = AkaiFatLfnDirectory::splitName(s)[0];
-//    	std::string part2 = "        ";
-//    	std::string ext = AkaiFatLfnDirectory::splitName(s)[1];
-//    	if (part1.length() > 8) {
-//    		part2 = part1.substr(8);
-//    		part1 = part1.substr(0, 8);
-//    	}
-//    	if (ext.length() > 0) ext = "."+ ext;
-//    	ShortName sn = new ShortName(part1 + ext);
-//    	sn.write(data);
-//    	AkaiPart ap = new AkaiPart(part2);
-//    	ap.write(data);
-        }
+        void setAkaiName(std::string s);
 
         long getStartCluster() {
             return LittleEndian::getUInt16(data, 0x1a);

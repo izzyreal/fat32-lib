@@ -14,13 +14,13 @@ namespace akaifat::fat {
     protected:
         void write(ByteBuffer &data) override {
             auto toWrite = data.remaining();
-            chain.writeData(0, data);
-            long trueSize = chain.getLengthOnDisk();
+            chain->writeData(0, data);
+            long trueSize = chain->getLengthOnDisk();
 
             if (trueSize > toWrite) {
                 int rest = (int) (trueSize - toWrite);
                 ByteBuffer fill(rest);
-                chain.writeData(toWrite, fill);
+                chain->writeData(toWrite, fill);
             }
         }
 
@@ -33,40 +33,40 @@ namespace akaifat::fat {
             if (size > MAX_SIZE)
                 throw std::runtime_error("directory would grow beyond " + std::to_string(MAX_SIZE) + " bytes");
 
-            sizeChanged(chain.setSize(std::max(size, chain.getClusterSize())));
+            sizeChanged(chain->setSize(std::max(size, chain->getClusterSize())));
         }
 
     public:
         static const int MAX_SIZE = 65536 * 32;
 
-        ClusterChain &chain;
+        ClusterChain *chain;
 
-        static ClusterChainDirectory readRoot(
-                ClusterChain &chain) {
+        ClusterChainDirectory(ClusterChain* _chain, bool isRoot)
+                : AbstractDirectory(
+                _chain->getFat()->getFatType(),
+                (int) (_chain->getLengthOnDisk() / 32),
+                _chain->isReadOnly(), isRoot), chain(_chain) {
+        }
 
-            ClusterChainDirectory result(chain, true);
+        static ClusterChainDirectory* readRoot(
+                ClusterChain* chain) {
 
-            result.read();
+            auto result = new ClusterChainDirectory(chain, true);
+
+            result->read();
             return result;
         }
 
         void delete_() {
-            chain.setChainLength(0);
-        }
-
-        ClusterChainDirectory(ClusterChain &_chain, bool isRoot)
-                : AbstractDirectory(
-                _chain.getFat()->getFatType(),
-                (int) (_chain.getLengthOnDisk() / 32),
-                _chain.isReadOnly(), isRoot), chain(_chain) {
+            chain->setChainLength(0);
         }
 
         long getStorageCluster() override {
-            return isRoot() ? 0 : chain.getStartCluster();
+            return isRoot() ? 0 : chain->getStartCluster();
         }
 
         void read(ByteBuffer &data) override {
-            chain.readData(0, data);
+            chain->readData(0, data);
         }
     };
 }

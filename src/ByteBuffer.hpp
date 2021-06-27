@@ -63,9 +63,8 @@ public:
     void put(std::vector<char>& data) {
         for (int i = 0; i < data.size(); i++) {
             if (i >= buf.size()) throw std::runtime_error("invalid bytebuffer write");
-            buf[i] = data[i];
+            buf[pos++] = data[i];
         }
-        pos += data.size();
     }
     
     std::vector<char>& getBuffer() { return buf; }

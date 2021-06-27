@@ -87,6 +87,7 @@ FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &_name) {
     checkUniqueName(_name);
     auto name = StrUtil::trim(_name);
     auto real = dir->createSub(fat);
+    ShortName sn(name);
     real->setAkaiName(name);
     auto e = new AkaiFatLfnDirectoryEntry(this, real, name);
 
@@ -120,6 +121,7 @@ void AkaiFatLfnDirectory::flush() {
     for (auto d : entryToDirectory)
         d.second->flush();
 
+    updateLFN();
     dir->flush();
 }
 
@@ -164,6 +166,7 @@ void AkaiFatLfnDirectory::linkEntry(AkaiFatLfnDirectoryEntry *entry) {
     checkUniqueName(name);
     entry->realEntry->setAkaiName(name);
     akaiNameIndex[StrUtil::to_lower_copy(name)] = entry;
+    updateLFN();
 }
 
 void AkaiFatLfnDirectory::checkUniqueName(std::string &name) {
@@ -226,7 +229,7 @@ void AkaiFatLfnDirectory::updateLFN() {
 ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *fat) {
     if (!entry->isDirectory()) throw std::runtime_error(entry->getShortName().asSimpleString() + " is no directory");
 
-    ClusterChain chain(fat, entry->getStartCluster(), entry->isReadonlyFlag());
+    auto chain = new ClusterChain(fat, entry->getStartCluster(), entry->isReadonlyFlag());
 
     auto result = new ClusterChainDirectory(chain, false);
 

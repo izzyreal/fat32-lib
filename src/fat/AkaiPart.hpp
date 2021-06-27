@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace akaifat::fat {
@@ -30,7 +31,7 @@ namespace akaifat::fat {
             return result;
         }
 
-        AkaiPart(std::string akaiPart) {
+        explicit AkaiPart(std::string akaiPart) {
 
             if (akaiPart.length() > 8) throw std::runtime_error("Akai part too long");
 
@@ -38,12 +39,12 @@ namespace akaifat::fat {
         }
 
         static AkaiPart get(std::string name) {
-            return AkaiPart(name);
+            return AkaiPart(std::move(name));
         }
 
         static bool canConvert(std::string nameExt) {
             try {
-                AkaiPart::get(nameExt);
+                AkaiPart::get(std::move(nameExt));
                 return true;
             } catch (const std::exception &) {
                 return false;
@@ -62,26 +63,12 @@ namespace akaifat::fat {
         }
 
         void write(std::vector<char> &dest) {
-//        System.arraycopy(nameBytes, 0, dest, 12, nameBytes.length);
+            for (int i = 0; i < nameBytes.size(); i++)
+                dest[i + 12] = nameBytes[i];
         }
 
         std::string asSimpleString() {
             return std::string(begin(nameBytes), end(nameBytes));
-        }
-
-        bool equals(AkaiPart &akaiPart) {
-//        if (!(obj instanceof AkaiPart)) {
-//            return false;
-//        }
-//
-//        AkaiPart other = (AkaiPart) obj;
-//        return Arrays.equals(nameBytes, other.nameBytes);
-            return false;
-        }
-
-        int hashCode() {
-//        return Arrays.hashCode(nameBytes);
-            return 0;
         }
 
         static void checkValidChars(const std::vector<char> &chars) {

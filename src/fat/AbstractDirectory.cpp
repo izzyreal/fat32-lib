@@ -7,141 +7,117 @@
 using namespace akaifat::fat;
 
 AbstractDirectory::AbstractDirectory(
-    FatType* _type,
-    int _capacity,
-    bool _readOnly,
-    bool _root
-) : type (_type), capacity (_capacity), readOnly (_readOnly), _isRoot (_root)
-{
+        FatType *_type,
+        int _capacity,
+        bool _readOnly,
+        bool _root
+) : type(_type), capacity(_capacity), readOnly(_readOnly), _isRoot(_root) {
 }
 
-void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry*>& newEntries)
-{
+void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry *> &newEntries) {
     if (newEntries.size() > capacity)
         throw std::runtime_error("too many entries");
 
     entries = newEntries;
 }
 
-void AbstractDirectory::sizeChanged(long newSize)
-{
+void AbstractDirectory::sizeChanged(long newSize) {
     long newCount = newSize / FatDirectoryEntry::SIZE;
-    
+
     if (newCount > INT_MAX)
-        throw  std::runtime_error("directory too large");
-    
+        throw std::runtime_error("directory too large");
+
     capacity = (int) newCount;
 }
 
-void AbstractDirectory::read()
-{
-    ByteBuffer data(capacity * FatDirectoryEntry::SIZE);
-    
+void AbstractDirectory::read() {
+    ByteBuffer data(capacity *FatDirectoryEntry::SIZE);
+
     read(data);
     data.flip();
 
-    for (int i = 0; i < capacity; i++)
-    {
+    for (int i = 0; i < capacity; i++) {
         auto e = FatDirectoryEntry::read(type, data, readOnly);
-        
-        if (e == nullptr) break;
 
-        try {
-            auto sn = e->getShortName();
-            // A hack to skip empty entries
-        } catch (const std::exception&) {
-            continue;
-        }
+        if (e == nullptr) continue;
 
-        if (e->isVolumeLabel())
-        {
+        if (e->isVolumeLabel()) {
             if (!_isRoot)
                 throw std::runtime_error("volume label in non-root directory");
-            
+
             volumeLabel = e->getVolumeLabel();
-        }
-        else
-        {
+        } else {
             entries.push_back(e);
         }
     }
 }
 
-FatDirectoryEntry* AbstractDirectory::getEntry(int idx)
-{
+FatDirectoryEntry *AbstractDirectory::getEntry(int idx) {
     return entries[idx];
 }
 
-int AbstractDirectory::getCapacity() const
-{
+int AbstractDirectory::getCapacity() const {
     return capacity;
 }
 
-int AbstractDirectory::getEntryCount()
-{
+int AbstractDirectory::getEntryCount() {
     return (int) entries.size();
 }
 
-bool AbstractDirectory::isDirReadOnly()
-{
+bool AbstractDirectory::isDirReadOnly() {
     return readOnly;
 }
 
-bool AbstractDirectory::isRoot() const
-{
+bool AbstractDirectory::isRoot() const {
     return _isRoot;
 }
 
-int AbstractDirectory::getSize()
-{
+int AbstractDirectory::getSize() {
     return (int) entries.size() + ((volumeLabel.length() != 0) ? 1 : 0);
 }
 
-void AbstractDirectory::flush()
-{
-    ByteBuffer data(capacity * FatDirectoryEntry::SIZE + (volumeLabel.length() != 0 ? FatDirectoryEntry::SIZE : 0));
-    
-    for (auto entry : entries)
-    {
+void AbstractDirectory::flush() {
+    ByteBuffer data(capacity *FatDirectoryEntry::SIZE
+    +(volumeLabel.length() != 0 ? FatDirectoryEntry::SIZE : 0));
+
+    for (auto entry : entries) {
         if (entry != nullptr)
             entry->write(data);
     }
-            
-    if (volumeLabel.length() != 0)
-    {
+
+    if (volumeLabel.length() != 0) {
         auto labelEntry =
                 FatDirectoryEntry::createVolumeLabel(type, volumeLabel);
 
         labelEntry->write(data);
     }
-    
+
     if (data.hasRemaining())
         FatDirectoryEntry::writeNullEntry(data);
-    
+
+    data.flip();
+
     write(data);
 }
 
-void AbstractDirectory::addEntry(FatDirectoryEntry* e)
-{
+void AbstractDirectory::addEntry(FatDirectoryEntry *e) {
     assert (e != nullptr);
-    
+
     if (getSize() == capacity)
         changeSize(capacity + 1);
 
     entries.push_back(e);
 }
 
-void AbstractDirectory::addEntries(std::vector<FatDirectoryEntry*>& newEntries)
-{    
+void AbstractDirectory::addEntries(std::vector<FatDirectoryEntry *> &newEntries) {
     if (getSize() + newEntries.size() > capacity)
-        changeSize( (int) (getSize() + newEntries.size()) );
+        changeSize((int) (getSize() + newEntries.size()));
 
-    for (auto& e : newEntries)
+    for (auto &e : newEntries)
         entries.push_back(e);
 }
 
-void AbstractDirectory::removeEntry(FatDirectoryEntry* entry)
-{
+void AbstractDirectory::removeEntry(FatDirectoryEntry *entry) {
     assert (entry != nullptr);
 
     auto it = find(begin(entries), end(entries), entry);
@@ -152,25 +128,24 @@ void AbstractDirectory::removeEntry(FatDirectoryEntry* entry)
     changeSize(getSize());
 }
 
-std::string& AbstractDirectory::getLabel()
-{
+std::string &AbstractDirectory::getLabel() {
     checkRoot();
-    
+
     return volumeLabel;
 }
 
-FatDirectoryEntry* AbstractDirectory::createSub(Fat* fat)
-{
+FatDirectoryEntry *AbstractDirectory::createSub(Fat *fat) {
     auto chain = new ClusterChain(fat, false);
     chain->setChainLength(1);
 
     auto entry = FatDirectoryEntry::create(type, true);
     entry->setStartCluster(chain->getStartCluster());
 
-    auto dir = new ClusterChainDirectory(*chain, false);
+    auto dir = new ClusterChainDirectory(chain, false);
 
     auto dot = FatDirectoryEntry::create(type, true);
-    dot->setShortName(ShortName::DOT());
+    auto sn_dot = ShortName::DOT();
+    dot->setShortName(sn_dot);
     dot->setStartCluster(dir->getStorageCluster());
     dir->addEntry(dot);
 
@@ -184,8 +159,7 @@ FatDirectoryEntry* AbstractDirectory::createSub(Fat* fat)
     return entry;
 }
 
-void AbstractDirectory::setLabel(std::string& label)
-{
+void AbstractDirectory::setLabel(std::string &label) {
     checkRoot();
 
     if (label.length() > MAX_LABEL_LENGTH)
@@ -197,9 +171,4 @@ void AbstractDirectory::setLabel(std::string& label)
 void AbstractDirectory::checkRoot() const {
     if (!isRoot())
         throw std::runtime_error("only supported on root directories");
-}
-
-std::vector<FatDirectoryEntry*>& AbstractDirectory::getEntries()
-{
-    return entries;
 }

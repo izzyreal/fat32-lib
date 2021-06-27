@@ -89,10 +89,10 @@ void AkaiFatFileSystem::flush()
     }
     
     for (int i = 0; i < bs->getNrFats(); i++) {
-//        fat->writeCopy(bs->getFatOffset(i));
+        fat->writeCopy(bs->getFatOffset(i));
     }
     
-//    rootDir->flush();
+    rootDir->flush();
 }
 
 AkaiFatLfnDirectory* AkaiFatFileSystem::getRoot()

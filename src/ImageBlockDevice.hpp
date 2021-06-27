@@ -29,7 +29,9 @@ public:
         if (isClosed()) throw std::runtime_error("device closed");
         
         auto toReadTotal = dest.remaining();
-        if ((devOffset + toReadTotal) > getSize()) throw std::runtime_error("reading past end of device");
+
+        if ((devOffset + toReadTotal) > getSize())
+            throw std::runtime_error("reading past end of device");
         
         img.seekg(devOffset);
         std::vector<char>& buf = dest.getBuffer();
@@ -52,7 +54,8 @@ public:
         src.position(src.position() + toWrite);
     }
             
-    void flush() {}
+    void flush() {
+    }
 
     int getSectorSize() {
         return 512;

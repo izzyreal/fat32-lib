@@ -27,7 +27,6 @@ namespace akaifat::fat {
 
         ClusterChain(Fat *_fat, long _startCluster, bool readOnly)
                 : akaifat::AbstractFsObject(readOnly), fat(_fat) {
-
             if (_startCluster != 0) {
                 fat->testCluster(_startCluster);
 
@@ -75,7 +74,6 @@ namespace akaifat::fat {
 
         int getChainLength() {
             if (getStartCluster() == 0) return 0;
-
             auto chain = getFat()->getChain(getStartCluster());
             return chain.size();
         }
@@ -155,42 +153,42 @@ namespace akaifat::fat {
             }
         }
 
-        void writeData(long offset, ByteBuffer srcBuf) {
+        void writeData(long offset, ByteBuffer &srcBuf) {
 
-//        int len = srcBuf.remaining();
-//
-//        if (len == 0) return;
-//
-//        long minSize = offset + len;
-//        if (getLengthOnDisk() < minSize) {
-//            setSize(minSize);
-//        }
-//
-//        long[] chain = fat->getChain(getStartCluster());
-//
-//        int chainIdx = (int) (offset / clusterSize);
-//
-//        if (offset % clusterSize != 0) {
-//            int clusOfs = (int) (offset % clusterSize);
-//            int size = Math.min(len,
-//                    (int) (clusterSize - (offset % clusterSize)));
-//            srcBuf.limit(srcBuf.position() + size);
-//
-//            device.write(getDevOffset(chain[chainIdx], clusOfs), srcBuf);
-//
-//            len -= size;
-//            chainIdx++;
-//        }
-//
-//        while (len > 0) {
-//            int size = Math.min(clusterSize, len);
-//            srcBuf.limit(srcBuf.position() + size);
-//
-//            device.write(getDevOffset(chain[chainIdx], 0), srcBuf);
-//
-//            len -= size;
-//            chainIdx++;
-//        }
+            int len = srcBuf.remaining();
+
+            if (len == 0) return;
+
+            long minSize = offset + len;
+            if (getLengthOnDisk() < minSize) {
+                setSize(minSize);
+            }
+
+            auto chain = fat->getChain(getStartCluster());
+
+            int chainIdx = (int) (offset / clusterSize);
+
+            if (offset % clusterSize != 0) {
+                int clusOfs = (int) (offset % clusterSize);
+                int size = std::min(len,
+                                    (int) (clusterSize - (offset % clusterSize)));
+                srcBuf.limit(srcBuf.position() + size);
+
+                device->write(getDevOffset(chain[chainIdx], clusOfs), srcBuf);
+
+                len -= size;
+                chainIdx++;
+            }
+
+            while (len > 0) {
+                int size = std::min(clusterSize, len);
+                srcBuf.limit(srcBuf.position() + size);
+
+                device->write(getDevOffset(chain[chainIdx], 0), srcBuf);
+
+                len -= size;
+                chainIdx++;
+            }
 
         }
     };

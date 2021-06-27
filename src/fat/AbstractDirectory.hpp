@@ -44,8 +44,6 @@ public:
     
     void setLabel(std::string& label);
 
-    std::vector<FatDirectoryEntry*>& getEntries();
-
     virtual void changeSize(int entryCount) = 0;
 
 private:
