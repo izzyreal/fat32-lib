@@ -109,6 +109,7 @@ FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &_name) {
 }
 
 FsDirectoryEntry *AkaiFatLfnDirectory::getEntry(std::string &name) {
+    if (akaiNameIndex.find(name) == akaiNameIndex.end()) return nullptr;
     return akaiNameIndex[StrUtil::to_lower_copy(name)];
 }
 

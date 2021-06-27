@@ -63,7 +63,7 @@ public:
 
     void close() {}
     
-    bool isReadOnly() { return false; }
+    bool isReadOnly() override { return false; }
     
 };
 }
