@@ -31,11 +31,11 @@ public:
     static AkaiFatFileSystem* read(BlockDevice* device, bool readOnly);
 
     ~AkaiFatFileSystem() {
-        if (fat != nullptr) delete fat;
-        if (bs != nullptr) delete bs;
-        if (rootDir != nullptr) delete rootDir;
-        if (rootDirStore != nullptr) delete rootDirStore;
-        if (fatType != nullptr) delete fatType;
+        delete fat;
+        delete bs;
+        delete rootDir;
+        delete rootDirStore;
+        delete fatType;
     }
     
     long getFilesOffset();

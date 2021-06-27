@@ -13,7 +13,7 @@ BootSector* BootSector::read(BlockDevice* device) {
         (bb.get(511) & 0xff) != 0xaa)
         throw std::runtime_error("missing boot sector signature");
     
-    int sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
+    unsigned char sectorsPerCluster = bb.get(SECTORS_PER_CLUSTER_OFFSET);
     
     if (sectorsPerCluster <= 0)
         throw std::runtime_error("suspicious sectors per cluster count " + std::to_string(sectorsPerCluster));

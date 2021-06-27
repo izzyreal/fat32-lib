@@ -10,70 +10,68 @@ using namespace akaifat;
 
 namespace akaifat::fat {
 
-class FatDirectoryEntry;
+    class FatDirectoryEntry;
 
-class AbstractDirectory {
-public:
-    virtual ~AbstractDirectory(){}
-    static const int MAX_LABEL_LENGTH = 11;
-    
-    void setEntries(std::vector<FatDirectoryEntry*>& newEntries);
-    
-    FatDirectoryEntry* getEntry(int idx);
-    
-    int getCapacity() const;
+    class AbstractDirectory {
+    public:
+        virtual ~AbstractDirectory() = default;
 
-    int getEntryCount();
-    
-    bool isDirReadOnly();
+        static const int MAX_LABEL_LENGTH = 11;
 
-    bool isRoot() const;
+        void setEntries(std::vector<FatDirectoryEntry *> &newEntries);
 
-    int getSize();
+        FatDirectoryEntry *getEntry(int idx);
 
-    void flush();
+        [[nodiscard]] int getCapacity() const;
 
-    void addEntry(FatDirectoryEntry*);
-    
-    void addEntries(std::vector<FatDirectoryEntry*>&);
-    void removeEntry(FatDirectoryEntry*);
+        int getEntryCount();
 
-    std::string& getLabel();
+        [[nodiscard]] bool isRoot() const;
 
-    FatDirectoryEntry* createSub(Fat* fat);
-    
-    void setLabel(std::string& label);
+        int getSize();
 
-    virtual void changeSize(int entryCount) = 0;
+        void flush();
 
-private:
-    std::vector<FatDirectoryEntry*> entries;
-    bool readOnly;
-    bool _isRoot;
-    FatType* type;
+        void addEntry(FatDirectoryEntry *);
 
-    int capacity;
-    std::string volumeLabel;
+        void removeEntry(FatDirectoryEntry *);
 
-    void checkRoot() const;
+        std::string &getLabel();
 
-public:
-    AbstractDirectory(
-        FatType* type,
-        int capacity,
-        bool readOnly,
-        bool isRoot
-    );
-        
-    virtual void read(ByteBuffer& data) = 0;
+        FatDirectoryEntry *createSub(Fat *fat);
 
-    virtual void write(ByteBuffer& data) = 0;
+        void setLabel(std::string &label);
 
-    virtual long getStorageCluster() = 0;
+        virtual void changeSize(int entryCount) = 0;
 
-    virtual void sizeChanged(long newSize);
-            
-    virtual void read();
+    private:
+        std::vector<FatDirectoryEntry *> entries;
+        bool readOnly;
+        bool _isRoot;
+        FatType *type;
 
-};
+        int capacity;
+        std::string volumeLabel;
+
+        void checkRoot() const;
+
+    public:
+        AbstractDirectory(
+                FatType *type,
+                int capacity,
+                bool readOnly,
+                bool isRoot
+        );
+
+        virtual void read(ByteBuffer &data) = 0;
+
+        virtual void write(ByteBuffer &data) = 0;
+
+        virtual long getStorageCluster() = 0;
+
+        virtual void sizeChanged(long newSize);
+
+        virtual void read();
+
+    };
 }

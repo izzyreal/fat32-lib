@@ -36,19 +36,11 @@ namespace akaifat::fat {
             if (akaiPart.length() > 8) throw std::runtime_error("Akai part too long");
 
             nameBytes = toCharArray(akaiPart);
+//            checkValidChars(nameBytes);
         }
 
         static AkaiPart get(std::string name) {
             return AkaiPart(std::move(name));
-        }
-
-        static bool canConvert(std::string nameExt) {
-            try {
-                AkaiPart::get(std::move(nameExt));
-                return true;
-            } catch (const std::exception &) {
-                return false;
-            }
         }
 
         static AkaiPart parse(std::vector<char> &data) {
@@ -92,32 +84,8 @@ namespace akaifat::fat {
             }
         }
 
-        static std::vector<char> replaceInvalidChars(std::string &str) {
-
-            std::vector<char> ca(str.length());
-
-            int counter = 0;
-
-            for (char c : str) {
-                if (!isValid(c)) {
-                    ca[counter] = ' ';
-                } else {
-                    ca[counter] = c;
-                }
-                counter++;
-            }
-
-            return ca;
-        }
-
         static bool isValidAkaiPart(std::string &str) {
-
-            for (char c : str) {
-                if (!isValid(c))
-                    return false;
-            }
-
-            return true;
+            return std::all_of(begin(str), end(str), [](char c){ return isValid(c);});
         }
 
     private:
@@ -147,7 +115,7 @@ namespace akaifat::fat {
             checkString(name, "name", 0, 8);
         }
 
-        static void checkString(std::string &str, const std::string strType,
+        static void checkString(std::string &str, const std::string& strType,
                                 int minLength, int maxLength) {
             if (str.length() < minLength)
                 throw std::runtime_error(strType + " must have at least " + std::to_string(minLength) +

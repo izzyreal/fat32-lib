@@ -1,8 +1,5 @@
 #include "AkaiFatFileSystem.hpp"
 
-#include "../BlockDevice.hpp"
-#include "../AbstractFileSystem.hpp"
-
 #include "Fat16RootDirectory.hpp"
 
 using namespace akaifat::fat;
@@ -46,7 +43,7 @@ AkaiFatFileSystem* AkaiFatFileSystem::read(BlockDevice* device, bool readOnly)
 long AkaiFatFileSystem::getFilesOffset()
 {
     checkClosed();
-    
+
     return filesOffset;
 }
 

@@ -64,10 +64,6 @@ int AbstractDirectory::getEntryCount() {
     return (int) entries.size();
 }
 
-bool AbstractDirectory::isDirReadOnly() {
-    return readOnly;
-}
-
 bool AbstractDirectory::isRoot() const {
     return _isRoot;
 }
@@ -107,14 +103,6 @@ void AbstractDirectory::addEntry(FatDirectoryEntry *e) {
         changeSize(capacity + 1);
 
     entries.push_back(e);
-}
-
-void AbstractDirectory::addEntries(std::vector<FatDirectoryEntry *> &newEntries) {
-    if (getSize() + newEntries.size() > capacity)
-        changeSize((int) (getSize() + newEntries.size()));
-
-    for (auto &e : newEntries)
-        entries.push_back(e);
 }
 
 void AbstractDirectory::removeEntry(FatDirectoryEntry *entry) {

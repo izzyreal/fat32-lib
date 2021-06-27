@@ -6,6 +6,8 @@
 
 #include "AkaiFatLfnDirectory.hpp"
 #include "AkaiFatLfnDirectoryEntry.hpp"
+
+#include <utility>
 #include "FatDirectoryEntry.hpp"
 #include "FatFile.hpp"
 #include "AkaiPart.hpp"
@@ -18,7 +20,7 @@ namespace akaifat::fat {
         std::string fileName;
 
     public:
-        AkaiFatLfnDirectoryEntry(std::string name, AkaiFatLfnDirectory *akaiFatLfnDirectory, bool directory)
+        AkaiFatLfnDirectoryEntry(const std::string &name, AkaiFatLfnDirectory *akaiFatLfnDirectory, bool directory)
                 : AbstractFsObject(false), fileName(name), parent(akaiFatLfnDirectory) {
             realEntry = FatDirectoryEntry::create(akaiFatLfnDirectory->getFat()->getFatType(), directory);
             realEntry->setAkaiName(name);
@@ -31,7 +33,7 @@ namespace akaifat::fat {
         AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory *akaiFatLfnDirectory, FatDirectoryEntry *_realEntry,
                                  std::string _fileName)
                 : AbstractFsObject(akaiFatLfnDirectory->isReadOnly()), parent(akaiFatLfnDirectory),
-                  realEntry(_realEntry), fileName(_fileName) {
+                  realEntry(_realEntry), fileName(std::move(_fileName)) {
         }
 
         static AkaiFatLfnDirectoryEntry *extract(AkaiFatLfnDirectory *dir, int offset, int len) {
@@ -97,8 +99,8 @@ namespace akaifat::fat {
 
         void setAkaiPart(std::string s) {
             if (isDirectory()) return;
-//            		AkaiPart ap = new AkaiPart(s);
-//            		ap.write(realEntry->data);
+            AkaiPart ap(s);
+            ap.write(realEntry->data);
         }
 
         akaifat::FsDirectory *getParent() override {
