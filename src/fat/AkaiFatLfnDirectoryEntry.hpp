@@ -36,7 +36,7 @@ namespace akaifat::fat {
                   realEntry(_realEntry), fileName(std::move(_fileName)) {
         }
 
-        static AkaiFatLfnDirectoryEntry* extract(AkaiFatLfnDirectory *dir, int offset, int len) {
+        static std::shared_ptr<AkaiFatLfnDirectoryEntry> extract(AkaiFatLfnDirectory *dir, int offset, int len) {
             auto realEntry = dir->dir->getEntry(offset + len - 1);
             std::string shortName = realEntry->getShortName().asSimpleString();
             std::string akaiPart = StrUtil::trim_copy(AkaiPart::parse(realEntry->data).asSimpleString());
@@ -47,7 +47,7 @@ namespace akaifat::fat {
 
             std::string akaiFileName = part1 + akaiPart + ext;
 
-            return new AkaiFatLfnDirectoryEntry(dir, realEntry, akaiFileName);
+            return std::make_shared<AkaiFatLfnDirectoryEntry>(dir, realEntry, akaiFileName);
         }
 
         bool isHiddenFlag() {
@@ -115,9 +115,11 @@ namespace akaifat::fat {
                 throw std::runtime_error("the name \"" + newName + "\" is already in use");
             }
 
-            parent->unlinkEntry(this);
+            auto entryName = getName();
+
+            auto unlinkedEntryRef = parent->unlinkEntry(entryName, isFile(), realEntry);
             fileName = newName;
-            parent->linkEntry(this);
+            parent->linkEntry(unlinkedEntryRef);
         }
 
         void moveTo(AkaiFatLfnDirectory *target, std::string newName) {
@@ -128,10 +130,12 @@ namespace akaifat::fat {
                 throw std::runtime_error("the name \"" + newName + "\" is already in use");
             }
 
-            parent->unlinkEntry(this);
+            auto entryName = getName();
+
+            auto unlinkedEntryRef = parent->unlinkEntry(entryName, isFile(), realEntry);
             parent = target;
             fileName = newName;
-            parent->linkEntry(this);
+            parent->linkEntry(unlinkedEntryRef);
         }
 
         FatFile *getFile() override {

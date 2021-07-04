@@ -12,11 +12,11 @@
 namespace akaifat {
 class FsDirectory {
 public:
-    virtual FsDirectoryEntry * getEntry(std::string& name) = 0;
+    virtual std::shared_ptr<FsDirectoryEntry> getEntry(std::string& name) = 0;
 
-    virtual FsDirectoryEntry * addFile(std::string& name) = 0;
+    virtual std::shared_ptr<FsDirectoryEntry> addFile(std::string& name) = 0;
 
-    virtual FsDirectoryEntry * addDirectory(std::string& name) = 0;
+    virtual std::shared_ptr<FsDirectoryEntry> addDirectory(std::string& name) = 0;
 
     virtual void remove(std::string& name) = 0;
 

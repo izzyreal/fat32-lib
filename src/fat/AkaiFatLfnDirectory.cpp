@@ -49,13 +49,13 @@ AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry *entry)
     return result;
 }
 
-FsDirectoryEntry* AkaiFatLfnDirectory::addFile(std::string &name) {
+std::shared_ptr<FsDirectoryEntry> AkaiFatLfnDirectory::addFile(std::string &name) {
     checkWritable();
     checkUniqueName(name);
 
     StrUtil::trim(name);
 
-    auto entry = new AkaiFatLfnDirectoryEntry(name, this, false);
+    auto entry = std::make_shared<AkaiFatLfnDirectoryEntry>(name, this, false);
 
     dir->addEntry(entry->realEntry);
     auto nameLower = StrUtil::to_lower_copy(name);
@@ -82,14 +82,14 @@ std::vector<std::string> AkaiFatLfnDirectory::splitName(std::string &s) {
     return {s.substr(0, it), s.substr(it + 1)};
 }
 
-FsDirectoryEntry* AkaiFatLfnDirectory::addDirectory(std::string &_name) {
+std::shared_ptr<FsDirectoryEntry> AkaiFatLfnDirectory::addDirectory(std::string &_name) {
     checkWritable();
     checkUniqueName(_name);
     auto name = StrUtil::trim(_name);
     auto real = dir->createSub(fat);
     ShortName sn(name);
     real->setAkaiName(name);
-    auto e = new AkaiFatLfnDirectoryEntry(this, real, name);
+    auto e = std::make_shared<AkaiFatLfnDirectoryEntry>(this, real, name);
 
     try {
         dir->addEntry(real);
@@ -108,7 +108,7 @@ FsDirectoryEntry* AkaiFatLfnDirectory::addDirectory(std::string &_name) {
     return e;
 }
 
-FsDirectoryEntry* AkaiFatLfnDirectory::getEntry(std::string &name) {
+std::shared_ptr<FsDirectoryEntry> AkaiFatLfnDirectory::getEntry(std::string &name) {
     if (akaiNameIndex.find(name) == akaiNameIndex.end()) return {};
     return akaiNameIndex[StrUtil::to_lower_copy(name)];
 }
@@ -133,8 +133,10 @@ void AkaiFatLfnDirectory::remove(std::string &name) {
 
     if (!entry) return;
 
-    auto akaiEntry = dynamic_cast<AkaiFatLfnDirectoryEntry*>(entry);
-    unlinkEntry(akaiEntry);
+    auto akaiEntry = std::dynamic_pointer_cast<AkaiFatLfnDirectoryEntry>(entry);
+    auto entryName = akaiEntry->getName();
+    auto isFile = akaiEntry->isFile();
+    unlinkEntry(entryName, isFile, akaiEntry->realEntry);
 
     // Temporary helper object to modify the fat
     ClusterChain cc(fat, akaiEntry->realEntry->getStartCluster(), false);
@@ -143,26 +145,31 @@ void AkaiFatLfnDirectory::remove(std::string &name) {
     updateLFN();
 }
 
-void AkaiFatLfnDirectory::unlinkEntry(AkaiFatLfnDirectoryEntry *entry) {
-    if (entry->getName()[0] == '.' || entry->getName().length() == 0) return;
+std::shared_ptr<AkaiFatLfnDirectoryEntry>
+AkaiFatLfnDirectory::unlinkEntry(std::string &entryName, bool isFile, FatDirectoryEntry *realEntry) {
+    if (entryName.length() == 0 || entryName[0] == '.') return {};
 
-    std::string lowerName = StrUtil::to_lower_copy(entry->getName());
+    std::string lowerName = StrUtil::to_lower_copy(entryName);
 
     assert(akaiNameIndex[lowerName]);
+
+    auto unlinkedEntryRef = akaiNameIndex[lowerName];
 
     akaiNameIndex.erase(lowerName);
 
     assert(usedAkaiNames.find(lowerName) != usedAkaiNames.end());
     usedAkaiNames.erase(lowerName);
 
-    if (entry->isFile()) {
-        entryToFile.erase(entry->realEntry);
+    if (isFile) {
+        entryToFile.erase(realEntry);
     } else {
-        entryToDirectory.erase(entry->realEntry);
+        entryToDirectory.erase(realEntry);
     }
+
+    return unlinkedEntryRef;
 }
 
-void AkaiFatLfnDirectory::linkEntry(AkaiFatLfnDirectoryEntry *entry) {
+void AkaiFatLfnDirectory::linkEntry(const std::shared_ptr<AkaiFatLfnDirectoryEntry> &entry) {
     auto name = entry->getName();
     checkUniqueName(name);
     entry->realEntry->setAkaiName(name);
