@@ -22,7 +22,7 @@ namespace akaifat::fat {
     public:
         AkaiFatLfnDirectoryEntry(const std::string &name, AkaiFatLfnDirectory *akaiFatLfnDirectory, bool directory)
                 : AbstractFsObject(false), fileName(name), parent(akaiFatLfnDirectory) {
-            realEntry = FatDirectoryEntry::create(akaiFatLfnDirectory->getFat()->getFatType(), directory);
+            realEntry = FatDirectoryEntry::create(directory);
             realEntry->setAkaiName(name);
         }
 
@@ -36,7 +36,7 @@ namespace akaifat::fat {
                   realEntry(_realEntry), fileName(std::move(_fileName)) {
         }
 
-        static AkaiFatLfnDirectoryEntry *extract(AkaiFatLfnDirectory *dir, int offset, int len) {
+        static AkaiFatLfnDirectoryEntry* extract(AkaiFatLfnDirectory *dir, int offset, int len) {
             auto realEntry = dir->dir->getEntry(offset + len - 1);
             std::string shortName = realEntry->getShortName().asSimpleString();
             std::string akaiPart = StrUtil::trim_copy(AkaiPart::parse(realEntry->data).asSimpleString());

@@ -6,7 +6,6 @@
 #include "../ByteBuffer.hpp"
 #include "LittleEndian.hpp"
 #include "ShortName.hpp"
-#include "FatType.hpp"
 
 #include <utility>
 #include <vector>
@@ -17,7 +16,6 @@ namespace akaifat::fat {
     class FatDirectoryEntry : public AbstractFsObject {
 
     private:
-        FatType *type;
         bool dirty{};
         static const int OFFSET_ATTRIBUTES = 0x0b;
         static const int OFFSET_FILE_SIZE = 0x1c;
@@ -29,12 +27,12 @@ namespace akaifat::fat {
         static const int F_ARCHIVE = 0x20;
 
     public:
-        explicit FatDirectoryEntry(FatType *fs)
-                : FatDirectoryEntry(fs, std::vector<char>(SIZE), false) {
+        explicit FatDirectoryEntry()
+                : FatDirectoryEntry(std::vector<char>(SIZE), false) {
         }
 
-        FatDirectoryEntry(FatType *fs, std::vector<char> _data, bool readOnly)
-                : AbstractFsObject(readOnly), type(fs), data(std::move(_data)) {
+        FatDirectoryEntry(std::vector<char> _data, bool readOnly)
+                : AbstractFsObject(readOnly), data(std::move(_data)) {
         }
 
         void setFlag(int mask, bool set) {
@@ -64,8 +62,7 @@ namespace akaifat::fat {
         static int const SIZE = 32;
         static int const ENTRY_DELETED_MAGIC = 0xe5;
 
-        static FatDirectoryEntry *read(
-                FatType *type, ByteBuffer &buff, bool readOnly) {
+        static FatDirectoryEntry *read(ByteBuffer &buff, bool readOnly) {
 
             assert (buff.remaining() >= SIZE);
 
@@ -74,7 +71,7 @@ namespace akaifat::fat {
 
             std::vector<char> data(SIZE);
             buff.get(data);
-            return new FatDirectoryEntry(type, data, readOnly);
+            return new FatDirectoryEntry(data, readOnly);
         }
 
         static void writeNullEntry(ByteBuffer &buff) {
@@ -125,7 +122,7 @@ namespace akaifat::fat {
                    isHiddenFlag() && isVolumeIdFlag();
         }
 
-        bool isDirty() {
+        [[nodiscard]] bool isDirty() const {
             return dirty;
         }
 
@@ -133,8 +130,8 @@ namespace akaifat::fat {
             return ((getFlags() & (F_DIRECTORY | F_VOLUME_ID)) == F_DIRECTORY);
         }
 
-        static FatDirectoryEntry *create(FatType *type, bool directory) {
-            auto result = new FatDirectoryEntry(type);
+        static FatDirectoryEntry *create(bool directory) {
+            auto result = new FatDirectoryEntry();
 
             if (directory) {
                 result->setFlags(F_DIRECTORY);
@@ -143,8 +140,7 @@ namespace akaifat::fat {
             return result;
         }
 
-        static FatDirectoryEntry *createVolumeLabel(
-                FatType *type, const std::string &volumeLabel) {
+        static FatDirectoryEntry *createVolumeLabel(const std::string &volumeLabel) {
 
             assert(volumeLabel.length() != 0);
 
@@ -153,7 +149,7 @@ namespace akaifat::fat {
             for (int i = 0; i < volumeLabel.length(); i++)
                 data[i] = volumeLabel[i];
 
-            auto result = new FatDirectoryEntry(type, data, false);
+            auto result = new FatDirectoryEntry(data, false);
             result->setFlags(FatDirectoryEntry::F_VOLUME_ID);
             return result;
         }
@@ -191,7 +187,7 @@ namespace akaifat::fat {
 
         ShortName getShortName() {
             if (data[0] == 0) {
-                return ShortName("uninit", "");
+                return ShortName("", "");
             } else {
                 return ShortName::parse(data);
             }

@@ -43,7 +43,6 @@ namespace akaifat::fat {
 
         ClusterChainDirectory(ClusterChain* _chain, bool isRoot)
                 : AbstractDirectory(
-                _chain->getFat()->getFatType(),
                 (int) (_chain->getLengthOnDisk() / 32),
                 _chain->isReadOnly(), isRoot), chain(_chain) {
         }

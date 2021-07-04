@@ -2,7 +2,6 @@
 
 #include "../AbstractFileSystem.hpp"
 
-#include "FatType.hpp"
 #include "AkaiFatLfnDirectory.hpp"
 #include "Fat.hpp"
 #include "Fat16BootSector.hpp"
@@ -17,7 +16,6 @@ private:
     Fat16BootSector* bs;
     AkaiFatLfnDirectory* rootDir;
     AbstractDirectory* rootDirStore;
-    FatType* fatType;
     long filesOffset;
             
 public:
@@ -35,15 +33,12 @@ public:
         delete bs;
         delete rootDir;
         delete rootDirStore;
-        delete fatType;
     }
-    
+
     long getFilesOffset();
 
-    FatType* getFatType();
-
     std::string getVolumeLabel();
-    
+
     void setVolumeLabel(std::string label);
 
     AbstractDirectory* getRootDirStore();
@@ -51,8 +46,6 @@ public:
     void flush() override;
     
     AkaiFatLfnDirectory* getRoot() override;
-    
-    Fat* getFat();
 
     BootSector* getBootSector();
 

@@ -49,7 +49,7 @@ AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry *entry)
     return result;
 }
 
-FsDirectoryEntry *AkaiFatLfnDirectory::addFile(std::string &name) {
+FsDirectoryEntry* AkaiFatLfnDirectory::addFile(std::string &name) {
     checkWritable();
     checkUniqueName(name);
 
@@ -82,7 +82,7 @@ std::vector<std::string> AkaiFatLfnDirectory::splitName(std::string &s) {
     return {s.substr(0, it), s.substr(it + 1)};
 }
 
-FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &_name) {
+FsDirectoryEntry* AkaiFatLfnDirectory::addDirectory(std::string &_name) {
     checkWritable();
     checkUniqueName(_name);
     auto name = StrUtil::trim(_name);
@@ -108,8 +108,8 @@ FsDirectoryEntry *AkaiFatLfnDirectory::addDirectory(std::string &_name) {
     return e;
 }
 
-FsDirectoryEntry *AkaiFatLfnDirectory::getEntry(std::string &name) {
-    if (akaiNameIndex.find(name) == akaiNameIndex.end()) return nullptr;
+FsDirectoryEntry* AkaiFatLfnDirectory::getEntry(std::string &name) {
+    if (akaiNameIndex.find(name) == akaiNameIndex.end()) return {};
     return akaiNameIndex[StrUtil::to_lower_copy(name)];
 }
 
@@ -131,13 +131,13 @@ void AkaiFatLfnDirectory::remove(std::string &name) {
 
     auto entry = getEntry(name);
 
-    if (entry == nullptr) return;
+    if (!entry) return;
 
-    auto akaiEntry = dynamic_cast<AkaiFatLfnDirectoryEntry *>(entry);
+    auto akaiEntry = dynamic_cast<AkaiFatLfnDirectoryEntry*>(entry);
     unlinkEntry(akaiEntry);
 
+    // Temporary helper object to modify the fat
     ClusterChain cc(fat, akaiEntry->realEntry->getStartCluster(), false);
-
     cc.setChainLength(0);
 
     updateLFN();
@@ -185,7 +185,8 @@ void AkaiFatLfnDirectory::parseLfn() {
     int size = dir->getEntryCount();
 
     while (i < size) {
-        while (i < size && (dir->getEntry(i) == nullptr || dir->getEntry(i)->getShortName().asSimpleString().length() == 0)) {
+        while (i < size &&
+               (dir->getEntry(i) == nullptr || dir->getEntry(i)->getShortName().asSimpleString().length() == 0)) {
             i++;
         }
 

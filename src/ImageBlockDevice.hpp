@@ -13,11 +13,11 @@ private:
     std::fstream& img;
     
 public:
-    ImageBlockDevice(std::fstream& _img) : img (_img) {}
+    explicit ImageBlockDevice(std::fstream& _img) : img (_img) {}
     
-    bool isClosed() { return false; }
+    bool isClosed() override { return false; }
 
-    long getSize() {
+    long getSize() override {
         const auto begin = img.tellg();
         img.seekg (0, std::ios::end);
         const auto end = img.tellg();
@@ -25,7 +25,7 @@ public:
         return fsize;
     }
 
-    void read(long devOffset, ByteBuffer& dest) {
+    void read(long devOffset, ByteBuffer& dest) override {
         if (isClosed()) throw std::runtime_error("device closed");
         
         auto toReadTotal = dest.remaining();
@@ -54,14 +54,14 @@ public:
         src.position(src.position() + toWrite);
     }
             
-    void flush() {
+    void flush() override {
     }
 
-    int getSectorSize() {
+    int getSectorSize() override {
         return 512;
     }
 
-    void close() {}
+    void close() override {}
     
     bool isReadOnly() override { return false; }
     

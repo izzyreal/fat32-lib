@@ -2,6 +2,7 @@
 
 #include "FsDirectoryEntry.hpp"
 
+#include <memory>
 #include <algorithm>
 #include <exception>
 #include <map>
@@ -11,11 +12,11 @@
 namespace akaifat {
 class FsDirectory {
 public:
-    virtual FsDirectoryEntry* getEntry(std::string& name) = 0;
+    virtual FsDirectoryEntry * getEntry(std::string& name) = 0;
 
-    virtual FsDirectoryEntry* addFile(std::string& name) = 0;
+    virtual FsDirectoryEntry * addFile(std::string& name) = 0;
 
-    virtual FsDirectoryEntry* addDirectory(std::string& name) = 0;
+    virtual FsDirectoryEntry * addDirectory(std::string& name) = 0;
 
     virtual void remove(std::string& name) = 0;
 

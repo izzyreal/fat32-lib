@@ -1,15 +1,13 @@
 #pragma once
 
-#include "FatType.hpp"
-#include "Fat.hpp"
+#include "../ByteBuffer.hpp"
 
 #include <vector>
 #include <string>
 
-using namespace akaifat;
-
 namespace akaifat::fat {
 
+    class Fat;
     class FatDirectoryEntry;
 
     class AbstractDirectory {
@@ -48,7 +46,6 @@ namespace akaifat::fat {
         std::vector<FatDirectoryEntry *> entries;
         bool readOnly;
         bool _isRoot;
-        FatType *type;
 
         int capacity;
         std::string volumeLabel;
@@ -56,12 +53,7 @@ namespace akaifat::fat {
         void checkRoot() const;
 
     public:
-        AbstractDirectory(
-                FatType *type,
-                int capacity,
-                bool readOnly,
-                bool isRoot
-        );
+        AbstractDirectory(int _capacity, bool _readOnly, bool _root);
 
         virtual void read(ByteBuffer &data) = 0;
 

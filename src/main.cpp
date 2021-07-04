@@ -10,7 +10,7 @@ using namespace akaifat::fat;
 
 int main() {
     std::fstream img;
-    img.open("/Users/izmar/Desktop/fat16-near-empty/fat16.img", std::ios_base::in | std::ios_base::out);
+    img.open("/Users/izmar/Desktop/fat16.img", std::ios_base::in | std::ios_base::out);
 
     img.seekg(std::ios::beg);
 

@@ -7,62 +7,64 @@
 #include "ClusterChainDirectory.hpp"
 #include "Fat.hpp"
 #include "FatFile.hpp"
-#include "AbstractDirectory.hpp"
 
+#include <memory>
 #include <set>
 
 namespace akaifat { class FsDirectoryEntry; }
 
 namespace akaifat::fat {
-class AkaiFatLfnDirectoryEntry;
-class AkaiFatLfnDirectory : public akaifat::AbstractFsObject, public akaifat::FsDirectory
-{
-public:
-	AbstractDirectory* dir;
-    std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
 
-	AkaiFatLfnDirectory(AbstractDirectory* dir, Fat* fat, bool readOnly);
+    class AbstractDirectory;
+    class AkaiFatLfnDirectoryEntry;
 
-	Fat* getFat();
+    class AkaiFatLfnDirectory : public akaifat::AbstractFsObject, public akaifat::FsDirectory {
+    public:
+        AbstractDirectory *dir;
+        std::map<std::string, AkaiFatLfnDirectoryEntry*> akaiNameIndex;
 
-	FatFile* getFile(FatDirectoryEntry* entry);
+        AkaiFatLfnDirectory(AbstractDirectory *dir, Fat *fat, bool readOnly);
 
-    AkaiFatLfnDirectory* getDirectory(FatDirectoryEntry* entry);
+        Fat *getFat();
 
-    akaifat::FsDirectoryEntry* addFile(std::string& name) override;
+        FatFile *getFile(FatDirectoryEntry *entry);
 
-	bool isFreeName(std::string& name);
+        AkaiFatLfnDirectory *getDirectory(FatDirectoryEntry *entry);
 
-	static std::vector<std::string> splitName(std::string& s);
+        akaifat::FsDirectoryEntry* addFile(std::string &name) override;
 
-    akaifat::FsDirectoryEntry* addDirectory(std::string& name) override;
+        bool isFreeName(std::string &name);
 
-    akaifat::FsDirectoryEntry* getEntry(std::string& name) override;
+        static std::vector<std::string> splitName(std::string &s);
 
-	void flush() override;
+        akaifat::FsDirectoryEntry* addDirectory(std::string &name) override;
 
-	void remove(std::string& name) override;
+        akaifat::FsDirectoryEntry* getEntry(std::string &name) override;
 
-	void unlinkEntry(AkaiFatLfnDirectoryEntry* entry);
+        void flush() override;
 
-	void linkEntry(AkaiFatLfnDirectoryEntry* entry);
+        void remove(std::string &name) override;
 
-private:
-	std::set<std::string> usedAkaiNames;
-	Fat* fat;
-	std::map<FatDirectoryEntry*, FatFile*> entryToFile;
-	std::map<FatDirectoryEntry*, AkaiFatLfnDirectory*> entryToDirectory;
+        void unlinkEntry(AkaiFatLfnDirectoryEntry *entry);
 
-	void checkUniqueName(std::string& name);
+        void linkEntry(AkaiFatLfnDirectoryEntry *entry);
 
-	void parseLfn();
+    private:
+        std::set<std::string> usedAkaiNames;
+        Fat *fat;
+        std::map<FatDirectoryEntry *, FatFile *> entryToFile;
+        std::map<FatDirectoryEntry *, AkaiFatLfnDirectory *> entryToDirectory;
 
-	void updateLFN();
+        void checkUniqueName(std::string &name);
 
-	static ClusterChainDirectory* read(FatDirectoryEntry*, Fat*);
+        void parseLfn();
 
-    bool isDirValid() override;
+        void updateLFN();
 
-    bool isDirReadOnly() override;
-};
+        static ClusterChainDirectory *read(FatDirectoryEntry *, Fat *);
+
+        bool isDirValid() override;
+
+        bool isDirReadOnly() override;
+    };
 }

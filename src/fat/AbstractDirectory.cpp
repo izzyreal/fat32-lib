@@ -1,17 +1,12 @@
 #include "AbstractDirectory.hpp"
 
-#include "FatType.hpp"
 #include "FatDirectoryEntry.hpp"
 #include "ClusterChainDirectory.hpp"
 
 using namespace akaifat::fat;
 
-AbstractDirectory::AbstractDirectory(
-        FatType *_type,
-        int _capacity,
-        bool _readOnly,
-        bool _root
-) : type(_type), capacity(_capacity), readOnly(_readOnly), _isRoot(_root) {
+AbstractDirectory::AbstractDirectory(int _capacity, bool _readOnly, bool _root)
+        : capacity(_capacity), readOnly(_readOnly), _isRoot(_root) {
 }
 
 void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry *> &newEntries) {
@@ -37,7 +32,7 @@ void AbstractDirectory::read() {
     data.flip();
 
     for (int i = 0; i < capacity; i++) {
-        auto e = FatDirectoryEntry::read(type, data, readOnly);
+        auto e = FatDirectoryEntry::read(data, readOnly);
 
         if (e == nullptr) continue;
 
@@ -83,7 +78,7 @@ void AbstractDirectory::flush() {
 
     if (volumeLabel.length() != 0) {
         auto labelEntry =
-                FatDirectoryEntry::createVolumeLabel(type, volumeLabel);
+                FatDirectoryEntry::createVolumeLabel(volumeLabel);
 
         labelEntry->write(data);
     }
@@ -126,18 +121,18 @@ FatDirectoryEntry *AbstractDirectory::createSub(Fat *fat) {
     auto chain = new ClusterChain(fat, false);
     chain->setChainLength(1);
 
-    auto entry = FatDirectoryEntry::create(type, true);
+    auto entry = FatDirectoryEntry::create(true);
     entry->setStartCluster(chain->getStartCluster());
 
     auto dir = new ClusterChainDirectory(chain, false);
 
-    auto dot = FatDirectoryEntry::create(type, true);
+    auto dot = FatDirectoryEntry::create(true);
     auto sn_dot = ShortName::DOT();
     dot->setShortName(sn_dot);
     dot->setStartCluster(dir->getStorageCluster());
     dir->addEntry(dot);
 
-    auto dotDot = FatDirectoryEntry::create(type, true);
+    auto dotDot = FatDirectoryEntry::create(true);
     dotDot->setShortName(ShortName::DOT_DOT());
     dotDot->setStartCluster(getStorageCluster());
     dir->addEntry(dotDot);

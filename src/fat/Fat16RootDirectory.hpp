@@ -9,7 +9,7 @@ namespace akaifat::fat {
         long deviceOffset;
 
         Fat16RootDirectory(Fat16BootSector *bs, bool readOnly)
-                : AbstractDirectory(bs->getFatType(), bs->getRootDirEntryCount(), readOnly, true) {
+                : AbstractDirectory(bs->getRootDirEntryCount(), readOnly, true) {
             if (bs->getRootDirEntryCount() <= 0)
                 throw std::runtime_error("root directory size is " + std::to_string(bs->getRootDirEntryCount()));
 

@@ -16,7 +16,6 @@ AkaiFatFileSystem::AkaiFatFileSystem(
             throw std::runtime_error("boot sector says there are no FATs");
     
     filesOffset = bs->getFilesOffset();
-    fatType = bs->getFatType();
     fat = Fat::read(bs, 0);
 
     if (!ignoreFatDifferences)
@@ -45,13 +44,6 @@ long AkaiFatFileSystem::getFilesOffset()
     checkClosed();
 
     return filesOffset;
-}
-
-FatType* AkaiFatFileSystem::getFatType()
-{
-    checkClosed();
-
-    return fatType;
 }
 
 std::string AkaiFatFileSystem::getVolumeLabel()
@@ -97,11 +89,6 @@ AkaiFatLfnDirectory* AkaiFatFileSystem::getRoot()
     checkClosed();
     
     return rootDir;
-}
-
-Fat* AkaiFatFileSystem::getFat()
-{
-    return fat;
 }
 
 BootSector* AkaiFatFileSystem::getBootSector()
