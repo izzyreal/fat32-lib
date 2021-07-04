@@ -16,9 +16,9 @@ namespace akaifat::fat {
 
         static const int MAX_LABEL_LENGTH = 11;
 
-        void setEntries(std::vector<FatDirectoryEntry *> &newEntries);
+        void setEntries(std::vector<std::shared_ptr<FatDirectoryEntry>> &newEntries);
 
-        FatDirectoryEntry *getEntry(int idx);
+        std::shared_ptr<FatDirectoryEntry> getEntry(int idx);
 
         [[nodiscard]] int getCapacity() const;
 
@@ -30,20 +30,20 @@ namespace akaifat::fat {
 
         void flush();
 
-        void addEntry(FatDirectoryEntry *);
+        void addEntry(std::shared_ptr<FatDirectoryEntry>);
 
-        void removeEntry(FatDirectoryEntry *);
+        void removeEntry(std::shared_ptr<FatDirectoryEntry>);
 
         std::string &getLabel();
 
-        FatDirectoryEntry *createSub(Fat *fat);
+        std::shared_ptr<FatDirectoryEntry> createSub(Fat *fat);
 
         void setLabel(std::string &label);
 
         virtual void changeSize(int entryCount) = 0;
 
     private:
-        std::vector<FatDirectoryEntry *> entries;
+        std::vector<std::shared_ptr<FatDirectoryEntry>> entries;
         bool readOnly;
         bool _isRoot;
 

@@ -13,15 +13,15 @@
 namespace akaifat::fat {
     class FatFile : public akaifat::AbstractFsObject, public akaifat::FsFile {
     private:
-        FatDirectoryEntry *entry;
+        std::shared_ptr<FatDirectoryEntry> entry;
         ClusterChain chain;
 
-        FatFile(FatDirectoryEntry *myEntry, ClusterChain _chain)
+        FatFile(const std::shared_ptr<FatDirectoryEntry>& myEntry, ClusterChain _chain)
                 : akaifat::AbstractFsObject(myEntry->isReadOnly()), entry(myEntry), chain(std::move(_chain)) {
         }
 
     public:
-        static FatFile *get(Fat *fat, FatDirectoryEntry *entry) {
+        static FatFile *get(Fat *fat, const std::shared_ptr<FatDirectoryEntry>& entry) {
 
             if (entry->isDirectory())
                 throw std::runtime_error(entry->getShortName().asSimpleString() + " is a directory");

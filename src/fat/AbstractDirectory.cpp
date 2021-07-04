@@ -9,7 +9,7 @@ AbstractDirectory::AbstractDirectory(int _capacity, bool _readOnly, bool _root)
         : capacity(_capacity), readOnly(_readOnly), _isRoot(_root) {
 }
 
-void AbstractDirectory::setEntries(std::vector<FatDirectoryEntry *> &newEntries) {
+void AbstractDirectory::setEntries(std::vector<std::shared_ptr<FatDirectoryEntry>> &newEntries) {
     if (newEntries.size() > capacity)
         throw std::runtime_error("too many entries");
 
@@ -47,7 +47,7 @@ void AbstractDirectory::read() {
     }
 }
 
-FatDirectoryEntry *AbstractDirectory::getEntry(int idx) {
+std::shared_ptr<FatDirectoryEntry> AbstractDirectory::getEntry(int idx) {
     return entries[idx];
 }
 
@@ -91,7 +91,7 @@ void AbstractDirectory::flush() {
     write(data);
 }
 
-void AbstractDirectory::addEntry(FatDirectoryEntry *e) {
+void AbstractDirectory::addEntry(std::shared_ptr<FatDirectoryEntry> e) {
     assert (e != nullptr);
 
     if (getSize() == capacity)
@@ -100,7 +100,7 @@ void AbstractDirectory::addEntry(FatDirectoryEntry *e) {
     entries.push_back(e);
 }
 
-void AbstractDirectory::removeEntry(FatDirectoryEntry *entry) {
+void AbstractDirectory::removeEntry(std::shared_ptr<FatDirectoryEntry> entry) {
     assert (entry != nullptr);
 
     auto it = find(begin(entries), end(entries), entry);
@@ -117,27 +117,27 @@ std::string &AbstractDirectory::getLabel() {
     return volumeLabel;
 }
 
-FatDirectoryEntry *AbstractDirectory::createSub(Fat *fat) {
+std::shared_ptr<FatDirectoryEntry> AbstractDirectory::createSub(Fat *fat) {
     auto chain = std::make_shared<ClusterChain>(fat, false);
     chain->setChainLength(1);
 
     auto entry = FatDirectoryEntry::create(true);
     entry->setStartCluster(chain->getStartCluster());
 
-    auto dir = new ClusterChainDirectory(chain, false);
+    ClusterChainDirectory dir(chain, false);
 
     auto dot = FatDirectoryEntry::create(true);
     auto sn_dot = ShortName::DOT();
     dot->setShortName(sn_dot);
-    dot->setStartCluster(dir->getStorageCluster());
-    dir->addEntry(dot);
+    dot->setStartCluster(dir.getStorageCluster());
+    dir.addEntry(dot);
 
     auto dotDot = FatDirectoryEntry::create(true);
     dotDot->setShortName(ShortName::DOT_DOT());
     dotDot->setStartCluster(getStorageCluster());
-    dir->addEntry(dotDot);
+    dir.addEntry(dotDot);
 
-    dir->flush();
+    dir.flush();
 
     return entry;
 }

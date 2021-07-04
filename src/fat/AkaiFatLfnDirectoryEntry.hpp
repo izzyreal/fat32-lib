@@ -30,10 +30,10 @@ namespace akaifat::fat {
 
         bool isReadOnly() override { return AbstractFsObject::isReadOnly(); }
 
-        AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory *akaiFatLfnDirectory, FatDirectoryEntry *_realEntry,
+        AkaiFatLfnDirectoryEntry(AkaiFatLfnDirectory *akaiFatLfnDirectory, std::shared_ptr<FatDirectoryEntry> _realEntry,
                                  std::string _fileName)
                 : AbstractFsObject(akaiFatLfnDirectory->isReadOnly()), parent(akaiFatLfnDirectory),
-                  realEntry(_realEntry), fileName(std::move(_fileName)) {
+                  realEntry(std::move(_realEntry)), fileName(std::move(_fileName)) {
         }
 
         static std::shared_ptr<AkaiFatLfnDirectoryEntry> extract(AkaiFatLfnDirectory *dir, int offset, int len) {
@@ -158,6 +158,6 @@ namespace akaifat::fat {
             return realEntry->isDirty();
         }
 
-        FatDirectoryEntry *realEntry;
+        std::shared_ptr<FatDirectoryEntry> realEntry;
     };
 }

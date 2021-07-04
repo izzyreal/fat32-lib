@@ -24,7 +24,7 @@ std::shared_ptr<Fat> AkaiFatLfnDirectory::getFat() {
     return fat;
 }
 
-FatFile *AkaiFatLfnDirectory::getFile(FatDirectoryEntry *entry) {
+FatFile *AkaiFatLfnDirectory::getFile(std::shared_ptr<FatDirectoryEntry> entry) {
     FatFile *file;
 
     if (entryToFile.find(entry) == end(entryToFile)) {
@@ -37,7 +37,7 @@ FatFile *AkaiFatLfnDirectory::getFile(FatDirectoryEntry *entry) {
     return file;
 }
 
-AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry *entry) {
+AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(std::shared_ptr<FatDirectoryEntry> entry) {
     AkaiFatLfnDirectory *result;
 
     if (entryToDirectory.find(entry) == end(entryToDirectory)) {
@@ -148,7 +148,7 @@ void AkaiFatLfnDirectory::remove(std::string &name) {
 }
 
 std::shared_ptr<AkaiFatLfnDirectoryEntry>
-AkaiFatLfnDirectory::unlinkEntry(std::string &entryName, bool isFile, FatDirectoryEntry *realEntry) {
+AkaiFatLfnDirectory::unlinkEntry(std::string &entryName, bool isFile, std::shared_ptr<FatDirectoryEntry> realEntry) {
     if (entryName.length() == 0 || entryName[0] == '.') return {};
 
     std::string lowerName = StrUtil::to_lower_copy(entryName);
@@ -227,7 +227,7 @@ void AkaiFatLfnDirectory::parseLfn() {
 }
 
 void AkaiFatLfnDirectory::updateLFN() {
-    std::vector<FatDirectoryEntry *> dest;
+    std::vector<std::shared_ptr<FatDirectoryEntry>> dest;
 
     for (auto &currentEntry : akaiNameIndex) {
         dest.push_back(currentEntry.second->realEntry);
@@ -237,7 +237,7 @@ void AkaiFatLfnDirectory::updateLFN() {
     dir->setEntries(dest);
 }
 
-ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *fat) {
+ClusterChainDirectory *AkaiFatLfnDirectory::read(std::shared_ptr<FatDirectoryEntry> entry, Fat *fat) {
     if (!entry->isDirectory()) throw std::runtime_error(entry->getShortName().asSimpleString() + " is no directory");
 
     auto chain = std::make_shared<ClusterChain>(fat, entry->getStartCluster(), entry->isReadonlyFlag());

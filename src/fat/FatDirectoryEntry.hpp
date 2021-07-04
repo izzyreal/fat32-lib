@@ -62,16 +62,16 @@ namespace akaifat::fat {
         static int const SIZE = 32;
         static int const ENTRY_DELETED_MAGIC = 0xe5;
 
-        static FatDirectoryEntry *read(ByteBuffer &buff, bool readOnly) {
+        static std::shared_ptr<FatDirectoryEntry> read(ByteBuffer &buff, bool readOnly) {
 
             assert (buff.remaining() >= SIZE);
 
             if (buff.get(buff.position()) == 0)
-                return nullptr;
+                return {};
 
             std::vector<char> data(SIZE);
             buff.get(data);
-            return new FatDirectoryEntry(data, readOnly);
+            return std::make_shared<FatDirectoryEntry>(data, readOnly);
         }
 
         static void writeNullEntry(ByteBuffer &buff) {
@@ -130,8 +130,8 @@ namespace akaifat::fat {
             return ((getFlags() & (F_DIRECTORY | F_VOLUME_ID)) == F_DIRECTORY);
         }
 
-        static FatDirectoryEntry *create(bool directory) {
-            auto result = new FatDirectoryEntry();
+        static std::shared_ptr<FatDirectoryEntry> create(bool directory) {
+            auto result = std::make_shared<FatDirectoryEntry>();
 
             if (directory) {
                 result->setFlags(F_DIRECTORY);
