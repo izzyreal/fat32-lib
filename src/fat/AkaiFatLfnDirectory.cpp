@@ -1,12 +1,14 @@
 #include "AkaiFatLfnDirectory.hpp"
 
+#include <utility>
+
 #include "AkaiFatLfnDirectoryEntry.hpp"
 
 using namespace akaifat::fat;
 using namespace akaifat;
 
-AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory *_dir, Fat *_fat, bool readOnly)
-        : AbstractFsObject(readOnly), dir(_dir), fat(_fat) {
+AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory *_dir, std::shared_ptr<Fat> _fat, bool readOnly)
+        : AbstractFsObject(readOnly), dir(_dir), fat(std::move(_fat)) {
     parseLfn();
 }
 
@@ -18,7 +20,7 @@ bool AkaiFatLfnDirectory::isDirValid() {
     return AbstractFsObject::isValid();
 }
 
-Fat *AkaiFatLfnDirectory::getFat() {
+std::shared_ptr<Fat> AkaiFatLfnDirectory::getFat() {
     return fat;
 }
 
@@ -26,7 +28,7 @@ FatFile *AkaiFatLfnDirectory::getFile(FatDirectoryEntry *entry) {
     FatFile *file;
 
     if (entryToFile.find(entry) == end(entryToFile)) {
-        file = FatFile::get(fat, entry);
+        file = FatFile::get(fat.get(), entry);
         entryToFile[entry] = file;
     } else {
         file = entryToFile[entry];
@@ -39,7 +41,7 @@ AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(FatDirectoryEntry *entry)
     AkaiFatLfnDirectory *result;
 
     if (entryToDirectory.find(entry) == end(entryToDirectory)) {
-        auto storage = read(entry, fat);
+        auto storage = read(entry, fat.get());
         result = new AkaiFatLfnDirectory(storage, fat, isReadOnly());
         entryToDirectory[entry] = result;
     } else {
@@ -86,7 +88,7 @@ std::shared_ptr<FsDirectoryEntry> AkaiFatLfnDirectory::addDirectory(std::string 
     checkWritable();
     checkUniqueName(_name);
     auto name = StrUtil::trim(_name);
-    auto real = dir->createSub(fat);
+    auto real = dir->createSub(fat.get());
     ShortName sn(name);
     real->setAkaiName(name);
     auto e = std::make_shared<AkaiFatLfnDirectoryEntry>(this, real, name);
@@ -94,7 +96,7 @@ std::shared_ptr<FsDirectoryEntry> AkaiFatLfnDirectory::addDirectory(std::string 
     try {
         dir->addEntry(real);
     } catch (std::exception &ex) {
-        ClusterChain cc(fat, real->getStartCluster(), false);
+        ClusterChain cc(fat.get(), real->getStartCluster(), false);
         cc.setChainLength(0);
         dir->removeEntry(real);
         throw ex;
@@ -139,7 +141,7 @@ void AkaiFatLfnDirectory::remove(std::string &name) {
     unlinkEntry(entryName, isFile, akaiEntry->realEntry);
 
     // Temporary helper object to modify the fat
-    ClusterChain cc(fat, akaiEntry->realEntry->getStartCluster(), false);
+    ClusterChain cc(fat.get(), akaiEntry->realEntry->getStartCluster(), false);
     cc.setChainLength(0);
 
     updateLFN();
@@ -238,7 +240,7 @@ void AkaiFatLfnDirectory::updateLFN() {
 ClusterChainDirectory *AkaiFatLfnDirectory::read(FatDirectoryEntry *entry, Fat *fat) {
     if (!entry->isDirectory()) throw std::runtime_error(entry->getShortName().asSimpleString() + " is no directory");
 
-    auto chain = new ClusterChain(fat, entry->getStartCluster(), entry->isReadonlyFlag());
+    auto chain = std::make_shared<ClusterChain>(fat, entry->getStartCluster(), entry->isReadonlyFlag());
 
     auto result = new ClusterChainDirectory(chain, false);
 

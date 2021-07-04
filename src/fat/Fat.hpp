@@ -19,44 +19,6 @@ private:
     
     int lastAllocatedCluster;
 
-    Fat(BootSector* _bs, long _offset)
-    : bs (_bs), offset (_offset)
-    {
-        device = bs->getDevice();
-        fatType = bs->getFatType();
-        
-        if (bs->getSectorsPerFat() > INT_MAX)
-            throw std::runtime_error("FAT too large");
-
-        if (bs->getSectorsPerFat() <= 0)
-                throw std::runtime_error("boot sector says there are " + std::to_string(bs->getSectorsPerFat()) +
-                " sectors per FAT");
-
-        if (bs->getBytesPerSector() <= 0)
-                throw std::runtime_error("boot sector says there are " + std::to_string(bs->getBytesPerSector()) +
-                " bytes per sector");
-
-        sectorCount = (int) bs->getSectorsPerFat();
-        sectorSize = bs->getBytesPerSector();
-        lastAllocatedCluster = FIRST_CLUSTER;
-        
-        if (bs->getDataClusterCount() > INT_MAX) throw
-            std::runtime_error("too many data clusters");
-        
-        if (bs->getDataClusterCount() == 0) throw
-            std::runtime_error("no data clusters");
-        
-        lastClusterIndex = (int) bs->getDataClusterCount() + FIRST_CLUSTER;
-
-        entries = std::vector<long>((sectorCount * sectorSize) /
-                fatType->getEntrySize());
-                
-        if (lastClusterIndex > entries.size())
-            throw std::runtime_error("file system has " + std::to_string(lastClusterIndex) +
-            " clusters but only " + std::to_string(entries.size()) + " FAT entries");
-    }
-    
-
     void init(int mediumDescriptor) {
         entries[0] =
                 (mediumDescriptor & 0xFF) |
@@ -74,8 +36,45 @@ private:
     
 public:
     static const int FIRST_CLUSTER = 2;
-    
-    static Fat* read(BootSector* bs, int fatNr) {
+
+    Fat(BootSector* _bs, long _offset)
+            : bs (_bs), offset (_offset)
+    {
+        device = bs->getDevice();
+        fatType = bs->getFatType();
+
+        if (bs->getSectorsPerFat() > INT_MAX)
+            throw std::runtime_error("FAT too large");
+
+        if (bs->getSectorsPerFat() <= 0)
+            throw std::runtime_error("boot sector says there are " + std::to_string(bs->getSectorsPerFat()) +
+                                     " sectors per FAT");
+
+        if (bs->getBytesPerSector() <= 0)
+            throw std::runtime_error("boot sector says there are " + std::to_string(bs->getBytesPerSector()) +
+                                     " bytes per sector");
+
+        sectorCount = (int) bs->getSectorsPerFat();
+        sectorSize = bs->getBytesPerSector();
+        lastAllocatedCluster = FIRST_CLUSTER;
+
+        if (bs->getDataClusterCount() > INT_MAX) throw
+                    std::runtime_error("too many data clusters");
+
+        if (bs->getDataClusterCount() == 0) throw
+                    std::runtime_error("no data clusters");
+
+        lastClusterIndex = (int) bs->getDataClusterCount() + FIRST_CLUSTER;
+
+        entries = std::vector<long>((sectorCount * sectorSize) /
+                                    fatType->getEntrySize());
+
+        if (lastClusterIndex > entries.size())
+            throw std::runtime_error("file system has " + std::to_string(lastClusterIndex) +
+                                     " clusters but only " + std::to_string(entries.size()) + " FAT entries");
+    }
+
+    static std::shared_ptr<Fat> read(BootSector* bs, int fatNr) {
         
         if (fatNr > bs->getNrFats()) {
             throw std::runtime_error("boot sector says there are only " + std::to_string(bs->getNrFats()) +
@@ -83,7 +82,7 @@ public:
         }
         
         long fatOffset = bs->getFatOffset(fatNr);
-        auto result = new Fat(bs, fatOffset);
+        auto result = std::make_shared<Fat>(bs, fatOffset);
         result->read();
         return result;
     }
@@ -259,7 +258,7 @@ public:
         entries[(int) cluster] = 0;
     }
     
-    bool equals(Fat* other) {
+    bool equals(const std::shared_ptr<Fat>& other) {
         if (fatType != other->fatType) return false;
         if (sectorCount != other->sectorCount) return false;
         if (sectorSize != other->sectorSize) return false;

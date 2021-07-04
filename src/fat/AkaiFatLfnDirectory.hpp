@@ -24,9 +24,9 @@ namespace akaifat::fat {
         AbstractDirectory *dir;
         std::map<std::string, std::shared_ptr<AkaiFatLfnDirectoryEntry>> akaiNameIndex;
 
-        AkaiFatLfnDirectory(AbstractDirectory *dir, Fat *fat, bool readOnly);
+        AkaiFatLfnDirectory(AbstractDirectory *dir, std::shared_ptr<Fat> fat, bool readOnly);
 
-        Fat *getFat();
+        std::shared_ptr<Fat> getFat();
 
         FatFile *getFile(FatDirectoryEntry *entry);
 
@@ -53,7 +53,7 @@ namespace akaifat::fat {
 
     private:
         std::set<std::string> usedAkaiNames;
-        Fat *fat;
+        std::shared_ptr<Fat> fat;
         std::map<FatDirectoryEntry *, FatFile *> entryToFile;
         std::map<FatDirectoryEntry *, AkaiFatLfnDirectory *> entryToDirectory;
 

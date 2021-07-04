@@ -39,16 +39,16 @@ namespace akaifat::fat {
     public:
         static const int MAX_SIZE = 65536 * 32;
 
-        ClusterChain *chain;
+        std::shared_ptr<ClusterChain> chain;
 
-        ClusterChainDirectory(ClusterChain* _chain, bool isRoot)
+        ClusterChainDirectory(const std::shared_ptr<ClusterChain>& _chain, bool isRoot)
                 : AbstractDirectory(
                 (int) (_chain->getLengthOnDisk() / 32),
                 _chain->isReadOnly(), isRoot), chain(_chain) {
         }
 
         static ClusterChainDirectory* readRoot(
-                ClusterChain* chain) {
+                const std::shared_ptr<ClusterChain>& chain) {
 
             auto result = new ClusterChainDirectory(chain, true);
 

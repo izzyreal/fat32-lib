@@ -118,7 +118,7 @@ std::string &AbstractDirectory::getLabel() {
 }
 
 FatDirectoryEntry *AbstractDirectory::createSub(Fat *fat) {
-    auto chain = new ClusterChain(fat, false);
+    auto chain = std::make_shared<ClusterChain>(fat, false);
     chain->setChainLength(1);
 
     auto entry = FatDirectoryEntry::create(true);

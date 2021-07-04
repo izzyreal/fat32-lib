@@ -12,7 +12,7 @@ namespace akaifat::fat {
 class AkaiFatFileSystem : public akaifat::AbstractFileSystem
 {
 private:
-    Fat* fat;
+    std::shared_ptr<Fat> fat;
     Fat16BootSector* bs;
     AkaiFatLfnDirectory* rootDir;
     AbstractDirectory* rootDirStore;
@@ -29,7 +29,6 @@ public:
     static AkaiFatFileSystem* read(BlockDevice* device, bool readOnly);
 
     ~AkaiFatFileSystem() {
-        delete fat;
         delete bs;
         delete rootDir;
         delete rootDirStore;
