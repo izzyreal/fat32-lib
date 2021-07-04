@@ -8,15 +8,6 @@ namespace akaifat::fat {
         BlockDevice *device;
         long deviceOffset;
 
-        Fat16RootDirectory(Fat16BootSector *bs, bool readOnly)
-                : AbstractDirectory(bs->getRootDirEntryCount(), readOnly, true) {
-            if (bs->getRootDirEntryCount() <= 0)
-                throw std::runtime_error("root directory size is " + std::to_string(bs->getRootDirEntryCount()));
-
-            deviceOffset = bs->getRootDirOffset();
-            device = bs->getDevice();
-        }
-
     protected:
         void read(ByteBuffer &data) override {
             device->read(deviceOffset, data);
@@ -40,9 +31,18 @@ namespace akaifat::fat {
         }
 
     public:
-        static Fat16RootDirectory *read(
+        Fat16RootDirectory(Fat16BootSector *bs, bool readOnly)
+                : AbstractDirectory(bs->getRootDirEntryCount(), readOnly, true) {
+            if (bs->getRootDirEntryCount() <= 0)
+                throw std::runtime_error("root directory size is " + std::to_string(bs->getRootDirEntryCount()));
+
+            deviceOffset = bs->getRootDirOffset();
+            device = bs->getDevice();
+        }
+
+        static std::shared_ptr<Fat16RootDirectory> read(
                 Fat16BootSector *bs, bool readOnly) {
-            auto result = new Fat16RootDirectory(bs, readOnly);
+            auto result = std::make_shared<Fat16RootDirectory>(bs, readOnly);
             result->read();
             return result;
         }

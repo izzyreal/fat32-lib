@@ -21,10 +21,10 @@ namespace akaifat::fat {
 
     class AkaiFatLfnDirectory : public akaifat::AbstractFsObject, public akaifat::FsDirectory {
     public:
-        AbstractDirectory *dir;
+        std::shared_ptr<AbstractDirectory> dir;
         std::map<std::string, std::shared_ptr<AkaiFatLfnDirectoryEntry>> akaiNameIndex;
 
-        AkaiFatLfnDirectory(AbstractDirectory *dir, std::shared_ptr<Fat> fat, bool readOnly);
+        AkaiFatLfnDirectory(std::shared_ptr<AbstractDirectory> dir, std::shared_ptr<Fat> fat, bool readOnly);
 
         std::shared_ptr<Fat> getFat();
 
@@ -63,7 +63,7 @@ namespace akaifat::fat {
 
         void updateLFN();
 
-        static ClusterChainDirectory *read(std::shared_ptr<FatDirectoryEntry>, Fat *);
+        static std::shared_ptr<ClusterChainDirectory> read(const std::shared_ptr<FatDirectoryEntry>&, Fat *);
 
         bool isDirValid() override;
 

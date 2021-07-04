@@ -62,7 +62,7 @@ void AkaiFatFileSystem::setVolumeLabel(std::string label)
     bs->setVolumeLabel(label);
 }
 
-AbstractDirectory* AkaiFatFileSystem::getRootDirStore()
+std::shared_ptr<AbstractDirectory> AkaiFatFileSystem::getRootDirStore()
 {
     checkClosed();
     

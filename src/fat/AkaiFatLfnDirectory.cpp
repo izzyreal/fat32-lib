@@ -7,8 +7,8 @@
 using namespace akaifat::fat;
 using namespace akaifat;
 
-AkaiFatLfnDirectory::AkaiFatLfnDirectory(AbstractDirectory *_dir, std::shared_ptr<Fat> _fat, bool readOnly)
-        : AbstractFsObject(readOnly), dir(_dir), fat(std::move(_fat)) {
+AkaiFatLfnDirectory::AkaiFatLfnDirectory(std::shared_ptr<AbstractDirectory> _dir, std::shared_ptr<Fat> _fat, bool readOnly)
+        : AbstractFsObject(readOnly), dir(std::move(_dir)), fat(std::move(_fat)) {
     parseLfn();
 }
 
@@ -237,12 +237,12 @@ void AkaiFatLfnDirectory::updateLFN() {
     dir->setEntries(dest);
 }
 
-ClusterChainDirectory *AkaiFatLfnDirectory::read(std::shared_ptr<FatDirectoryEntry> entry, Fat *fat) {
+std::shared_ptr<ClusterChainDirectory> AkaiFatLfnDirectory::read(const std::shared_ptr<FatDirectoryEntry>& entry, Fat *fat) {
     if (!entry->isDirectory()) throw std::runtime_error(entry->getShortName().asSimpleString() + " is no directory");
 
     auto chain = std::make_shared<ClusterChain>(fat, entry->getStartCluster(), entry->isReadonlyFlag());
 
-    auto result = new ClusterChainDirectory(chain, false);
+    auto result = std::make_shared<ClusterChainDirectory>(chain, false);
 
     result->read();
 

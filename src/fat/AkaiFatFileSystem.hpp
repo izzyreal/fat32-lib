@@ -15,7 +15,7 @@ private:
     std::shared_ptr<Fat> fat;
     Fat16BootSector* bs;
     AkaiFatLfnDirectory* rootDir;
-    AbstractDirectory* rootDirStore;
+    std::shared_ptr<AbstractDirectory> rootDirStore;
     long filesOffset;
             
 public:
@@ -31,7 +31,6 @@ public:
     ~AkaiFatFileSystem() {
         delete bs;
         delete rootDir;
-        delete rootDirStore;
     }
 
     long getFilesOffset();
@@ -40,7 +39,7 @@ public:
 
     void setVolumeLabel(std::string label);
 
-    AbstractDirectory* getRootDirStore();
+    std::shared_ptr<AbstractDirectory> getRootDirStore();
     
     void flush() override;
     

@@ -32,7 +32,7 @@ namespace akaifat::fat {
 
         void addEntry(std::shared_ptr<FatDirectoryEntry>);
 
-        void removeEntry(std::shared_ptr<FatDirectoryEntry>);
+        void removeEntry(const std::shared_ptr<FatDirectoryEntry>&);
 
         std::string &getLabel();
 

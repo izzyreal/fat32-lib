@@ -100,7 +100,7 @@ void AbstractDirectory::addEntry(std::shared_ptr<FatDirectoryEntry> e) {
     entries.push_back(e);
 }
 
-void AbstractDirectory::removeEntry(std::shared_ptr<FatDirectoryEntry> entry) {
+void AbstractDirectory::removeEntry(const std::shared_ptr<FatDirectoryEntry>& entry) {
     assert (entry != nullptr);
 
     auto it = find(begin(entries), end(entries), entry);
