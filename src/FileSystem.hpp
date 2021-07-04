@@ -1,5 +1,6 @@
 #pragma once
 #include <exception>
+#include <memory>
 
 namespace akaifat {
 
@@ -7,7 +8,7 @@ class FsDirectory;
 
 class FileSystem {
 public:
-    virtual FsDirectory* getRoot() = 0;
+    virtual std::shared_ptr<FsDirectory> getRoot() = 0;
 
     virtual bool isReadOnly() = 0;
 

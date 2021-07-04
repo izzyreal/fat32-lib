@@ -14,7 +14,7 @@ class AkaiFatFileSystem : public akaifat::AbstractFileSystem
 private:
     std::shared_ptr<Fat> fat;
     Fat16BootSector* bs;
-    AkaiFatLfnDirectory* rootDir;
+    std::shared_ptr<AkaiFatLfnDirectory> rootDir;
     std::shared_ptr<AbstractDirectory> rootDirStore;
     long filesOffset;
             
@@ -30,7 +30,6 @@ public:
 
     ~AkaiFatFileSystem() {
         delete bs;
-        delete rootDir;
     }
 
     long getFilesOffset();
@@ -43,7 +42,7 @@ public:
     
     void flush() override;
     
-    AkaiFatLfnDirectory* getRoot() override;
+    std::shared_ptr<FsDirectory> getRoot() override;
 
     BootSector* getBootSector();
 

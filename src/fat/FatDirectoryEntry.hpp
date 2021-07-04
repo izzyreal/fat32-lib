@@ -140,7 +140,7 @@ namespace akaifat::fat {
             return result;
         }
 
-        static FatDirectoryEntry *createVolumeLabel(const std::string &volumeLabel) {
+        static std::shared_ptr<FatDirectoryEntry> createVolumeLabel(const std::string &volumeLabel) {
 
             assert(volumeLabel.length() != 0);
 
@@ -149,7 +149,7 @@ namespace akaifat::fat {
             for (int i = 0; i < volumeLabel.length(); i++)
                 data[i] = volumeLabel[i];
 
-            auto result = new FatDirectoryEntry(data, false);
+            auto result = std::make_shared<FatDirectoryEntry>(data, false);
             result->setFlags(FatDirectoryEntry::F_VOLUME_ID);
             return result;
         }

@@ -71,7 +71,7 @@ void AbstractDirectory::flush() {
     ByteBuffer data(capacity *FatDirectoryEntry::SIZE
     +(volumeLabel.length() != 0 ? FatDirectoryEntry::SIZE : 0));
 
-    for (auto entry : entries) {
+    for (const auto& entry : entries) {
         if (entry != nullptr)
             entry->write(data);
     }

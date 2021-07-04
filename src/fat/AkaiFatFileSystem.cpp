@@ -31,7 +31,7 @@ AkaiFatFileSystem::AkaiFatFileSystem(
 
     rootDirStore = Fat16RootDirectory::read(bs, readOnly);
 
-    rootDir = new AkaiFatLfnDirectory(rootDirStore, fat, readOnly);
+    rootDir = std::make_shared<AkaiFatLfnDirectory>(rootDirStore, fat, readOnly);
 }
 
 AkaiFatFileSystem* AkaiFatFileSystem::read(BlockDevice* device, bool readOnly)
@@ -84,7 +84,7 @@ void AkaiFatFileSystem::flush()
     rootDir->flush();
 }
 
-AkaiFatLfnDirectory* AkaiFatFileSystem::getRoot()
+std::shared_ptr<FsDirectory> AkaiFatFileSystem::getRoot()
 {
     checkClosed();
     

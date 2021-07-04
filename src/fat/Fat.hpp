@@ -87,7 +87,7 @@ public:
         return result;
     }
     
-    static Fat* create(BootSector* bs, int fatNr) {
+    static std::shared_ptr<Fat> create(BootSector* bs, int fatNr) {
         
         if (fatNr > bs->getNrFats()) {
             throw std::runtime_error("boot sector says there are only " + std::to_string(bs->getNrFats()) +
@@ -95,7 +95,7 @@ public:
         }
         
         long fatOffset = bs->getFatOffset(fatNr);
-        auto result = new Fat(bs, fatOffset);
+        auto result = std::make_shared<Fat>(bs, fatOffset);
 
         if (bs->getDataClusterCount() > result->entries.size())
             throw std::runtime_error("FAT too small for device");

@@ -17,7 +17,7 @@ int main() {
     ImageBlockDevice device(img);
     auto fs = dynamic_cast<AkaiFatFileSystem *>(FileSystemFactory::createAkai(&device, false));
 
-    auto root = fs->getRoot();
+    auto root = std::dynamic_pointer_cast<AkaiFatLfnDirectory>(fs->getRoot());
 
     auto bs = dynamic_cast<Fat16BootSector *>(fs->getBootSector());
 
