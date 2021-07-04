@@ -4,13 +4,14 @@
 #include "FatType.hpp"
 
 #include <memory>
+#include <utility>
 
 namespace akaifat::fat {
 class Fat {
 private:
     std::vector<long> entries;
     FatType* fatType;
-    BootSector* bs;
+    std::shared_ptr<BootSector> bs;
     long offset;
     int lastClusterIndex;
     int sectorCount;
@@ -37,8 +38,8 @@ private:
 public:
     static const int FIRST_CLUSTER = 2;
 
-    Fat(BootSector* _bs, long _offset)
-            : bs (_bs), offset (_offset)
+    Fat(std::shared_ptr<BootSector> _bs, long _offset)
+            : bs (std::move(_bs)), offset (_offset)
     {
         device = bs->getDevice();
         fatType = bs->getFatType();
@@ -74,7 +75,7 @@ public:
                                      " clusters but only " + std::to_string(entries.size()) + " FAT entries");
     }
 
-    static std::shared_ptr<Fat> read(BootSector* bs, int fatNr) {
+    static std::shared_ptr<Fat> read(std::shared_ptr<BootSector> bs, int fatNr) {
         
         if (fatNr > bs->getNrFats()) {
             throw std::runtime_error("boot sector says there are only " + std::to_string(bs->getNrFats()) +
@@ -87,7 +88,7 @@ public:
         return result;
     }
     
-    static std::shared_ptr<Fat> create(BootSector* bs, int fatNr) {
+    static std::shared_ptr<Fat> create(std::shared_ptr<BootSector> bs, int fatNr) {
         
         if (fatNr > bs->getNrFats()) {
             throw std::runtime_error("boot sector says there are only " + std::to_string(bs->getNrFats()) +
@@ -109,7 +110,7 @@ public:
         return fatType;
     }
     
-    BootSector* getBootSector() {
+    std::shared_ptr<BootSector> getBootSector() {
         return bs;
     }
 

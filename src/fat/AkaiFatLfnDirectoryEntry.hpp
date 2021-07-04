@@ -14,9 +14,9 @@
 
 namespace akaifat::fat {
     class AkaiFatLfnDirectoryEntry : public akaifat::AbstractFsObject, public akaifat::FsDirectoryEntry {
-    private:
 
-        AkaiFatLfnDirectory *parent;
+    private:
+        std::shared_ptr<AkaiFatLfnDirectory> parent;
         std::string fileName;
 
     public:
@@ -103,7 +103,7 @@ namespace akaifat::fat {
             ap.write(realEntry->data);
         }
 
-        akaifat::FsDirectory *getParent() override {
+        std::shared_ptr<akaifat::FsDirectory> getParent() override {
             checkValid();
             return parent;
         }
@@ -122,7 +122,7 @@ namespace akaifat::fat {
             parent->linkEntry(unlinkedEntryRef);
         }
 
-        void moveTo(AkaiFatLfnDirectory *target, std::string newName) {
+        void moveTo(std::shared_ptr<AkaiFatLfnDirectory> target, std::string newName) {
 
             checkWritable();
 
@@ -138,11 +138,11 @@ namespace akaifat::fat {
             parent->linkEntry(unlinkedEntryRef);
         }
 
-        FatFile *getFile() override {
+        std::shared_ptr<FsFile> getFile() override {
             return parent->getFile(realEntry);
         }
 
-        akaifat::FsDirectory *getDirectory() override {
+        std::shared_ptr<akaifat::FsDirectory> getDirectory() override {
             return parent->getDirectory(realEntry);
         }
 

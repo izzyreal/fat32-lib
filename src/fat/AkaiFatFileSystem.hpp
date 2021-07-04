@@ -13,7 +13,7 @@ class AkaiFatFileSystem : public akaifat::AbstractFileSystem
 {
 private:
     std::shared_ptr<Fat> fat;
-    Fat16BootSector* bs;
+    std::shared_ptr<Fat16BootSector> bs;
     std::shared_ptr<AkaiFatLfnDirectory> rootDir;
     std::shared_ptr<AbstractDirectory> rootDirStore;
     long filesOffset;
@@ -28,10 +28,6 @@ public:
 
     static AkaiFatFileSystem* read(BlockDevice* device, bool readOnly);
 
-    ~AkaiFatFileSystem() {
-        delete bs;
-    }
-
     long getFilesOffset();
 
     std::string getVolumeLabel();
@@ -44,7 +40,7 @@ public:
     
     std::shared_ptr<FsDirectory> getRoot() override;
 
-    BootSector* getBootSector();
+    std::shared_ptr<BootSector> getBootSector();
 
     long getFreeSpace() override;
 

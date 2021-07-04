@@ -16,12 +16,12 @@ namespace akaifat::fat {
         std::shared_ptr<FatDirectoryEntry> entry;
         ClusterChain chain;
 
+    public:
         FatFile(const std::shared_ptr<FatDirectoryEntry>& myEntry, ClusterChain _chain)
                 : akaifat::AbstractFsObject(myEntry->isReadOnly()), entry(myEntry), chain(std::move(_chain)) {
         }
 
-    public:
-        static FatFile *get(Fat *fat, const std::shared_ptr<FatDirectoryEntry>& entry) {
+        static std::shared_ptr<FatFile> get(Fat *fat, const std::shared_ptr<FatDirectoryEntry>& entry) {
 
             if (entry->isDirectory())
                 throw std::runtime_error(entry->getShortName().asSimpleString() + " is a directory");
@@ -34,7 +34,7 @@ namespace akaifat::fat {
                                          ") is larger than associated cluster chain ("
                                          + std::to_string(cc.getLengthOnDisk()) + ")");
 
-            return new FatFile(entry, cc);
+            return std::make_shared<FatFile>(entry, cc);
         }
 
         long getLength() override {

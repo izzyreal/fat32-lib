@@ -19,7 +19,7 @@ int main() {
 
     auto root = std::dynamic_pointer_cast<AkaiFatLfnDirectory>(fs->getRoot());
 
-    auto bs = dynamic_cast<Fat16BootSector *>(fs->getBootSector());
+    auto bs = std::dynamic_pointer_cast<Fat16BootSector>(fs->getBootSector());
 
     auto volumeLabel = bs->getVolumeLabel();
 
@@ -32,7 +32,7 @@ int main() {
 
     auto test1 = entries["test1"];
 
-    auto dir = dynamic_cast<AkaiFatLfnDirectory *>(test1->getDirectory());
+    auto dir = std::dynamic_pointer_cast<AkaiFatLfnDirectory>(test1->getDirectory());
     printf("- TEST1 LISTING -\n");
     auto dirEntries = dir->akaiNameIndex;
 

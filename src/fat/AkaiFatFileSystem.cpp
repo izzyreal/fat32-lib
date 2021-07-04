@@ -10,7 +10,7 @@ AkaiFatFileSystem::AkaiFatFileSystem(
     bool readOnly,
     bool ignoreFatDifferences
 ) : akaifat::AbstractFileSystem (readOnly),
-    bs (dynamic_cast<Fat16BootSector*>(BootSector::read(device)))
+    bs (std::dynamic_pointer_cast<Fat16BootSector>(BootSector::read(device)))
 {                
     if (bs->getNrFats() <= 0) 
             throw std::runtime_error("boot sector says there are no FATs");
@@ -91,7 +91,7 @@ std::shared_ptr<FsDirectory> AkaiFatFileSystem::getRoot()
     return rootDir;
 }
 
-BootSector* AkaiFatFileSystem::getBootSector()
+std::shared_ptr<BootSector> AkaiFatFileSystem::getBootSector()
 {
     checkClosed();
     

@@ -24,8 +24,8 @@ std::shared_ptr<Fat> AkaiFatLfnDirectory::getFat() {
     return fat;
 }
 
-FatFile *AkaiFatLfnDirectory::getFile(std::shared_ptr<FatDirectoryEntry> entry) {
-    FatFile *file;
+std::shared_ptr<FatFile> AkaiFatLfnDirectory::getFile(const std::shared_ptr<FatDirectoryEntry>& entry) {
+    std::shared_ptr<FatFile> file;
 
     if (entryToFile.find(entry) == end(entryToFile)) {
         file = FatFile::get(fat.get(), entry);
@@ -37,12 +37,13 @@ FatFile *AkaiFatLfnDirectory::getFile(std::shared_ptr<FatDirectoryEntry> entry) 
     return file;
 }
 
-AkaiFatLfnDirectory *AkaiFatLfnDirectory::getDirectory(std::shared_ptr<FatDirectoryEntry> entry) {
-    AkaiFatLfnDirectory *result;
+std::shared_ptr<AkaiFatLfnDirectory> AkaiFatLfnDirectory::getDirectory(const std::shared_ptr<FatDirectoryEntry>& entry)
+{
+    std::shared_ptr<AkaiFatLfnDirectory> result;
 
     if (entryToDirectory.find(entry) == end(entryToDirectory)) {
         auto storage = read(entry, fat.get());
-        result = new AkaiFatLfnDirectory(storage, fat, isReadOnly());
+        result = std::make_shared<AkaiFatLfnDirectory>(storage, fat, isReadOnly());
         entryToDirectory[entry] = result;
     } else {
         result = entryToDirectory[entry];

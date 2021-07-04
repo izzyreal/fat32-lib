@@ -31,7 +31,7 @@ namespace akaifat::fat {
         }
 
     public:
-        Fat16RootDirectory(Fat16BootSector *bs, bool readOnly)
+        Fat16RootDirectory(std::shared_ptr<Fat16BootSector> bs, bool readOnly)
                 : AbstractDirectory(bs->getRootDirEntryCount(), readOnly, true) {
             if (bs->getRootDirEntryCount() <= 0)
                 throw std::runtime_error("root directory size is " + std::to_string(bs->getRootDirEntryCount()));
@@ -41,15 +41,15 @@ namespace akaifat::fat {
         }
 
         static std::shared_ptr<Fat16RootDirectory> read(
-                Fat16BootSector *bs, bool readOnly) {
+                std::shared_ptr<Fat16BootSector> bs, bool readOnly) {
             auto result = std::make_shared<Fat16RootDirectory>(bs, readOnly);
             result->read();
             return result;
         }
 
-        static Fat16RootDirectory *create(
-                Fat16BootSector *bs) {
-            auto result = new Fat16RootDirectory(bs, false);
+        static std::shared_ptr<Fat16RootDirectory> create(
+                std::shared_ptr<Fat16BootSector> bs) {
+            auto result = std::make_shared<Fat16RootDirectory>(bs, false);
             result->flush();
             return result;
         }

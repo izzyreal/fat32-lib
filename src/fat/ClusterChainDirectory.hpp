@@ -47,10 +47,10 @@ namespace akaifat::fat {
                 _chain->isReadOnly(), isRoot), chain(_chain) {
         }
 
-        static ClusterChainDirectory* readRoot(
+        static std::shared_ptr<ClusterChainDirectory> readRoot(
                 const std::shared_ptr<ClusterChain>& chain) {
 
-            auto result = new ClusterChainDirectory(chain, true);
+            auto result = std::make_shared<ClusterChainDirectory>(chain, true);
 
             result->read();
             return result;

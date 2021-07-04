@@ -28,9 +28,9 @@ namespace akaifat::fat {
 
         std::shared_ptr<Fat> getFat();
 
-        FatFile *getFile(std::shared_ptr<FatDirectoryEntry> entry);
+        std::shared_ptr<FatFile> getFile(const std::shared_ptr<FatDirectoryEntry>& entry);
 
-        AkaiFatLfnDirectory *getDirectory(std::shared_ptr<FatDirectoryEntry> entry);
+        std::shared_ptr<AkaiFatLfnDirectory> getDirectory(const std::shared_ptr<FatDirectoryEntry>& entry);
 
         std::shared_ptr<akaifat::FsDirectoryEntry> addFile(std::string &name) override;
 
@@ -54,8 +54,8 @@ namespace akaifat::fat {
     private:
         std::set<std::string> usedAkaiNames;
         std::shared_ptr<Fat> fat;
-        std::map<std::shared_ptr<FatDirectoryEntry>, FatFile *> entryToFile;
-        std::map<std::shared_ptr<FatDirectoryEntry>, AkaiFatLfnDirectory *> entryToDirectory;
+        std::map<std::shared_ptr<FatDirectoryEntry>, std::shared_ptr<FatFile>> entryToFile;
+        std::map<std::shared_ptr<FatDirectoryEntry>, std::shared_ptr<AkaiFatLfnDirectory>> entryToDirectory;
 
         void checkUniqueName(std::string &name);
 

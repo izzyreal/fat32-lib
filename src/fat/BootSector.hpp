@@ -16,7 +16,7 @@ namespace akaifat::fat {
         static const int EXTENDED_BOOT_SIGNATURE = 0x29;
         static const int SIZE = 512;
 
-        static BootSector *read(BlockDevice *device);
+        static std::shared_ptr<BootSector> read(BlockDevice *device);
 
         virtual FatType *getFatType() = 0;
 

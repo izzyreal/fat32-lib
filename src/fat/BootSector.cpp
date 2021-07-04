@@ -5,7 +5,7 @@
 using namespace akaifat;
 using namespace akaifat::fat;
 
-BootSector* BootSector::read(BlockDevice* device) {
+std::shared_ptr<BootSector> BootSector::read(BlockDevice* device) {
     ByteBuffer bb(512);
     device->read(0, bb);
     
@@ -18,7 +18,7 @@ BootSector* BootSector::read(BlockDevice* device) {
     if (sectorsPerCluster <= 0)
         throw std::runtime_error("suspicious sectors per cluster count " + std::to_string(sectorsPerCluster));
                 
-    auto result = new Fat16BootSector(device);
+    auto result = std::make_shared<Fat16BootSector>(device);
     result->read_();
     return result;
 }
